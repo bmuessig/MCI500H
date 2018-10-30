@@ -8,7 +8,7 @@ namespace nxgmci.Playlist
 {
     public static class PlaylistParser
     {
-        private static readonly Regex infoRegex = new Regex(@"^\s*#EXTINF\s*:\s*(-?\d+)\s*,\s*(.*)\s*$",
+        private static readonly Regex infoRegex = new Regex(@"^\s*#EXTINF\s*:\s*(-?\d+)\s*,\s*(.*)(?:\s*-\s*(.*))?\s*$",
             RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
         public static List<PlaylistItem> Parse(string Input, bool SkipEverythingButURLs = false, bool SkipEverythingButHTTP = false)
@@ -23,7 +23,7 @@ namespace nxgmci.Playlist
             bool isExtended = false, firstLine = true, haveMeta = false;
             
             // We also keep the last title and duration encountered
-            string lastTitle = string.Empty;
+            string lastTitle = string.Empty, lastArtist = string.Empty;
             long lastDuration = -1;
 
             // And we allocate a list for our playlist entries
@@ -37,6 +37,9 @@ namespace nxgmci.Playlist
                 {
                     // And reset our meta marker on these blank lines
                     haveMeta = false;
+                    lastTitle = string.Empty;
+                    lastArtist = string.Empty;
+                    lastDuration = -1;
                     continue;
                 }
 
@@ -71,13 +74,23 @@ namespace nxgmci.Playlist
                     // If parsing fails, it's probably just a regular comment, so we skip it
                     if (!infoMatch.Success)
                         continue;
-                    if (infoMatch.Groups.Count != 3)
+                    if (infoMatch.Groups.Count != 4)
                         continue;
 
-                    // If we succeed parsing it, store title and duration
+                    // If we succeed parsing it, store title, artist and duration
                     if (!long.TryParse(infoMatch.Groups[1].Value, out lastDuration))
                         lastDuration = -1;
-                    lastTitle = infoMatch.Groups[2].Value.Trim();
+                    
+                    // Check, if we have an artist given
+                    if (!string.IsNullOrWhiteSpace(infoMatch.Groups[4].Value))
+                    {
+                        lastTitle = infoMatch.Groups[3].Value.Trim();
+                        lastArtist = infoMatch.Groups[2].Value.Trim();
+                    }
+                    else
+                        lastTitle = infoMatch.Groups[2].Value.Trim();
+
+                    // Set the meta marker
                     haveMeta = true;
 
                     // Since we have handled that line, proceed to the next one
@@ -92,6 +105,9 @@ namespace nxgmci.Playlist
                         {
                             // If we only allow HTTP URLs, skip everything else
                             haveMeta = false;
+                            lastTitle = string.Empty;
+                            lastArtist = string.Empty;
+                            lastDuration = -1;
                             continue;
                         }
                     }
@@ -101,6 +117,9 @@ namespace nxgmci.Playlist
                         {
                             // If we only allow URLs, but the URL characteristic is not present, skip the path
                             haveMeta = false;
+                            lastTitle = string.Empty;
+                            lastArtist = string.Empty;
+                            lastDuration = -1;
                             continue;
                         }
                     }
@@ -114,11 +133,14 @@ namespace nxgmci.Playlist
                 // If we have additional info, add it
                 if (haveMeta)
                 {
-                    items.Add(new PlaylistItem(lastTitle, line.Trim(), lastDuration));
+                    items.Add(new PlaylistItem(lastTitle, lastArtist, line.Trim(), lastDuration));
                     haveMeta = false;
+                    lastTitle = string.Empty;
+                    lastArtist = string.Empty;
+                    lastDuration = -1;
                 }
                 else
-                    items.Add(new PlaylistItem(string.Empty, line.Trim()));
+                    items.Add(new PlaylistItem(string.Empty, string.Empty, line.Trim()));
             }
 
             // And finally, return the completed list
