@@ -247,7 +247,7 @@ namespace ADM
                     return;
                 }
 
-                List<nxgmci.Playlist.PlaylistItem> listItems = nxgmci.Playlist.PlaylistParser.Parse(playlistConts, true, true, true);
+                List<nxgmci.Playlist.PlaylistItem> listItems = nxgmci.Playlist.PlaylistParser.Parse(playlistConts, true, false, true, true);
                 if (listItems == null)
                 {
                     MessageBox.Show("Fail parsing list!");

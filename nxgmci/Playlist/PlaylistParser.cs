@@ -10,8 +10,11 @@ namespace nxgmci.Playlist
     {
         private static readonly Regex infoRegex = new Regex(@"^\s*#EXTINF\s*:\s*(-?\d+)\s*,\s*(.*)(?:\s*-\s*(.*))?\s*$",
             RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        private static readonly Regex infoNoArtistRegex = new Regex(@"^\s*#EXTINF\s*:\s*(-?\d+)\s*,\s*(.*)\s*$",
+            RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
-        public static List<PlaylistItem> Parse(string Input, bool IgnoreBlankLines = false,
+        public static List<PlaylistItem> Parse(string Input,
+            bool IgnoreBlankLines = false, bool DisableArtistInfo = false,
             bool SkipEverythingButURLs = false, bool SkipEverythingButHTTP = false)
         {
             // First, normalize the line endings to unix linefeed
@@ -74,28 +77,33 @@ namespace nxgmci.Playlist
                     if (!isExtended)
                         continue;
 
-                    // Attempt to match the line using the info regex
-                    Match infoMatch = infoRegex.Match(line);
+                    // Attempt to match the line using the info Regex
+                    Match infoMatch;
+                    if (DisableArtistInfo)
+                        infoMatch = infoNoArtistRegex.Match(line);
+                    else
+                        infoMatch = infoRegex.Match(line);
                     
                     // We have just encountered extended info and attempt to parse it
                     // If parsing fails, it's probably just a regular comment, so we skip it
                     if (!infoMatch.Success)
                         continue;
-                    if (infoMatch.Groups.Count != 4)
+                    if (infoMatch.Groups.Count < 3 || infoMatch.Groups.Count > 4)
                         continue;
 
                     // If we succeed parsing it, store title, artist and duration
                     if (!long.TryParse(infoMatch.Groups[1].Value, out lastDuration))
                         lastDuration = -1;
-                    
-                    // Check, if we have an artist given
-                    if (!string.IsNullOrWhiteSpace(infoMatch.Groups[4].Value))
+
+                    // Check, if the artist info is disabled and the Regex unified
+                    if (DisableArtistInfo || string.IsNullOrWhiteSpace(infoMatch.Groups[4].Value))
+                        lastTitle = infoMatch.Groups[2].Value.Trim();
+                    else
                     {
+                        // We have both, artist and title
                         lastTitle = infoMatch.Groups[3].Value.Trim();
                         lastArtist = infoMatch.Groups[2].Value.Trim();
                     }
-                    else
-                        lastTitle = infoMatch.Groups[2].Value.Trim();
 
                     // Set the meta marker
                     haveMeta = true;
