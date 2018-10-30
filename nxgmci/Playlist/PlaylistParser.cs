@@ -11,7 +11,8 @@ namespace nxgmci.Playlist
         private static readonly Regex infoRegex = new Regex(@"^\s*#EXTINF\s*:\s*(-?\d+)\s*,\s*(.*)(?:\s*-\s*(.*))?\s*$",
             RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
-        public static List<PlaylistItem> Parse(string Input, bool SkipEverythingButURLs = false, bool SkipEverythingButHTTP = false)
+        public static List<PlaylistItem> Parse(string Input, bool IgnoreBlankLines = false,
+            bool SkipEverythingButURLs = false, bool SkipEverythingButHTTP = false)
         {
             // First, normalize the line endings to unix linefeed
             Input = Input.Replace("\r\n", "\n").Replace("\r", "\n");
@@ -35,11 +36,17 @@ namespace nxgmci.Playlist
                 // Skip the line if it is empty
                 if (string.IsNullOrWhiteSpace(line))
                 {
-                    // And reset our meta marker on these blank lines
-                    haveMeta = false;
-                    lastTitle = string.Empty;
-                    lastArtist = string.Empty;
-                    lastDuration = -1;
+                    // And, if desired, reset our meta marker on these blank lines
+                    // Windows Media Player prefers the full artist + title format
+                    // VLC ignores blank lines and does both formats well
+                    // Both support header-less entries
+                    if (!IgnoreBlankLines)
+                    {
+                        haveMeta = false;
+                        lastTitle = string.Empty;
+                        lastArtist = string.Empty;
+                        lastDuration = -1;
+                    }
                     continue;
                 }
 
