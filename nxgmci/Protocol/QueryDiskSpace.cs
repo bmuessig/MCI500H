@@ -55,6 +55,15 @@ namespace nxgmci.Protocol
             if (!ulong.TryParse(result.Elements["totalsize"], out totalSize))
                 return new ParseResult<ResponseParameters>(string.Format("Could not parse parameter '{0}' as ulong!", "totalsize"));
 
+            // Next, we will may have to perform some sanity checks
+            if (ValidateInput)
+            {
+                if (size > totalSize)
+                    return new ParseResult<ResponseParameters>("size < totalsize");
+                if (totalSize == 0)
+                    return new ParseResult<ResponseParameters>("size == 0");
+            }
+
             // Finally, return the response
             return new ParseResult<ResponseParameters>(new ResponseParameters(size, totalSize));
         }
