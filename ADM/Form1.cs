@@ -101,27 +101,60 @@ namespace ADM
         }
 
         nxgmci.Protocol.RequestRawData.ContentDataSet currentMediaLib;
+        nxgmci.Protocol.RequestAlbumIndexTable.ContentDataSet currentAlbumIndex;
+        nxgmci.Protocol.RequestArtistIndexTable.ContentDataSet currentArtistIndex;
+        nxgmci.Protocol.RequestGenreIndexTable.ContentDataSet currentGenreIndex;
 
         private void button5_Click(object sender, EventArgs e)
         {
+            // Fetch media
             Postmaster.QueryResponse response = Postmaster.PostXML(new Uri(baseurl + ":8081/"),
                 (textBox1.Text = nxgmci.Protocol.RequestRawData.Build(0, 0)), true);
-            
             if (!response.Success)
             {
                 MessageBox.Show("An error occured: " + response.Message);
                 return;
             }
-
-            nxgmci.Protocol.ParseResult<nxgmci.Protocol.RequestRawData.ContentDataSet> parseResp = nxgmci.Protocol.RequestRawData.Parse(response.TextualResponse);
-
-            if (!parseResp.Success)
+            nxgmci.Protocol.ParseResult<nxgmci.Protocol.RequestRawData.ContentDataSet> contentResp = nxgmci.Protocol.RequestRawData.Parse(response.TextualResponse);
+            if (!contentResp.Success)
             {
-                MessageBox.Show("An error occured: " + parseResp.ErrorMessage);
+                MessageBox.Show("An error occured: " + contentResp.ErrorMessage);
                 return;
             }
 
-            currentMediaLib = parseResp.Result;
+            // Fetch artists
+            response = Postmaster.PostXML(new Uri(baseurl + ":8081/"),
+                (textBox1.Text = nxgmci.Protocol.RequestArtistIndexTable.Build()), true);
+            if (!response.Success)
+            {
+                MessageBox.Show("An error occured: " + response.Message);
+                return;
+            }
+            nxgmci.Protocol.ParseResult<nxgmci.Protocol.RequestArtistIndexTable.ContentDataSet> artistResp = nxgmci.Protocol.RequestArtistIndexTable.Parse(response.TextualResponse);
+            if (!artistResp.Success)
+            {
+                MessageBox.Show("An error occured: " + artistResp.ErrorMessage);
+                return;
+            }
+
+            // Fetch albums
+            response = Postmaster.PostXML(new Uri(baseurl + ":8081/"),
+                (textBox1.Text = nxgmci.Protocol.RequestAlbumIndexTable.Build()), true);
+            if (!response.Success)
+            {
+                MessageBox.Show("An error occured: " + response.Message);
+                return;
+            }
+            nxgmci.Protocol.ParseResult<nxgmci.Protocol.RequestAlbumIndexTable.ContentDataSet> albumResp = nxgmci.Protocol.RequestAlbumIndexTable.Parse(response.TextualResponse);
+            if (!albumResp.Success)
+            {
+                MessageBox.Show("An error occured: " + albumResp.ErrorMessage);
+                return;
+            }
+
+            currentMediaLib = contentResp.Result;
+            currentArtistIndex = artistResp.Result;
+            currentAlbumIndex = albumResp.Result;
             updateLib();
         }
 
@@ -143,7 +176,27 @@ namespace ADM
                 return;
             mediaView.Items.Clear();
             foreach (var contentData in currentMediaLib.ContentData)
-                mediaView.Items.Add(new ListViewItem(new string[] { contentData.Name, contentData.Artist.ToString(), contentData.Album.ToString() }));
+            {
+                string title = contentData.Name.Trim(), artist, album;
+
+                nxgmci.Protocol.RequestArtistIndexTable.ContentData artistEntry =
+                    currentArtistIndex.GetEntry(contentData.Artist);
+                if (artistEntry == null)
+                    artist = contentData.Artist.ToString();
+                else
+                    artist = artistEntry.Name;
+
+                nxgmci.Protocol.RequestAlbumIndexTable.ContentData albumEntry =
+                    currentAlbumIndex.GetEntry(contentData.Album);
+                if (albumEntry == null)
+                    album = contentData.Album.ToString();
+                else
+                    album = albumEntry.Name;
+
+                mediaView.Items.Add(new ListViewItem(new string[] {
+                    title, artist, album
+                }));
+            }
         }
 
         private void button6_Click(object sender, EventArgs e)
