@@ -47,6 +47,7 @@
     <Compile Include="MediaUploader.cs" />
     <Compile Include="Playlist\PlaylistItem.cs" />
     <Compile Include="Playlist\PlaylistParser.cs" />
+    <Compile Include="Protocol\RequestAlbumIndexTable.cs" />
     <Compile Include="Protocol\RequestArtistIndexTable.cs" />
     <Compile Include="XML\Postmaster.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
