@@ -104,6 +104,7 @@ namespace ADM
         nxgmci.Protocol.RequestAlbumIndexTable.ContentDataSet currentAlbumIndex;
         nxgmci.Protocol.RequestArtistIndexTable.ContentDataSet currentArtistIndex;
         nxgmci.Protocol.RequestGenreIndexTable.ContentDataSet currentGenreIndex;
+        nxgmci.Protocol.RequestUriMetaData.ResponseParameters currentUriMetaData;
 
         private void button5_Click(object sender, EventArgs e)
         {
@@ -152,9 +153,25 @@ namespace ADM
                 return;
             }
 
+            // Fetch urimetadata
+            response = Postmaster.PostXML(new Uri(baseurl + ":8081/"),
+                (textBox1.Text = nxgmci.Protocol.RequestUriMetaData.Build()), true);
+            if (!response.Success)
+            {
+                MessageBox.Show("An error occured: " + response.Message);
+                return;
+            }
+            nxgmci.Protocol.ParseResult<nxgmci.Protocol.RequestUriMetaData.ResponseParameters> metaDataResp = nxgmci.Protocol.RequestUriMetaData.Parse(response.TextualResponse);
+            if (!metaDataResp.Success)
+            {
+                MessageBox.Show("An error occured: " + metaDataResp.ErrorMessage);
+                return;
+            }
+
             currentMediaLib = contentResp.Result;
             currentArtistIndex = artistResp.Result;
             currentAlbumIndex = albumResp.Result;
+            currentUriMetaData = metaDataResp.Result;
             updateLib();
         }
 
