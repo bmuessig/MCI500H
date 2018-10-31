@@ -12,7 +12,7 @@ namespace nxgmci.XML
     public static class Postmaster
     {
         internal static uint ConnectTimeoutMilliseconds = 5000;
-        internal static uint ResponseTimeoutMilliseconds = 500;
+        internal static uint ResponseTimeoutMilliseconds = 1000;
         internal static uint ReceiveTimeoutMilliseconds = 1500;
 
         private static readonly Regex httpRegex = new Regex("^HTTP\\/(\\d\\.\\d)[ \\t]+(\\d+)[ \\t]+([\\w ]+)$",
@@ -378,7 +378,7 @@ namespace nxgmci.XML
             // This is the most basic constructor - the request failed with no more information
             internal QueryResponse(string Message = "")
             {
-                if (this.Message == null)
+                if (Message == null)
                     Message = string.Empty;
 
                 this.Success = false;
