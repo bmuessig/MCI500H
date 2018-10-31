@@ -47,16 +47,16 @@
     <Compile Include="MediaUploader.cs" />
     <Compile Include="Playlist\PlaylistItem.cs" />
     <Compile Include="Playlist\PlaylistParser.cs" />
-    <Compile Include="Postmaster.cs" />
+    <Compile Include="XML\Postmaster.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="DLNAProtocol.cs" />
-    <Compile Include="TinyParser.cs" />
-    <Compile Include="TinyResult.cs" />
-    <Compile Include="WADMProtocol.cs" />
-    <Compile Include="WADM\ParseResult.cs" />
-    <Compile Include="WADM\RequestRawData.cs" />
-    <Compile Include="WADM\QueryDiskSpace.cs" />
+    <Compile Include="Protocol\DLNA.cs" />
+    <Compile Include="XML\TinyParser.cs" />
+    <Compile Include="XML\TinyResult.cs" />
+    <Compile Include="Protocol\ParseResult.cs" />
+    <Compile Include="Protocol\RequestRawData.cs" />
+    <Compile Include="Protocol\QueryDiskSpace.cs" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

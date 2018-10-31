@@ -9,6 +9,7 @@ using System.Windows.Forms;
 using nxgmci;
 using System.Net;
 using System.IO;
+using nxgmci.XML;
 
 namespace ADM
 {
@@ -99,12 +100,12 @@ namespace ADM
             this.TopMost = checkBox1.Checked;
         }
 
-        nxgmci.WADM.RequestRawData.ContentDataSet currentMediaLib;
+        nxgmci.Protocol.RequestRawData.ContentDataSet currentMediaLib;
 
         private void button5_Click(object sender, EventArgs e)
         {
             Postmaster.QueryResponse response = Postmaster.PostXML(new Uri(baseurl + ":8081/"),
-                (textBox1.Text = nxgmci.WADM.RequestRawData.Build(0, 0)), true);
+                (textBox1.Text = nxgmci.Protocol.RequestRawData.Build(0, 0)), true);
             
             if (!response.Success)
             {
@@ -112,7 +113,7 @@ namespace ADM
                 return;
             }
 
-            nxgmci.WADM.ParseResult<nxgmci.WADM.RequestRawData.ContentDataSet> parseResp = nxgmci.WADM.RequestRawData.Parse(response.TextualResponse);
+            nxgmci.Protocol.ParseResult<nxgmci.Protocol.RequestRawData.ContentDataSet> parseResp = nxgmci.Protocol.RequestRawData.Parse(response.TextualResponse);
 
             if (!parseResp.Success)
             {
@@ -150,7 +151,7 @@ namespace ADM
             DateTime internalStart = DateTime.Now;
 
             Postmaster.QueryResponse response = Postmaster.PostXML(new Uri(baseurl + ":8081/"),
-                (textBox1.Text = nxgmci.WADM.QueryDiskSpace.Build()), true);
+                (textBox1.Text = nxgmci.Protocol.QueryDiskSpace.Build()), true);
 
             if (!response.Success)
             {
@@ -158,7 +159,7 @@ namespace ADM
                 return;
             }
 
-            nxgmci.WADM.ParseResult<nxgmci.WADM.QueryDiskSpace.ResponseParameters> parserResp = nxgmci.WADM.QueryDiskSpace.Parse(response.TextualResponse);
+            nxgmci.Protocol.ParseResult<nxgmci.Protocol.QueryDiskSpace.ResponseParameters> parserResp = nxgmci.Protocol.QueryDiskSpace.Parse(response.TextualResponse);
             if (!parserResp.Success)
             {
                 MessageBox.Show("An error occured: " + parserResp.ErrorMessage);

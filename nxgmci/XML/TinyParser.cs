@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace nxgmci
+namespace nxgmci.XML
 {
     public class TinyParser
     {

@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Net;
 using System.Text.RegularExpressions;
+using nxgmci.Protocol;
+using nxgmci.XML;
 
 namespace nxgmci
 {
@@ -110,11 +112,11 @@ namespace nxgmci
         public bool SelectMedia(Uri MediaUri)
         {
             Dictionary<string, string> headers = new Dictionary<string,string>();
-            headers.Add(DLNAProtocol.DLNAAction, DLNAProtocol.DLNASelectAction);
+            headers.Add(DLNA.DLNAAction, DLNA.DLNASelectAction);
             Postmaster.QueryResponse response =
                 Postmaster.PostXML(new IPEndPoint(DeviceIP, 8100),
                 dlnaAVTEndpoint,
-                string.Format(DLNAProtocol.DLNASelectBody, DLNAProtocol.EscapeString(MediaUri.ToString())),
+                string.Format(DLNA.DLNASelectBody, DLNA.EscapeString(MediaUri.ToString())),
                 true,
                 headers);
 
@@ -129,11 +131,11 @@ namespace nxgmci
         public bool Play()
         {
             Dictionary<string, string> headers = new Dictionary<string, string>();
-            headers.Add(DLNAProtocol.DLNAAction, DLNAProtocol.DLNAPlayAction);
+            headers.Add(DLNA.DLNAAction, DLNA.DLNAPlayAction);
             Postmaster.QueryResponse response =
                 Postmaster.PostXML(new IPEndPoint(DeviceIP, 8100),
                 dlnaAVTEndpoint,
-                string.Format(DLNAProtocol.DLNAPlayBody, 1),
+                string.Format(DLNA.DLNAPlayBody, 1),
                 true,
                 headers);
 
@@ -148,11 +150,11 @@ namespace nxgmci
         public bool Pause()
         {
             Dictionary<string, string> headers = new Dictionary<string, string>();
-            headers.Add(DLNAProtocol.DLNAAction, DLNAProtocol.DLNAPauseAction);
+            headers.Add(DLNA.DLNAAction, DLNA.DLNAPauseAction);
             Postmaster.QueryResponse response =
                 Postmaster.PostXML(new IPEndPoint(DeviceIP, 8100),
                 dlnaAVTEndpoint,
-                string.Format(DLNAProtocol.DLNAPauseBody, 1),
+                string.Format(DLNA.DLNAPauseBody, 1),
                 true,
                 headers);
 
@@ -167,11 +169,11 @@ namespace nxgmci
         public bool Stop()
         {
             Dictionary<string, string> headers = new Dictionary<string, string>();
-            headers.Add(DLNAProtocol.DLNAAction, DLNAProtocol.DLNAStopAction);
+            headers.Add(DLNA.DLNAAction, DLNA.DLNAStopAction);
             Postmaster.QueryResponse response =
                 Postmaster.PostXML(new IPEndPoint(DeviceIP, 8100),
                 dlnaAVTEndpoint,
-                string.Format(DLNAProtocol.DLNAStopBody, 1),
+                string.Format(DLNA.DLNAStopBody, 1),
                 true,
                 headers);
 

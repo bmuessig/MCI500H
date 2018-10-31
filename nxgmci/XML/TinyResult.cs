@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace nxgmci
+namespace nxgmci.XML
 {
     public class TinyResult
     {

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace nxgmci.WADM
+namespace nxgmci.Protocol
 {
     public class ParseResult<T>
     {

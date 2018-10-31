@@ -7,7 +7,7 @@ using System.Net.Sockets;
 using System.IO;
 using System.Text.RegularExpressions;
 
-namespace nxgmci
+namespace nxgmci.XML
 {
     public static class Postmaster
     {

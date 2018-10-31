@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace nxgmci
+namespace nxgmci.Protocol
 {
-    internal static class DLNAProtocol
+    internal static class DLNA
     {
         // == DLNA ==
         // Body refers to the XML body to be send
