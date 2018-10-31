@@ -9,6 +9,14 @@ namespace nxgmci.Protocol
 {
     public static class RequestRawData
     {
+        // This request is used to fetch title data in chunks or as a whole.
+        // It accepts both a start index (skip) and a max. items parameter (count).
+        // Using the parameters 0,0 will fetch all titles. This is not recommended for large databases.
+        // The stereo has limited RAM and processing capabilities and a database with 1000s of titles may overflow.
+        // It is recommended to fetch 100 titles at a time. The first request will return a total number of titles.
+        // This number can be used to generate the correct number of requests to fetch all titles successfully.
+        // The 0,0 method is not used by the official application.
+
         // ContentDataSet Parser
         private readonly static TinyParser parser = new TinyParser("contentdataset", "contentdata", true);
 

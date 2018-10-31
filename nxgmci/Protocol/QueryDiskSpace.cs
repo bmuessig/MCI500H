@@ -9,6 +9,9 @@ namespace nxgmci.Protocol
 {
     public class QueryDiskSpace
     {
+        // This request returns both free and used harddisk space.
+        // We can use this information to determine whether to upload new files nor not.
+
         // DiskSpace Parser
         private readonly static TinyParser parser = new TinyParser("querydiskspace", "responseparameters", false);
 

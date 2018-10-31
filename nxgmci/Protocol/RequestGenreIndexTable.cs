@@ -9,6 +9,9 @@ namespace nxgmci.Protocol
 {
     public static class RequestGenreIndexTable
     {
+        // This request returns a key-value-pair table of all genre ids and their clear text names.
+        // We can use this information to map the genre ids returned by RequestRawData to strings.
+
         // ContentDataSet Parser
         private readonly static TinyParser parser = new TinyParser("contentdataset", "contentdata", true);
 
