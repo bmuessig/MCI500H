@@ -51,24 +51,24 @@ namespace nxgmci.Protocol
 
             // Now, make sure our mandatory arguments exist
             if (!result.Elements.ContainsKey("totnumelem"))
-                return new ParseResult<ContentDataSet>("Could not locate parameter 'totnumelem'!");
+                return new ParseResult<ContentDataSet>(string.Format("Could not locate parameter '{0}'!", "totnumelem"));
             if (!result.Elements.ContainsKey("fromindex"))
-                return new ParseResult<ContentDataSet>("Could not locate parameter 'fromindex'!");
+                return new ParseResult<ContentDataSet>(string.Format("Could not locate parameter '{0}'!", "fromindex"));
             if (!result.Elements.ContainsKey("numelem"))
-                return new ParseResult<ContentDataSet>("Could not locate parameter 'numelem'!");
+                return new ParseResult<ContentDataSet>(string.Format("Could not locate parameter '{0}'!", "numelem"));
             if (!result.Elements.ContainsKey("updateid"))
-                return new ParseResult<ContentDataSet>("Could not locate parameter 'updateid'!");
+                return new ParseResult<ContentDataSet>(string.Format("Could not locate parameter '{0}'!", "updateid"));
             
             // Then, try to parse the parameters
             uint totNumElem, fromIndex, numElem, updateID;
             if (!uint.TryParse(result.Elements["totnumelem"], out totNumElem))
-                return new ParseResult<ContentDataSet>("Could not parse parameter 'totnumelem' as uint!");
+                return new ParseResult<ContentDataSet>(string.Format("Could not parse parameter '{0}' as uint!", "totnumelem"));
             if (!uint.TryParse(result.Elements["fromindex"], out fromIndex))
-                return new ParseResult<ContentDataSet>("Could not parse parameter 'fromindex' as uint!");
+                return new ParseResult<ContentDataSet>(string.Format("Could not parse parameter '{0}' as uint!", "fromindex"));
             if (!uint.TryParse(result.Elements["numelem"], out numElem))
-                return new ParseResult<ContentDataSet>("Could not parse parameter 'numelem' as uint!");
+                return new ParseResult<ContentDataSet>(string.Format("Could not parse parameter '{0}' as uint!", "numelem"));
             if (!uint.TryParse(result.Elements["updateid"], out updateID))
-                return new ParseResult<ContentDataSet>("Could not parse parameter 'updateid' as uint!");
+                return new ParseResult<ContentDataSet>(string.Format("Could not parse parameter '{0}' as uint!", "updateid"));
 
             // If required, perform some sanity checks on the data
             if (ValidateInput)
