@@ -39,9 +39,6 @@ namespace nxgmci
 
         internal WebClient Client;
 
-        private static readonly Regex mediaTypeRegex = new Regex("(\\d+)[ \\t]*=+[ \\t]*(\\w+)(?:[ \\t]*,|$)",
-            RegexOptions.Singleline | RegexOptions.Compiled);
-
         // Rendering control endpoint
         private static readonly string dlnaRCLEndoint = "/UD/action?0";
         // Audio/Video transport endpoint
