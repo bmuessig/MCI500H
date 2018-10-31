@@ -22,8 +22,6 @@ namespace nxgmci.Protocol
         }
 
         // QueryDiskSpace-Response:
-        // size	        (uint): Free harddisk space in bytes
-        // totalsize	(uint): Total harddisk space in bytes
         public static ParseResult<ResponseParameters> Parse(string Response, bool ValidateInput = true, bool LazySyntax = false)
         {
             // Make sure the response is not null
