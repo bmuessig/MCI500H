@@ -85,63 +85,67 @@ namespace nxgmci.Protocol
             List<ContentData> items = new List<ContentData>();
 
             // Next, pay attention to the list items (yes, there are a lot of them)
+            uint elementNo = 0;
             foreach (Dictionary<string, string> listItem in result.List)
             {
+                // Increment the element ID to simplify fault-finding
+                elementNo++;
+
                 // Make sure that all our elements are non-null
                 if (listItem == null)
                     continue;
 
                 // First, make sure our mandatory arguments exist
                 if (!listItem.ContainsKey("name"))
-                    return new ParseResult<ContentDataSet>("Could not locate parameter 'name'!");
+                    return new ParseResult<ContentDataSet>(string.Format("Could not locate parameter '{0}' in item #{1}!", "name", elementNo));
                 if (!listItem.ContainsKey("nodeid"))
-                    return new ParseResult<ContentDataSet>("Could not locate parameter 'nodeid'!");
+                    return new ParseResult<ContentDataSet>(string.Format("Could not locate parameter '{0}' in item #{1}!", "nodeid", elementNo));
                 if (!listItem.ContainsKey("album"))
-                    return new ParseResult<ContentDataSet>("Could not locate parameter 'album'!");
+                    return new ParseResult<ContentDataSet>(string.Format("Could not locate parameter '{0}' in item #{1}!", "album", elementNo));
                 if (!listItem.ContainsKey("trackno"))
-                    return new ParseResult<ContentDataSet>("Could not locate parameter 'trackno'!");
+                    return new ParseResult<ContentDataSet>(string.Format("Could not locate parameter '{0}' in item #{1}!", "trackno", elementNo));
                 if (!listItem.ContainsKey("artist"))
-                    return new ParseResult<ContentDataSet>("Could not locate parameter 'artist'!");
+                    return new ParseResult<ContentDataSet>(string.Format("Could not locate parameter '{0}' in item #{1}!", "artist", elementNo));
                 if (!listItem.ContainsKey("genre"))
-                    return new ParseResult<ContentDataSet>("Could not locate parameter 'genre'!");
+                    return new ParseResult<ContentDataSet>(string.Format("Could not locate parameter '{0}' in item #{1}!", "genre", elementNo));
                 if (!listItem.ContainsKey("year"))
-                    return new ParseResult<ContentDataSet>("Could not locate parameter 'year'!");
+                    return new ParseResult<ContentDataSet>(string.Format("Could not locate parameter '{0}' in item #{1}!", "year", elementNo));
                 if (!listItem.ContainsKey("mediatype"))
-                    return new ParseResult<ContentDataSet>("Could not locate parameter 'mediatype'!");
+                    return new ParseResult<ContentDataSet>(string.Format("Could not locate parameter '{0}' in item #{1}!", "mediatype", elementNo));
                 if (!listItem.ContainsKey("dmmcookie"))
-                    return new ParseResult<ContentDataSet>("Could not locate parameter 'dmmcookie'!");
+                    return new ParseResult<ContentDataSet>(string.Format("Could not locate parameter '{0}' in item #{1}!", "dmmcookie", elementNo));
 
                 // Then, try to parse the parameters
                 string name;
                 uint nodeID, album, trackNo, artist, genre, year, mediaType, dmmCookie;
                 if (string.IsNullOrWhiteSpace((name = listItem["name"])))
-                    return new ParseResult<ContentDataSet>("Could not parse parameter 'name' as string!");
+                    return new ParseResult<ContentDataSet>(string.Format("Could not parse parameter '{0}' in item #{1} as string!", "name", elementNo));
                 if (!uint.TryParse(listItem["nodeid"], out nodeID))
-                    return new ParseResult<ContentDataSet>("Could not parse parameter 'nodeid' as uint!");
+                    return new ParseResult<ContentDataSet>(string.Format("Could not parse parameter '{0}' in item #{1} as uint!", "nodeid", elementNo));
                 if (!uint.TryParse(listItem["album"], out album))
-                    return new ParseResult<ContentDataSet>("Could not parse parameter 'album' as uint!");
+                    return new ParseResult<ContentDataSet>(string.Format("Could not parse parameter '{0}' in item #{1} as uint!", "album", elementNo));
                 if (!uint.TryParse(listItem["trackno"], out trackNo))
-                    return new ParseResult<ContentDataSet>("Could not parse parameter 'trackno' as uint!");
+                    return new ParseResult<ContentDataSet>(string.Format("Could not parse parameter '{0}' in item #{1} as uint!", "trackno", elementNo));
                 if (!uint.TryParse(listItem["artist"], out artist))
-                    return new ParseResult<ContentDataSet>("Could not parse parameter 'artist' as uint!");
+                    return new ParseResult<ContentDataSet>(string.Format("Could not parse parameter '{0}' in item #{1} as uint!", "artist", elementNo));
                 if (!uint.TryParse(listItem["genre"], out genre))
-                    return new ParseResult<ContentDataSet>("Could not parse parameter 'genre' as uint!");
+                    return new ParseResult<ContentDataSet>(string.Format("Could not parse parameter '{0}' in item #{1} as uint!", "genre", elementNo));
                 if (!uint.TryParse(listItem["year"], out year))
-                    return new ParseResult<ContentDataSet>("Could not parse parameter 'year' as uint!");
+                    return new ParseResult<ContentDataSet>(string.Format("Could not parse parameter '{0}' in item #{1} as uint!", "year", elementNo));
                 if (!uint.TryParse(listItem["mediatype"], out mediaType))
-                    return new ParseResult<ContentDataSet>("Could not parse parameter 'mediatype' as uint!");
+                    return new ParseResult<ContentDataSet>(string.Format("Could not parse parameter '{0}' in item #{1} as uint!", "mediatype", elementNo));
                 if (!uint.TryParse(listItem["dmmcookie"], out dmmCookie))
-                    return new ParseResult<ContentDataSet>("Could not parse parameter 'dmmcookie' as uint!");
+                    return new ParseResult<ContentDataSet>(string.Format("Could not parse parameter '{0}' in item #{1} as uint!", "dmmcookie", elementNo));
 
                 // If we need to, perform sanity checks on the input data
                 if (ValidateInput)
                 {
                     if (nodeID == 0)
-                        return new ParseResult<ContentDataSet>("nodeid == 0");
+                        return new ParseResult<ContentDataSet>(string.Format("nodeid #{0} == 0", elementNo));
                     if (album == 0)
-                        return new ParseResult<ContentDataSet>("album == 0");
+                        return new ParseResult<ContentDataSet>(string.Format("album #{0} == 0", elementNo));
                     if (genre == 0)
-                        return new ParseResult<ContentDataSet>("genre == 0");
+                        return new ParseResult<ContentDataSet>(string.Format("genre #{0} == 0", elementNo));
                 }
 
                 // Finally, assemble and add the object
