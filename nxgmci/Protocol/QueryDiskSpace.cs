@@ -44,16 +44,16 @@ namespace nxgmci.Protocol
 
             // Now, make sure our mandatory arguments exist
             if (!result.Elements.ContainsKey("size"))
-                return new ParseResult<ResponseParameters>("Could not locate parameter 'size'!");
+                return new ParseResult<ResponseParameters>(string.Format("Could not locate parameter '{0}'!", "size"));
             if (!result.Elements.ContainsKey("totalsize"))
-                return new ParseResult<ResponseParameters>("Could not locate parameter 'totalsize'!");
+                return new ParseResult<ResponseParameters>(string.Format("Could not locate parameter '{0}'!", "totalsize"));
             
             // Then, try to parse the parameters
             ulong size, totalSize;
             if (!ulong.TryParse(result.Elements["size"], out size))
-                return new ParseResult<ResponseParameters>("Could not parse parameter 'size' as ulong!");
+                return new ParseResult<ResponseParameters>(string.Format("Could not parse parameter '{0}' as ulong!", "size"));
             if (!ulong.TryParse(result.Elements["totalsize"], out totalSize))
-                return new ParseResult<ResponseParameters>("Could not parse parameter 'totalsize' as ulong!");
+                return new ParseResult<ResponseParameters>(string.Format("Could not parse parameter '{0}' as ulong!", "totalsize"));
 
             // Finally, return the response
             return new ParseResult<ResponseParameters>(new ResponseParameters(size, totalSize));
