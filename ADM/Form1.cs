@@ -74,10 +74,15 @@ namespace ADM
                 MessageBox.Show("Fail!");
         }
 
-        private string TMP_media_from_id(int id)
+        private string TMP_media_from_id(nxgmci.Protocol.RequestRawData.ContentData entry)
         {
-            string tid = (id & 0xFFFFFF).ToString();
-            return string.Format("/media/{0}/{1}.mp3", tid.Substring(0, 2), tid);
+            string tid = (entry.NodeID & currentUriMetaData.IDMask).ToString();
+            string ext;
+            if (!currentUriMetaData.MediaTypeKey.ContainsKey(entry.MediaType))
+                return null;
+            string container = tid.Substring(0, ((int)Math.Log10(currentUriMetaData.ContainerSize)) - 1);
+            ext = currentUriMetaData.MediaTypeKey[entry.MediaType];
+            return string.Format("{0}/{1}/{2}.{3}", currentUriMetaData.URIPath, container, tid, ext);
         }
 
         private void button3_Click(object sender, EventArgs e)
@@ -177,9 +182,8 @@ namespace ADM
 
         private void selectLast(bool startPlay = false)
         {
-            string url = "http://127.0.0.1" + TMP_media_from_id((int)currentMediaLib.ContentData[lastid].NodeID);
             stereo.Stop();
-            if (!stereo.SelectMedia(new Uri(url)))
+            if (!stereo.SelectMedia(new Uri(TMP_media_from_id(currentMediaLib.ContentData[lastid]))))
                 MessageBox.Show("Fail!");
             if (!startPlay)
                 return;
