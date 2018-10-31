@@ -182,6 +182,24 @@ namespace nxgmci.Protocol
                 // If not, we don't have a duplicate
                 return false;
             }
+
+            public ContentData GetEntry(uint Index)
+            {
+                // Just making sure we don't get any null issues
+                if (ContentData == null)
+                {
+                    ContentData = new List<ContentData>();
+                    return null;
+                }
+
+                // Loop through all items until we find our item
+                foreach (ContentData data in ContentData)
+                    if (data.Index == Index)
+                        return data;
+
+                // If we don't find anything return null
+                return null;
+            }
         }
 
         // ContentData-Structure:
