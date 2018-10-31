@@ -206,7 +206,6 @@ namespace nxgmci.Protocol
         // name		    (string):	Name of the artist
         // index	    (uint):	    ID number of the artist
         // => KeyValuePair(index, name)
-        // This also helps sorting out duplicate ID entries
 
         public class ContentData
         {
