@@ -112,9 +112,9 @@ namespace nxgmci.Protocol
                 string value;
                 
                 // And extract them
-                if (!uint.TryParse(mediaTypeMatch.Groups[1].Value, out key))
+                if (!uint.TryParse(mediaTypeMatch.Groups[1].Value.Trim(), out key))
                     continue;
-                if (string.IsNullOrWhiteSpace((value = mediaTypeMatch.Groups[2].Value)))
+                if (string.IsNullOrWhiteSpace((value = mediaTypeMatch.Groups[2].Value.Trim())))
                     continue;
 
                 // Finally, store the entry
