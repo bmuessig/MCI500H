@@ -15,7 +15,7 @@ namespace nxgmci.XML
         private const string ROOT_WRAP_REGEX = @"^\s*<{0}>\s*<{1}>\s*([\s\S]*)\s*<\/{1}>\s*<\/{0}>\s*$";
         private const string ROOT_LIST_REGEX = @"^\s*<{0}>\s*([\s\S]*)\s*<\/{0}>\s*$";
         private const string LIST_REGEX = @"<\s*{0}\s*>\s*([\s\S]*?)\s*<\s*\/\s*{0}\s*>";
-        private const string ELEM_REGEX = @"<\s*([\s\S]*?)\s*>([\s\S]*?)<\s*\/\1\s*>";
+        private const string ELEM_REGEX = @"<\s*([\s\S]*?)\s*(?:\/\s*>|>([\s\S]*?)<\s*\/\1\s*>)";
 
         private readonly Regex rootWrapOrListRegex;
         private readonly Regex listRegex;
