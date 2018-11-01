@@ -11,6 +11,8 @@ namespace nxgmci
 {
     public class MCI500H
     {
+        private const int PORT = 8100;
+
         public IPAddress DeviceIP
         {
             get;
@@ -111,7 +113,7 @@ namespace nxgmci
             Dictionary<string, string> headers = new Dictionary<string,string>();
             headers.Add(DLNA.DLNAAction, DLNA.DLNASelectAction);
             Postmaster.QueryResponse response =
-                Postmaster.PostXML(new IPEndPoint(DeviceIP, 8100),
+                Postmaster.PostXML(new IPEndPoint(DeviceIP, PORT),
                 dlnaAVTEndpoint,
                 string.Format(DLNA.DLNASelectBody, DLNA.EscapeString(MediaUri.ToString())),
                 true,
@@ -130,7 +132,7 @@ namespace nxgmci
             Dictionary<string, string> headers = new Dictionary<string, string>();
             headers.Add(DLNA.DLNAAction, DLNA.DLNAPlayAction);
             Postmaster.QueryResponse response =
-                Postmaster.PostXML(new IPEndPoint(DeviceIP, 8100),
+                Postmaster.PostXML(new IPEndPoint(DeviceIP, PORT),
                 dlnaAVTEndpoint,
                 string.Format(DLNA.DLNAPlayBody, 1),
                 true,
@@ -149,7 +151,7 @@ namespace nxgmci
             Dictionary<string, string> headers = new Dictionary<string, string>();
             headers.Add(DLNA.DLNAAction, DLNA.DLNAPauseAction);
             Postmaster.QueryResponse response =
-                Postmaster.PostXML(new IPEndPoint(DeviceIP, 8100),
+                Postmaster.PostXML(new IPEndPoint(DeviceIP, PORT),
                 dlnaAVTEndpoint,
                 string.Format(DLNA.DLNAPauseBody, 1),
                 true,
@@ -168,7 +170,7 @@ namespace nxgmci
             Dictionary<string, string> headers = new Dictionary<string, string>();
             headers.Add(DLNA.DLNAAction, DLNA.DLNAStopAction);
             Postmaster.QueryResponse response =
-                Postmaster.PostXML(new IPEndPoint(DeviceIP, 8100),
+                Postmaster.PostXML(new IPEndPoint(DeviceIP, PORT),
                 dlnaAVTEndpoint,
                 string.Format(DLNA.DLNAStopBody, 1),
                 true,

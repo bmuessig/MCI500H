@@ -15,7 +15,7 @@ namespace ADM
 {
     public partial class Form1 : Form
     {
-        private static string baseurl = "http://10.0.0.113";
+        private static string baseurl = "http://10.0.0.10";
         private MCI500H stereo = new MCI500H(IPAddress.Parse(baseurl.Substring(baseurl.LastIndexOf('/') + 1)));
         int lastid = -1;
 
