@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using nxgmci.XML;
+using nxgmci.Parsers;
 
 namespace nxgmci.Protocol
 {
@@ -15,7 +15,7 @@ namespace nxgmci.Protocol
         // Apart from that it tells us what file formats are supported and returns the mapping of type-ids to extension.
 
         // RequestUriMetaData Parser
-        private readonly static TinyParser parser = new TinyParser("requesturimetadata", "responseparameters", false);
+        private readonly static WADMParser parser = new WADMParser("requesturimetadata", "responseparameters", false);
 
         // MediaTypeKey Parser Regex
         private static readonly Regex mediaTypeKeyRegex = new Regex(@"(\d+)\s*=+\s*(\w+)(?:\s*,|$)",
@@ -28,63 +28,63 @@ namespace nxgmci.Protocol
         }
 
         // RequestUriMetaData-Response:
-        public static ParseResult<ResponseParameters> Parse(string Response, bool ValidateInput = true, bool LazySyntax = false)
+        public static ActionResult<ResponseParameters> Parse(string Response, bool ValidateInput = true, bool LazySyntax = false)
         {
             // Make sure the response is not null
             if (string.IsNullOrWhiteSpace(Response))
-                return new ParseResult<ResponseParameters>("The response may not be null!");
+                return new ActionResult<ResponseParameters>("The response may not be null!");
 
             // Then, parse the response
-            TinyResult result = parser.Parse(Response, LazySyntax);
+            WADMResult result = parser.Parse(Response, LazySyntax);
 
             // Check if it failed
             if (!result.Success)
                 if (!string.IsNullOrWhiteSpace(result.ErrorMessage))
-                    return new ParseResult<ResponseParameters>(result.ErrorMessage);
+                    return new ActionResult<ResponseParameters>(result.ErrorMessage);
                 else
-                    return new ParseResult<ResponseParameters>("The parsing failed for unknown reasons!");
+                    return new ActionResult<ResponseParameters>("The parsing failed for unknown reasons!");
 
             // And also make sure our state is correct
             if (result.Elements == null)
-                return new ParseResult<ResponseParameters>("The list of parsed elements is null!");
+                return new ActionResult<ResponseParameters>("The list of parsed elements is null!");
 
             // Now, make sure our mandatory arguments exist
             if (!result.Elements.ContainsKey("uripath"))
-                return new ParseResult<ResponseParameters>(string.Format("Could not locate parameter '{0}'!", "uripath"));
+                return new ActionResult<ResponseParameters>(string.Format("Could not locate parameter '{0}'!", "uripath"));
             if (!result.Elements.ContainsKey("idmask"))
-                return new ParseResult<ResponseParameters>(string.Format("Could not locate parameter '{0}'!", "idmask"));
+                return new ActionResult<ResponseParameters>(string.Format("Could not locate parameter '{0}'!", "idmask"));
             if (!result.Elements.ContainsKey("containersize"))
-                return new ParseResult<ResponseParameters>(string.Format("Could not locate parameter '{0}'!", "containersize"));
+                return new ActionResult<ResponseParameters>(string.Format("Could not locate parameter '{0}'!", "containersize"));
             if (!result.Elements.ContainsKey("mediatypekey"))
-                return new ParseResult<ResponseParameters>(string.Format("Could not locate parameter '{0}'!", "mediatypekey"));
+                return new ActionResult<ResponseParameters>(string.Format("Could not locate parameter '{0}'!", "mediatypekey"));
             if (!result.Elements.ContainsKey("updateid"))
-                return new ParseResult<ResponseParameters>(string.Format("Could not locate parameter '{0}'!", "updateid"));
+                return new ActionResult<ResponseParameters>(string.Format("Could not locate parameter '{0}'!", "updateid"));
 
             // Then, try to parse the parameters
             string uriPath, mediaTypeKey;
             uint idMask, containerSize, updateID;
             if (string.IsNullOrWhiteSpace((uriPath = result.Elements["uripath"])))
-                return new ParseResult<ResponseParameters>(string.Format("Could not parse parameter '{0}' as string!", "uripath"));
+                return new ActionResult<ResponseParameters>(string.Format("Could not parse parameter '{0}' as string!", "uripath"));
             if (!uint.TryParse(result.Elements["idmask"], out idMask))
-                return new ParseResult<ResponseParameters>(string.Format("Could not parse parameter '{0}' as uint!", "idmask"));
+                return new ActionResult<ResponseParameters>(string.Format("Could not parse parameter '{0}' as uint!", "idmask"));
             if (!uint.TryParse(result.Elements["containersize"], out containerSize))
-                return new ParseResult<ResponseParameters>(string.Format("Could not parse parameter '{0}' as uint!", "containersize"));
+                return new ActionResult<ResponseParameters>(string.Format("Could not parse parameter '{0}' as uint!", "containersize"));
             if (string.IsNullOrWhiteSpace((mediaTypeKey = result.Elements["mediatypekey"])))
-                return new ParseResult<ResponseParameters>(string.Format("Could not parse parameter '{0}' as string!", "mediatypekey"));
+                return new ActionResult<ResponseParameters>(string.Format("Could not parse parameter '{0}' as string!", "mediatypekey"));
             if (!uint.TryParse(result.Elements["updateid"], out updateID))
-                return new ParseResult<ResponseParameters>(string.Format("Could not parse parameter '{0}' as uint!", "updateid"));
+                return new ActionResult<ResponseParameters>(string.Format("Could not parse parameter '{0}' as uint!", "updateid"));
 
             // We may have to perform some sanity checks
             if (ValidateInput)
             {
                 if (string.IsNullOrWhiteSpace(uriPath))
-                    return new ParseResult<ResponseParameters>("uripath is null or white-space!");
+                    return new ActionResult<ResponseParameters>("uripath is null or white-space!");
                 if (string.IsNullOrWhiteSpace(mediaTypeKey))
-                    return new ParseResult<ResponseParameters>("mediatypekey is null or white-space!");
+                    return new ActionResult<ResponseParameters>("mediatypekey is null or white-space!");
                 if (idMask == 0)
-                    return new ParseResult<ResponseParameters>("idmask == 0");
+                    return new ActionResult<ResponseParameters>("idmask == 0");
                 if (containerSize == 0)
-                    return new ParseResult<ResponseParameters>("containersize == 0");
+                    return new ActionResult<ResponseParameters>("containersize == 0");
             }
 
             // Next, we will parse the mediaTypeKey - note that the designers were a bit lazy here
@@ -92,7 +92,7 @@ namespace nxgmci.Protocol
             // Like done here with the custom XML parser and HTTP client... (if they had cared more about the standards that might have been redundant)
             MatchCollection mediaTypeMatches = mediaTypeKeyRegex.Matches(mediaTypeKey);
             if (mediaTypeMatches == null)
-                return new ParseResult<ResponseParameters>("The mediatypekey match collection is null!");
+                return new ActionResult<ResponseParameters>("The mediatypekey match collection is null!");
 
             // Allocate the results dictionary
             Dictionary<uint, string> mediaTypeDict = new Dictionary<uint, string>();
@@ -122,7 +122,7 @@ namespace nxgmci.Protocol
             }
 
             // Finally, return the response
-            return new ParseResult<ResponseParameters>(new ResponseParameters(uriPath, idMask, containerSize, mediaTypeDict, updateID));
+            return new ActionResult<ResponseParameters>(new ResponseParameters(uriPath, idMask, containerSize, mediaTypeDict, updateID));
         }
 
         // RequestUriMetaData-ResponseParameters-Structure:

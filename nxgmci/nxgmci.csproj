@@ -45,9 +45,9 @@
     <Compile Include="MediaLibrary.cs" />
     <Compile Include="MediaElement.cs" />
     <Compile Include="MediaUploader.cs" />
-    <Compile Include="Playlist\PlaylistItem.cs" />
-    <Compile Include="Playlist\PlaylistParser.cs" />
-    <Compile Include="Protocol\MediaUploader.cs" />
+    <Compile Include="Parsers\PlaylistItem.cs" />
+    <Compile Include="Parsers\PlaylistParser.cs" />
+    <Compile Include="Net\MediaUploader.cs" />
     <Compile Include="Protocol\RequestUriMetaData.cs" />
     <Compile Include="Protocol\RequestGenreIndexTable.cs" />
     <Compile Include="Protocol\RequestAlbumIndexTable.cs" />
@@ -56,9 +56,9 @@
     <Compile Include="Net\Postmaster.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Protocol\DLNA.cs" />
-    <Compile Include="XML\TinyParser.cs" />
-    <Compile Include="XML\TinyResult.cs" />
-    <Compile Include="Protocol\ParseResult.cs" />
+    <Compile Include="Parsers\WADMParser.cs" />
+    <Compile Include="Parsers\WADMResult.cs" />
+    <Compile Include="ActionResult.cs" />
     <Compile Include="Protocol\RequestRawData.cs" />
     <Compile Include="Protocol\QueryDiskSpace.cs" />
   </ItemGroup>

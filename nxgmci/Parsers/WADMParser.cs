@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace nxgmci.XML
+namespace nxgmci.Parsers
 {
-    public class TinyParser
+    public class WADMParser
     {
         readonly string RootName;
         readonly string WrapOrListName;
@@ -21,7 +21,7 @@ namespace nxgmci.XML
         private readonly Regex listRegex;
         private readonly Regex elementRegex;
 
-        public TinyParser(string RootName, string WrapOrListName, bool IsList)
+        public WADMParser(string RootName, string WrapOrListName, bool IsList)
         {
             // Sanity check input
             if(string.IsNullOrWhiteSpace(RootName))
@@ -54,11 +54,11 @@ namespace nxgmci.XML
 
         }
 
-        public TinyResult Parse(string Input, bool LooseSyntax = false)
+        public WADMResult Parse(string Input, bool LooseSyntax = false)
         {
             // Input sanity check
             if (string.IsNullOrWhiteSpace(Input))
-                return new TinyResult("The input may not be null, empty or white-space only!");
+                return new WADMResult("The input may not be null, empty or white-space only!");
             
             // Match the input against our root level Regex
             // This is used to verify that the reply is correct and it will strip away the root wrapper
@@ -66,14 +66,14 @@ namespace nxgmci.XML
 
             // Make sure we've got success and two match groups
             if (!rootMatch.Success)
-                return new TinyResult("The root structure did not match!");
+                return new WADMResult("The root structure did not match!");
             if (rootMatch.Groups.Count != 2)
-                return new TinyResult("The root group count was incorrect!");
+                return new WADMResult("The root group count was incorrect!");
             if (!rootMatch.Groups[1].Success)
-                return new TinyResult("The root content group did not succeed!");
+                return new WADMResult("The root content group did not succeed!");
 
             // Allocate space for our successful reply
-            TinyResult result = new TinyResult(RootName, WrapOrListName, IsList);
+            WADMResult result = new WADMResult(RootName, WrapOrListName, IsList);
 
             // Now, match the inner elements
             string innerText = rootMatch.Groups[1].Value;
@@ -97,25 +97,25 @@ namespace nxgmci.XML
                         if (LooseSyntax)
                             continue;
                         else
-                            return new TinyResult("The list item did not match successfully in strict mode!");
+                            return new WADMResult("The list item did not match successfully in strict mode!");
 
                     // Also make sure we've got the right number of groups
                     if (listMatch.Groups.Count != 2)
                         if (LooseSyntax)
                             continue;
                         else
-                            return new TinyResult("The number of matched list item groups was incorrect in strict mode!");
+                            return new WADMResult("The number of matched list item groups was incorrect in strict mode!");
 
                     if(listMatch.Groups[1].Value == null)
                         if (LooseSyntax)
                             continue;
                         else
-                            return new TinyResult("The value of the matched list item group was null in strict mode!");
+                            return new WADMResult("The value of the matched list item group was null in strict mode!");
 
                     // If everything's right, we will parse the inner elements
                     Dictionary<string, string> innerElements = ParseElements(listMatch.Groups[1].Value, out parserError, LooseSyntax);
                     if (innerElements == null)
-                        return new TinyResult(parserError);
+                        return new WADMResult(parserError);
 
                     // Finally, we will add the element to our list
                     // Yes, we will even add empty elements, as they were potentionally intentionally left blank
@@ -132,7 +132,7 @@ namespace nxgmci.XML
             // Parse the root level key-value elements
             Dictionary<string, string> elements = ParseElements(innerText, out parserError, LooseSyntax);
             if (elements == null)
-                return new TinyResult(parserError);
+                return new WADMResult(parserError);
 
             // And store them in the result
             result.Elements = elements;

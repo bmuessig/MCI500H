@@ -122,7 +122,7 @@ namespace ADM
                 MessageBox.Show("An error occured: " + response.Message);
                 return;
             }
-            ParseResult<RequestRawData.ContentDataSet> contentResp = RequestRawData.Parse(response.TextualResponse);
+            ActionResult<RequestRawData.ContentDataSet> contentResp = RequestRawData.Parse(response.TextualResponse);
             if (!contentResp.Success)
             {
                 MessageBox.Show("An error occured: " + contentResp.ErrorMessage);
@@ -137,7 +137,7 @@ namespace ADM
                 MessageBox.Show("An error occured: " + response.Message);
                 return;
             }
-            ParseResult<RequestArtistIndexTable.ContentDataSet> artistResp = RequestArtistIndexTable.Parse(response.TextualResponse);
+            ActionResult<RequestArtistIndexTable.ContentDataSet> artistResp = RequestArtistIndexTable.Parse(response.TextualResponse);
             if (!artistResp.Success)
             {
                 MessageBox.Show("An error occured: " + artistResp.ErrorMessage);
@@ -152,7 +152,7 @@ namespace ADM
                 MessageBox.Show("An error occured: " + response.Message);
                 return;
             }
-            ParseResult<RequestAlbumIndexTable.ContentDataSet> albumResp = RequestAlbumIndexTable.Parse(response.TextualResponse);
+            ActionResult<RequestAlbumIndexTable.ContentDataSet> albumResp = RequestAlbumIndexTable.Parse(response.TextualResponse);
             if (!albumResp.Success)
             {
                 MessageBox.Show("An error occured: " + albumResp.ErrorMessage);
@@ -167,7 +167,7 @@ namespace ADM
                 MessageBox.Show("An error occured: " + response.Message);
                 return;
             }
-            ParseResult<RequestUriMetaData.ResponseParameters> metaDataResp = RequestUriMetaData.Parse(response.TextualResponse);
+            ActionResult<RequestUriMetaData.ResponseParameters> metaDataResp = RequestUriMetaData.Parse(response.TextualResponse);
             if (!metaDataResp.Success)
             {
                 MessageBox.Show("An error occured: " + metaDataResp.ErrorMessage);
@@ -234,7 +234,7 @@ namespace ADM
                 return;
             }
 
-            ParseResult<QueryDiskSpace.ResponseParameters> parserResp = QueryDiskSpace.Parse(response.TextualResponse);
+            ActionResult<QueryDiskSpace.ResponseParameters> parserResp = QueryDiskSpace.Parse(response.TextualResponse);
             if (!parserResp.Success)
             {
                 MessageBox.Show("An error occured: " + parserResp.ErrorMessage);
@@ -323,7 +323,7 @@ namespace ADM
                     return;
                 }
 
-                List<nxgmci.Playlist.PlaylistItem> listItems = nxgmci.Playlist.PlaylistParser.Parse(playlistConts, true, false, true, true);
+                List<nxgmci.Parsers.PlaylistItem> listItems = nxgmci.Parsers.PlaylistParser.Parse(playlistConts, true, false, true, true);
                 if (listItems == null)
                 {
                     MessageBox.Show("Fail parsing list!");

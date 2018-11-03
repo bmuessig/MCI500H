@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace nxgmci.Playlist
+namespace nxgmci.Parsers
 {
     public static class PlaylistParser
     {

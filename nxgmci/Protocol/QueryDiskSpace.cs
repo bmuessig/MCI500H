@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using nxgmci.XML;
+using nxgmci.Parsers;
 
 namespace nxgmci.Protocol
 {
@@ -13,7 +13,7 @@ namespace nxgmci.Protocol
         // We can use this information to determine whether we can upload new files or not.
 
         // DiskSpace Parser
-        private readonly static TinyParser parser = new TinyParser("querydiskspace", "responseparameters", false);
+        private readonly static WADMParser parser = new WADMParser("querydiskspace", "responseparameters", false);
 
         // QueryDiskSpace-Reqest:
         public static string Build()
@@ -22,50 +22,50 @@ namespace nxgmci.Protocol
         }
 
         // QueryDiskSpace-Response:
-        public static ParseResult<ResponseParameters> Parse(string Response, bool ValidateInput = true, bool LazySyntax = false)
+        public static ActionResult<ResponseParameters> Parse(string Response, bool ValidateInput = true, bool LazySyntax = false)
         {
             // Make sure the response is not null
             if (string.IsNullOrWhiteSpace(Response))
-                return new ParseResult<ResponseParameters>("The response may not be null!");
+                return new ActionResult<ResponseParameters>("The response may not be null!");
 
             // Then, parse the response
-            TinyResult result = parser.Parse(Response, LazySyntax);
+            WADMResult result = parser.Parse(Response, LazySyntax);
 
             // Check if it failed
             if (!result.Success)
                 if (!string.IsNullOrWhiteSpace(result.ErrorMessage))
-                    return new ParseResult<ResponseParameters>(result.ErrorMessage);
+                    return new ActionResult<ResponseParameters>(result.ErrorMessage);
                 else
-                    return new ParseResult<ResponseParameters>("The parsing failed for unknown reasons!");
+                    return new ActionResult<ResponseParameters>("The parsing failed for unknown reasons!");
 
             // And also make sure our state is correct
             if (result.Elements == null)
-                return new ParseResult<ResponseParameters>("The list of parsed elements is null!");
+                return new ActionResult<ResponseParameters>("The list of parsed elements is null!");
 
             // Now, make sure our mandatory arguments exist
             if (!result.Elements.ContainsKey("size"))
-                return new ParseResult<ResponseParameters>(string.Format("Could not locate parameter '{0}'!", "size"));
+                return new ActionResult<ResponseParameters>(string.Format("Could not locate parameter '{0}'!", "size"));
             if (!result.Elements.ContainsKey("totalsize"))
-                return new ParseResult<ResponseParameters>(string.Format("Could not locate parameter '{0}'!", "totalsize"));
+                return new ActionResult<ResponseParameters>(string.Format("Could not locate parameter '{0}'!", "totalsize"));
             
             // Then, try to parse the parameters
             ulong size, totalSize;
             if (!ulong.TryParse(result.Elements["size"], out size))
-                return new ParseResult<ResponseParameters>(string.Format("Could not parse parameter '{0}' as ulong!", "size"));
+                return new ActionResult<ResponseParameters>(string.Format("Could not parse parameter '{0}' as ulong!", "size"));
             if (!ulong.TryParse(result.Elements["totalsize"], out totalSize))
-                return new ParseResult<ResponseParameters>(string.Format("Could not parse parameter '{0}' as ulong!", "totalsize"));
+                return new ActionResult<ResponseParameters>(string.Format("Could not parse parameter '{0}' as ulong!", "totalsize"));
 
             // Next, we will may have to perform some sanity checks
             if (ValidateInput)
             {
                 if (size > totalSize)
-                    return new ParseResult<ResponseParameters>("size < totalsize");
+                    return new ActionResult<ResponseParameters>("size < totalsize");
                 if (totalSize == 0)
-                    return new ParseResult<ResponseParameters>("size == 0");
+                    return new ActionResult<ResponseParameters>("size == 0");
             }
 
             // Finally, return the response
-            return new ParseResult<ResponseParameters>(new ResponseParameters(size, totalSize));
+            return new ActionResult<ResponseParameters>(new ResponseParameters(size, totalSize));
         }
 
         // QueryDiskSpace-ResponseParameters-Structure:
