@@ -47,11 +47,13 @@
     <Compile Include="MediaUploader.cs" />
     <Compile Include="Playlist\PlaylistItem.cs" />
     <Compile Include="Playlist\PlaylistParser.cs" />
+    <Compile Include="Protocol\MediaUploader.cs" />
     <Compile Include="Protocol\RequestUriMetaData.cs" />
     <Compile Include="Protocol\RequestGenreIndexTable.cs" />
     <Compile Include="Protocol\RequestAlbumIndexTable.cs" />
     <Compile Include="Protocol\RequestArtistIndexTable.cs" />
-    <Compile Include="XML\Postmaster.cs" />
+    <Compile Include="Net\NetUtils.cs" />
+    <Compile Include="Net\Postmaster.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Protocol\DLNA.cs" />
     <Compile Include="XML\TinyParser.cs" />

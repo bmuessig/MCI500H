@@ -7,7 +7,7 @@ using System.Net.Sockets;
 using System.IO;
 using System.Text.RegularExpressions;
 
-namespace nxgmci.XML
+namespace nxgmci.Net
 {
     public static class Postmaster
     {
@@ -20,43 +20,6 @@ namespace nxgmci.XML
 
         private static readonly Regex headersRegex = new Regex("^([\\w-]+):[ \\t]+(.*)$",
             RegexOptions.Singleline | RegexOptions.Compiled);
-
-        private static bool endPointFromUri(Uri Uri, out IPEndPoint EndPoint)
-        {
-            IPAddress ip = null;
-            EndPoint = null;
-
-            if (Uri == null)
-                return false;
-
-            if (Uri.HostNameType == UriHostNameType.IPv4 || Uri.HostNameType == UriHostNameType.IPv6)
-            {
-                if (!IPAddress.TryParse(Uri.Host, out ip))
-                    return false;
-            }
-            else if (Uri.HostNameType == UriHostNameType.Dns)
-            {
-                try
-                {
-                    IPAddress[] addresses = Dns.GetHostAddresses(Uri.Host);
-                    if (addresses.Length == 0)
-                        return false;
-                    ip = addresses[0];
-                }
-                catch (Exception)
-                {
-                    return false;
-                }
-            }
-            else
-                return false;
-
-            if (Uri.Port == 0 || Uri.Port >= ushort.MaxValue)
-                return false;
-
-            EndPoint = new IPEndPoint(ip, Uri.Port);
-            return true;
-        }
 
         public static QueryResponse PostXML(Uri Uri, string Payload,
             bool ForceTextualResponse = false, Dictionary<string, string> QueryHeaders = null)
@@ -84,7 +47,7 @@ namespace nxgmci.XML
             bool ForceTextualResponse = false, Dictionary<string, string> QueryHeaders = null)
         {
             IPEndPoint endpoint;
-            if (!endPointFromUri(Uri, out endpoint))
+            if (!NetUtils.EndPointFromUri(Uri, out endpoint))
                 return new QueryResponse("Cannot resolve endpoint from URI!");
 
             return PostString(endpoint, Uri.PathAndQuery, Payload, ForceTextualResponse, QueryHeaders);

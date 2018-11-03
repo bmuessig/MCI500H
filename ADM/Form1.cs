@@ -9,7 +9,8 @@ using System.Windows.Forms;
 using nxgmci;
 using System.Net;
 using System.IO;
-using nxgmci.XML;
+using nxgmci.Net;
+using nxgmci.Protocol;
 
 namespace ADM
 {
@@ -74,7 +75,7 @@ namespace ADM
                 MessageBox.Show("Fail!");
         }
 
-        private string TMP_media_from_id(nxgmci.Protocol.RequestRawData.ContentData entry)
+        private string TMP_media_from_id(RequestRawData.ContentData entry)
         {
             string tid = (entry.NodeID & currentUriMetaData.IDMask).ToString();
             string ext;
@@ -105,23 +106,23 @@ namespace ADM
             this.TopMost = checkBox1.Checked;
         }
 
-        nxgmci.Protocol.RequestRawData.ContentDataSet currentMediaLib;
-        nxgmci.Protocol.RequestAlbumIndexTable.ContentDataSet currentAlbumIndex;
-        nxgmci.Protocol.RequestArtistIndexTable.ContentDataSet currentArtistIndex;
-        nxgmci.Protocol.RequestGenreIndexTable.ContentDataSet currentGenreIndex;
-        nxgmci.Protocol.RequestUriMetaData.ResponseParameters currentUriMetaData;
+        RequestRawData.ContentDataSet currentMediaLib;
+        RequestAlbumIndexTable.ContentDataSet currentAlbumIndex;
+        RequestArtistIndexTable.ContentDataSet currentArtistIndex;
+        RequestGenreIndexTable.ContentDataSet currentGenreIndex;
+        RequestUriMetaData.ResponseParameters currentUriMetaData;
 
         private void button5_Click(object sender, EventArgs e)
         {
             // Fetch media
             Postmaster.QueryResponse response = Postmaster.PostXML(new Uri(baseurl + ":8081/"),
-                (textBox1.Text = nxgmci.Protocol.RequestRawData.Build(0, 0)), true);
+                (textBox1.Text = RequestRawData.Build(0, 0)), true);
             if (!response.Success)
             {
                 MessageBox.Show("An error occured: " + response.Message);
                 return;
             }
-            nxgmci.Protocol.ParseResult<nxgmci.Protocol.RequestRawData.ContentDataSet> contentResp = nxgmci.Protocol.RequestRawData.Parse(response.TextualResponse);
+            ParseResult<RequestRawData.ContentDataSet> contentResp = RequestRawData.Parse(response.TextualResponse);
             if (!contentResp.Success)
             {
                 MessageBox.Show("An error occured: " + contentResp.ErrorMessage);
@@ -130,13 +131,13 @@ namespace ADM
 
             // Fetch artists
             response = Postmaster.PostXML(new Uri(baseurl + ":8081/"),
-                (textBox1.Text = nxgmci.Protocol.RequestArtistIndexTable.Build()), true);
+                (textBox1.Text = RequestArtistIndexTable.Build()), true);
             if (!response.Success)
             {
                 MessageBox.Show("An error occured: " + response.Message);
                 return;
             }
-            nxgmci.Protocol.ParseResult<nxgmci.Protocol.RequestArtistIndexTable.ContentDataSet> artistResp = nxgmci.Protocol.RequestArtistIndexTable.Parse(response.TextualResponse);
+            ParseResult<RequestArtistIndexTable.ContentDataSet> artistResp = RequestArtistIndexTable.Parse(response.TextualResponse);
             if (!artistResp.Success)
             {
                 MessageBox.Show("An error occured: " + artistResp.ErrorMessage);
@@ -145,13 +146,13 @@ namespace ADM
 
             // Fetch albums
             response = Postmaster.PostXML(new Uri(baseurl + ":8081/"),
-                (textBox1.Text = nxgmci.Protocol.RequestAlbumIndexTable.Build()), true);
+                (textBox1.Text = RequestAlbumIndexTable.Build()), true);
             if (!response.Success)
             {
                 MessageBox.Show("An error occured: " + response.Message);
                 return;
             }
-            nxgmci.Protocol.ParseResult<nxgmci.Protocol.RequestAlbumIndexTable.ContentDataSet> albumResp = nxgmci.Protocol.RequestAlbumIndexTable.Parse(response.TextualResponse);
+            ParseResult<RequestAlbumIndexTable.ContentDataSet> albumResp = RequestAlbumIndexTable.Parse(response.TextualResponse);
             if (!albumResp.Success)
             {
                 MessageBox.Show("An error occured: " + albumResp.ErrorMessage);
@@ -160,13 +161,13 @@ namespace ADM
 
             // Fetch urimetadata
             response = Postmaster.PostXML(new Uri(baseurl + ":8081/"),
-                (textBox1.Text = nxgmci.Protocol.RequestUriMetaData.Build()), true);
+                (textBox1.Text = RequestUriMetaData.Build()), true);
             if (!response.Success)
             {
                 MessageBox.Show("An error occured: " + response.Message);
                 return;
             }
-            nxgmci.Protocol.ParseResult<nxgmci.Protocol.RequestUriMetaData.ResponseParameters> metaDataResp = nxgmci.Protocol.RequestUriMetaData.Parse(response.TextualResponse);
+            ParseResult<RequestUriMetaData.ResponseParameters> metaDataResp = RequestUriMetaData.Parse(response.TextualResponse);
             if (!metaDataResp.Success)
             {
                 MessageBox.Show("An error occured: " + metaDataResp.ErrorMessage);
@@ -200,14 +201,14 @@ namespace ADM
             {
                 string title = contentData.Name.Trim(), artist, album;
 
-                nxgmci.Protocol.RequestArtistIndexTable.ContentData artistEntry =
+                RequestArtistIndexTable.ContentData artistEntry =
                     currentArtistIndex.GetEntry(contentData.Artist);
                 if (artistEntry == null)
                     artist = contentData.Artist.ToString();
                 else
                     artist = artistEntry.Name;
 
-                nxgmci.Protocol.RequestAlbumIndexTable.ContentData albumEntry =
+                RequestAlbumIndexTable.ContentData albumEntry =
                     currentAlbumIndex.GetEntry(contentData.Album);
                 if (albumEntry == null)
                     album = contentData.Album.ToString();
@@ -225,7 +226,7 @@ namespace ADM
             DateTime internalStart = DateTime.Now;
 
             Postmaster.QueryResponse response = Postmaster.PostXML(new Uri(baseurl + ":8081/"),
-                (textBox1.Text = nxgmci.Protocol.QueryDiskSpace.Build()), true);
+                (textBox1.Text = QueryDiskSpace.Build()), true);
 
             if (!response.Success)
             {
@@ -233,7 +234,7 @@ namespace ADM
                 return;
             }
 
-            nxgmci.Protocol.ParseResult<nxgmci.Protocol.QueryDiskSpace.ResponseParameters> parserResp = nxgmci.Protocol.QueryDiskSpace.Parse(response.TextualResponse);
+            ParseResult<QueryDiskSpace.ResponseParameters> parserResp = QueryDiskSpace.Parse(response.TextualResponse);
             if (!parserResp.Success)
             {
                 MessageBox.Show("An error occured: " + parserResp.ErrorMessage);

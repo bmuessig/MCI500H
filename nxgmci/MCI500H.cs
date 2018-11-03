@@ -5,7 +5,7 @@ using System.Text;
 using System.Net;
 using System.Text.RegularExpressions;
 using nxgmci.Protocol;
-using nxgmci.XML;
+using nxgmci.Net;
 
 namespace nxgmci
 {
