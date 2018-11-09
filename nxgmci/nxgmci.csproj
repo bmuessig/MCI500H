@@ -33,6 +33,7 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -41,6 +42,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CompletedEventArgs.cs" />
+    <Compile Include="Cover\CoverCrop.cs" />
+    <Compile Include="Cover\CoverCrypt.cs" />
     <Compile Include="MCI500H.cs" />
     <Compile Include="MediaLibrary.cs" />
     <Compile Include="MediaElement.cs" />
@@ -48,6 +51,11 @@
     <Compile Include="Parsers\PlaylistItem.cs" />
     <Compile Include="Parsers\PlaylistParser.cs" />
     <Compile Include="Net\MediaUploader.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
     <Compile Include="Protocol\RequestUriMetaData.cs" />
     <Compile Include="Protocol\RequestGenreIndexTable.cs" />
     <Compile Include="Protocol\RequestAlbumIndexTable.cs" />
@@ -62,7 +70,16 @@
     <Compile Include="Protocol\RequestRawData.cs" />
     <Compile Include="Protocol\QueryDiskSpace.cs" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\CoverEncoded.bin" />
+    <None Include="Resources\CoverOriginal.bin" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

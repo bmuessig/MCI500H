@@ -11,6 +11,7 @@ using System.Net;
 using System.IO;
 using nxgmci.Net;
 using nxgmci.Protocol;
+using nxgmci.Cover;
 
 namespace ADM
 {
@@ -23,6 +24,7 @@ namespace ADM
         public Form1()
         {
             InitializeComponent();
+            CoverCrypt.CalculateCryptoKey();
         }
 
         private void button1_Click(object sender, EventArgs e)
