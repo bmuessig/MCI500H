@@ -43,6 +43,7 @@
   <ItemGroup>
     <Compile Include="CompletedEventArgs.cs" />
     <Compile Include="Cover\CoverCrop.cs" />
+    <Compile Include="Cover\CoverCropMode.cs" />
     <Compile Include="Cover\CoverCrypt.cs" />
     <Compile Include="MCI500H.cs" />
     <Compile Include="MediaLibrary.cs" />
