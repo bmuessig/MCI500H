@@ -27,6 +27,8 @@ namespace nxgmci.Net
             // Handle the XML-specific header
             if (QueryHeaders == null)
                 QueryHeaders = new Dictionary<string, string>();
+            if (QueryHeaders.ContainsKey("Content-Type"))
+                QueryHeaders.Remove("Content-Type");
             QueryHeaders.Add("Content-Type", "text/xml");
 
             return PostString(Uri, Payload, ForceTextualResponse, QueryHeaders);
@@ -38,6 +40,8 @@ namespace nxgmci.Net
             // Handle the XML-specific header
             if (QueryHeaders == null)
                 QueryHeaders = new Dictionary<string, string>();
+            if (QueryHeaders.ContainsKey("Content-Type"))
+                QueryHeaders.Remove("Content-Type");
             QueryHeaders.Add("Content-Type", "text/xml");
 
             return PostString(EndPoint, Path, Payload, ForceTextualResponse, QueryHeaders);
