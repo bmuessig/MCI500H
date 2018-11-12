@@ -1,11 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
+using System.IO;
+using System.Collections.Generic;
 using nxgmci.Properties;
 
 namespace nxgmci.Cover
 {
+    /// <summary>
+    /// This class provides static functions to encode/encrypt as well as to decode/decrypt album art.
+    /// </summary>
     public static class CoverCrypt
     {
         // Local, static variables
@@ -26,6 +29,9 @@ namespace nxgmci.Cover
         // To determine the key length, many approaches can be taken
         // Here, it was enough to observe the wrapping behavoir after 0x1000 bytes
 
+        /// <summary>
+        /// Returns the length of the crypto key in bytes.
+        /// </summary>
         public static uint CryptoLength
         {
             get
@@ -35,6 +41,10 @@ namespace nxgmci.Cover
             }
         }
 
+        /// <summary>
+        /// Returns the current crypto key. If is not calculated yet, calculate it.
+        /// </summary>
+        /// <returns>The crypto key.</returns>
         public static byte[] GetCryptoKey()
         {
             // Check, if the crypto key has already been calculated and if it's of correct length
@@ -46,6 +56,10 @@ namespace nxgmci.Cover
             return cryptoKey;
         }
 
+        /// <summary>
+        /// Calculate the crypto key and overwrite the current one. This can be used to pre-calculate the key ahead of time.
+        /// </summary>
+        /// <returns>True, if the key could be calculated and set successfully. False on error.</returns>
         public static bool CalculateCryptoKey()
         {
             // Check if our resource files are present
@@ -75,6 +89,11 @@ namespace nxgmci.Cover
             return true;
         }
 
+        /// <summary>
+        /// Sets the current crypto key to a user supplied one and checks the key's validity.
+        /// </summary>
+        /// <param name="Key">The new crypto key to be used.</param>
+        /// <returns>True if the new crypto key is valid and was successfully set. False, if the key was invalid.</returns>
         public static bool SetCryptoKey(byte[] Key)
         {
             // Check the user supplied key
@@ -88,6 +107,12 @@ namespace nxgmci.Cover
             return false;
         }
 
+        /// <summary>
+        /// Verifies a supplied crypto key.
+        /// </summary>
+        /// <param name="Key">The key to be verified.</param>
+        /// <param name="QuickScan">If false, loop over the key's data and check it's validity. If true, only check the size.</param>
+        /// <returns>True if the key is valid and false, if it's not.</returns>
         public static bool VerifyCryptoKey(byte[] Key, bool QuickScan)
         {
             // Input sanity checks
@@ -107,6 +132,13 @@ namespace nxgmci.Cover
             return true;
         }
 
+        /// <summary>
+        /// Apply the key to a buffer.
+        /// </summary>
+        /// <param name="Buffer">The buffer to be modified.</param>
+        /// <param name="Length">The number of bytes to be modified.</param>
+        /// <param name="Offset">The maximum number of bytes to skip before starting to modify data.</param>
+        /// <returns>True if the key could be applied to the buffer successfully. False if the data was not changed and there had been an error.</returns>
         public static bool EncryptBuffer(ref byte[] Buffer, uint Length, uint Offset = 0)
         {
             // Make sure we have a valid key
@@ -116,8 +148,10 @@ namespace nxgmci.Cover
             // Also perform sanity checks on the input
             if (Buffer == null)
                 return false;
+
+            // Clip the length to be at most the size of the buffer
             if (Length + Offset > Buffer.Length)
-                return false;
+                Length = (uint)(Buffer.Length - (int)Offset);
 
             // If everything matches up, we apply the encryption
             for (uint ptr = Offset; ptr < Offset + Length; ptr++)
@@ -125,6 +159,54 @@ namespace nxgmci.Cover
 
             // And we return success
             return true;
+        }
+
+        /// <summary>
+        /// Apply the key to an input stream and write the result to an output stream.
+        /// </summary>
+        /// <param name="InputStream">The stream to read the input data from.</param>
+        /// <param name="OutputStream">The stream to write the output data to.</param>
+        /// <param name="Length">Maximum number of bytes to read. If zero, read until EOF.</param>
+        /// <returns>Returns the number of bytes written successfully.</returns>
+        public static uint EncryptStream(Stream InputStream, Stream OutputStream, uint Length = 0)
+        {
+            // Make sure we have a valid key
+            if (!VerifyCryptoKey(cryptoKey, true))
+                return 0;
+
+            // Also perform sanity checks on the input
+            if (InputStream == null || OutputStream == null)
+                return 0;
+            if (!InputStream.CanRead || !OutputStream.CanWrite)
+                return 0;
+
+            // This stores the number of bytes read
+            uint count = 0;
+
+            // Loop over the input data
+            try
+            {
+                for (; (count < Length) || (Length == 0); count++)
+                {
+                    // Read a new byte from the input stream
+                    int b = InputStream.ReadByte();
+
+                    // Check, if we have reached the end of the input stream
+                    if (b == -1)
+                        break;
+
+                    // Now, encode the byte and write it to the output
+                    OutputStream.WriteByte((byte)(b ^ cryptoKey[count % cryptoLength]));
+                }
+            }
+            catch (Exception)
+            {
+                // On error, return the number of bytes read so far
+                return count;
+            }
+
+            // Finally, return the number of bytes written
+            return count;
         }
     }
 }
