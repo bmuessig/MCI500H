@@ -49,9 +49,11 @@
     <Compile Include="MediaLibrary.cs" />
     <Compile Include="MediaElement.cs" />
     <Compile Include="MediaUploader.cs" />
-    <Compile Include="Parsers\PlaylistItem.cs" />
-    <Compile Include="Parsers\PlaylistParser.cs" />
-    <Compile Include="Net\MediaUploader.cs" />
+    <Compile Include="Metadata\PlaylistItem.cs" />
+    <Compile Include="Metadata\PlaylistParser.cs" />
+    <Compile Include="Metadata\TagInfo.cs" />
+    <Compile Include="Metadata\TagParser.cs" />
+    <Compile Include="Network\MediaUploader.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -61,12 +63,12 @@
     <Compile Include="Protocol\RequestGenreIndexTable.cs" />
     <Compile Include="Protocol\RequestAlbumIndexTable.cs" />
     <Compile Include="Protocol\RequestArtistIndexTable.cs" />
-    <Compile Include="Net\NetUtils.cs" />
-    <Compile Include="Net\Postmaster.cs" />
+    <Compile Include="Network\NetUtils.cs" />
+    <Compile Include="Network\Postmaster.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Protocol\DLNA.cs" />
-    <Compile Include="Parsers\WADMParser.cs" />
-    <Compile Include="Parsers\WADMResult.cs" />
+    <Compile Include="Protocol\WADMParser.cs" />
+    <Compile Include="Protocol\WADMResult.cs" />
     <Compile Include="ActionResult.cs" />
     <Compile Include="Protocol\RequestRawData.cs" />
     <Compile Include="Protocol\QueryDiskSpace.cs" />
@@ -80,6 +82,9 @@
   <ItemGroup>
     <None Include="Resources\CoverEncoded.bin" />
     <None Include="Resources\CoverOriginal.bin" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Query\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

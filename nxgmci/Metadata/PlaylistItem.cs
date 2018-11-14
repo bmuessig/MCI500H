@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace nxgmci.Parsers
+namespace nxgmci.Metadata
 {
     public class PlaylistItem
     {

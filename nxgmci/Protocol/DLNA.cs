@@ -11,6 +11,7 @@ namespace nxgmci.Protocol
         // Body refers to the XML body to be send
         // Action refers to the HTTP header SOAPAction to be set with each request
 
+        // Note: we can play local URIs! file:///mnt/hda/content/media/29/29866.mp3
 
         // == Audio/Video Transport Endpoint ==
 

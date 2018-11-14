@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Net;
 
-namespace nxgmci.Net
+namespace nxgmci.Network
 {
     internal static class NetUtils
     {

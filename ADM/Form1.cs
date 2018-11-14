@@ -9,9 +9,10 @@ using System.Windows.Forms;
 using nxgmci;
 using System.Net;
 using System.IO;
-using nxgmci.Net;
+using nxgmci.Network;
 using nxgmci.Protocol;
 using nxgmci.Cover;
+using nxgmci.Metadata;
 
 namespace ADM
 {
@@ -325,7 +326,7 @@ namespace ADM
                     return;
                 }
 
-                List<nxgmci.Parsers.PlaylistItem> listItems = nxgmci.Parsers.PlaylistParser.Parse(playlistConts, true, false, true, true);
+                List<PlaylistItem> listItems = PlaylistParser.Parse(playlistConts, true, false, true, true);
                 if (listItems == null)
                 {
                     MessageBox.Show("Fail parsing list!");
@@ -347,11 +348,11 @@ namespace ADM
                 // We only play the first element if there is one
                 url = listItems[0].Path;
             }
-            else if (!url.ToLower().EndsWith(".mp3"))
+            /*else if (!url.ToLower().EndsWith(".mp3"))
             {
                 MessageBox.Show("Invalid format!");
                 return;
-            }
+            }*/
 
             stereo.Stop();
             if (!stereo.SelectMedia(new Uri(url)))

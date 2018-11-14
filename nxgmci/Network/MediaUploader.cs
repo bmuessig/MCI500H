@@ -4,12 +4,20 @@ using System.Linq;
 using System.Text;
 using System.Net;
 using System.IO;
+using System.Drawing;
 
-namespace nxgmci.Net
+namespace nxgmci.Network
 {
     public class MediaUploader
     {
         internal static uint ConnectTimeoutMilliseconds = 5000;
+
+
+
+        public static bool PutAlbum(IPEndPoint EndPoint, string TargetPath, Bitmap AlbumArt, Stream PayloadStream)
+        {
+            return false;
+        }
 
         public static bool PutMedia(IPEndPoint EndPoint, string TargetPath, Stream PayloadStream)
         {
