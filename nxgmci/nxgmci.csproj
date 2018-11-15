@@ -72,6 +72,9 @@
     <Compile Include="ActionResult.cs" />
     <Compile Include="Protocol\RequestRawData.cs" />
     <Compile Include="Protocol\QueryDiskSpace.cs" />
+    <Compile Include="Query\Query.cs" />
+    <Compile Include="Query\QueryInstruction.cs" />
+    <Compile Include="Query\QueryToken.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\Resources.resx">
@@ -83,9 +86,7 @@
     <None Include="Resources\CoverEncoded.bin" />
     <None Include="Resources\CoverOriginal.bin" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Query\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
