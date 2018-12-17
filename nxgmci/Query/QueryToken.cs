@@ -7,16 +7,29 @@ namespace nxgmci.Query
 {
     internal class QueryToken
     {
+        public string ContentText;
+        public int ContentNumber;
+        public TokenIntent Intent;
+        public uint Position;
 
-        internal enum TokenIntent : byte
+        public enum TokenIntent : byte
         {
             Unknown,
+            Invalid,
             
+            Operator,
+
             ConstantNumber,
             ConstantString,
 
             VariableDisplayed,
             VariableHidden,
+
+            ParanthesisOpening,
+            ParanthesisClosing,
+
+            Or,
+            And,
             
             StringAdd,
             StringSubtract,
@@ -36,6 +49,8 @@ namespace nxgmci.Query
             NumberLess,
             NumberLessEqual,
             NumberGreaterThanZero,
+            NumberModuloNot,
+            NumberModulo,
 
             IntentCount
         }
