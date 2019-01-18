@@ -67,6 +67,8 @@
     <Compile Include="Network\Postmaster.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Protocol\DLNA.cs" />
+    <Compile Include="Protocol\StatusCode.cs" />
+    <Compile Include="Protocol\StatusCodeMediator.cs" />
     <Compile Include="Protocol\WADMParser.cs" />
     <Compile Include="Protocol\WADMResult.cs" />
     <Compile Include="ActionResult.cs" />
