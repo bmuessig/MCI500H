@@ -7,28 +7,54 @@ namespace nxgmci.Cover
 {
     public enum CoverCropMode : byte
     {
-        // Just center the image and don't scale it
+        /// <summary>
+        /// Just plot the image at the upper left origin and don't scale it.
+        /// </summary>
         None,
 
-        // Crops width or height based on the least amount of wasted area
+        /// <summary>
+        /// Just center the image and don't scale it.
+        /// </summary>
+        Center,
+
+        /// <summary>
+        /// Stretches the image without keeping the original aspect ratio.
+        /// </summary>
+        Stretch,
+
+        /// <summary>
+        /// Crops width or height based on the least amount of wasted area.
+        /// </summary>
         MaximizeArea,
 
-        // Crops the image's height to fit
+        /// <summary>
+        /// Crops the image's height to fit.
+        /// </summary>
         CropHeight,
 
-        // Crops the image's width to fit
+        /// <summary>
+        /// Crops the image's width to fit.
+        /// </summary>
         CropWidth,
 
-        // Zooms the image to cover the most area on a black background
+        /// <summary>
+        /// Zooms the image to cover the most area on a black background.
+        /// </summary>
         ZoomBlack,
 
-        // Zooms the image to cover the most area on a white background
+        /// <summary>
+        /// Zooms the image to cover the most area on a white background.
+        /// </summary>
         ZoomWhite,
 
-        // Zooms the image to cover the most area on a gray background
+        /// <summary>
+        /// Zooms the image to cover the most area on a gray background.
+        /// </summary>
         ZoomGray,
 
-        // Stretches the image without keeping the original aspect ratio
-        Stretch
+        /// <summary>
+        /// Zooms the image to cover the most area on a blurred and streched version of the image as a background.
+        /// </summary>
+        ZoomModern
     }
 }

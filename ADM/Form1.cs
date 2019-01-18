@@ -28,7 +28,7 @@ namespace ADM
             CoverCrypt.CalculateCryptoKey();
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private void speedTestButton_Click(object sender, EventArgs e)
         {
             string url = baseurl + ":8081/";
             string query = "<requesturimetadata></requesturimetadata>";
@@ -65,7 +65,7 @@ namespace ADM
             MessageBox.Show(string.Format("Own Implementation Reply:\n\n{0}", externalResponse));
         }
 
-        private void button2_Click(object sender, EventArgs e)
+        private void mediaPlayButton_Click(object sender, EventArgs e)
         {
             if (mediaView.SelectedIndices.Count == 1)
                 if (lastid != mediaView.SelectedIndices[0])
@@ -89,24 +89,24 @@ namespace ADM
             return string.Format("{0}/{1}/{2}.{3}", currentUriMetaData.URIPath, container, tid, ext);
         }
 
-        private void button3_Click(object sender, EventArgs e)
+        private void transmitButton_Click(object sender, EventArgs e)
         {
-            Postmaster.QueryResponse response = Postmaster.PostXML(new Uri(baseurl + ":8081/"), textBox1.Text);
+            Postmaster.QueryResponse response = Postmaster.PostXML(new Uri(baseurl + ":8081/"), transmitTextBox.Text);
             if (response.Success)
                 MessageBox.Show(string.Format("HTTP {0} {1}:\n\n{2}", response.StatusCode, response.Message, response.TextualResponse));
             else
                 MessageBox.Show("An error occured: " + response.Message);
         }
 
-        private void button4_Click(object sender, EventArgs e)
+        private void transmitClearButton_Click(object sender, EventArgs e)
         {
-            textBox1.Clear();
-            textBox1.Focus();
+            transmitTextBox.Clear();
+            transmitTextBox.Focus();
         }
 
-        private void checkBox1_CheckedChanged(object sender, EventArgs e)
+        private void topMostCheckBox_CheckedChanged(object sender, EventArgs e)
         {
-            this.TopMost = checkBox1.Checked;
+            this.TopMost = topMostCheckBox.Checked;
         }
 
         RequestRawData.ContentDataSet currentMediaLib;
@@ -115,11 +115,11 @@ namespace ADM
         RequestGenreIndexTable.ContentDataSet currentGenreIndex;
         RequestUriMetaData.ResponseParameters currentUriMetaData;
 
-        private void button5_Click(object sender, EventArgs e)
+        private void mediaFetchButton_Click(object sender, EventArgs e)
         {
             // Fetch media
             Postmaster.QueryResponse response = Postmaster.PostXML(new Uri(baseurl + ":8081/"),
-                (textBox1.Text = RequestRawData.Build(0, 0)), true);
+                (transmitTextBox.Text = RequestRawData.Build(0, 0)), true);
             if (!response.Success)
             {
                 MessageBox.Show("An error occured: " + response.Message);
@@ -134,7 +134,7 @@ namespace ADM
 
             // Fetch artists
             response = Postmaster.PostXML(new Uri(baseurl + ":8081/"),
-                (textBox1.Text = RequestArtistIndexTable.Build()), true);
+                (transmitTextBox.Text = RequestArtistIndexTable.Build()), true);
             if (!response.Success)
             {
                 MessageBox.Show("An error occured: " + response.Message);
@@ -149,7 +149,7 @@ namespace ADM
 
             // Fetch albums
             response = Postmaster.PostXML(new Uri(baseurl + ":8081/"),
-                (textBox1.Text = RequestAlbumIndexTable.Build()), true);
+                (transmitTextBox.Text = RequestAlbumIndexTable.Build()), true);
             if (!response.Success)
             {
                 MessageBox.Show("An error occured: " + response.Message);
@@ -164,7 +164,7 @@ namespace ADM
 
             // Fetch urimetadata
             response = Postmaster.PostXML(new Uri(baseurl + ":8081/"),
-                (textBox1.Text = RequestUriMetaData.Build()), true);
+                (transmitTextBox.Text = RequestUriMetaData.Build()), true);
             if (!response.Success)
             {
                 MessageBox.Show("An error occured: " + response.Message);
@@ -224,12 +224,12 @@ namespace ADM
             }
         }
 
-        private void button6_Click(object sender, EventArgs e)
+        private void queryDiskSpaceButton_Click(object sender, EventArgs e)
         {
             DateTime internalStart = DateTime.Now;
 
             Postmaster.QueryResponse response = Postmaster.PostXML(new Uri(baseurl + ":8081/"),
-                (textBox1.Text = QueryDiskSpace.Build()), true);
+                (transmitTextBox.Text = QueryDiskSpace.Build()), true);
 
             if (!response.Success)
             {
@@ -253,19 +253,19 @@ namespace ADM
                 (internalStop - internalStart).TotalMilliseconds));
         }
 
-        private void button7_Click(object sender, EventArgs e)
+        private void mediaPauseButton_Click(object sender, EventArgs e)
         {
             if (!stereo.Pause())
                 MessageBox.Show("Fail!");
         }
 
-        private void button8_Click(object sender, EventArgs e)
+        private void mediaStopButton_Click(object sender, EventArgs e)
         {
             if (!stereo.Stop())
                 MessageBox.Show("Fail!");
         }
 
-        private void button9_Click(object sender, EventArgs e)
+        private void mediaSkipBackButton_Click(object sender, EventArgs e)
         {
             if (currentMediaLib == null)
                 return;
@@ -276,7 +276,7 @@ namespace ADM
             selectLast(true);
         }
 
-        private void button10_Click(object sender, EventArgs e)
+        private void mediaSkipAheadButton_Click(object sender, EventArgs e)
         {
             if (currentMediaLib == null)
                 return;
@@ -287,12 +287,12 @@ namespace ADM
             selectLast(true);
         }
 
-        private void button11_Click(object sender, EventArgs e)
+        private void playUriButton_Click(object sender, EventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(textBox2.Text))
+            if (string.IsNullOrWhiteSpace(playUriTextBox.Text))
                 return;
             
-            string url = textBox2.Text.Trim();
+            string url = playUriTextBox.Text.Trim();
 
             if (url.ToLower().EndsWith(".m3u"))
             {
