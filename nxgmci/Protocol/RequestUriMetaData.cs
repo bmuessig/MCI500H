@@ -7,7 +7,7 @@ using nxgmci.Protocol;
 
 namespace nxgmci.Protocol
 {
-    public class RequestUriMetaData
+    public static class RequestUriMetaData
     {
         // This request is used to retrieve lots of important flags from the stereo
         // For instance, this will tell us the public directory of the files.

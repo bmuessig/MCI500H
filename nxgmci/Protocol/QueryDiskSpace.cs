@@ -7,7 +7,7 @@ using nxgmci.Protocol;
 
 namespace nxgmci.Protocol
 {
-    public class QueryDiskSpace
+    public static class QueryDiskSpace
     {
         // This request returns both free and used harddisk space.
         // We can use this information to determine whether we can upload new files or not.
