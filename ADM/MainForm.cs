@@ -16,13 +16,16 @@ using nxgmci.Metadata;
 
 namespace ADM
 {
-    public partial class Form1 : Form
+    public partial class MainForm : Form
     {
-        private static string baseurl = "http://10.0.0.10";
+        //private static string baseurl = "http://10.0.0.10";
+        private static string baseurl = "http://192.168.10.3";
         private MCI500H stereo = new MCI500H(IPAddress.Parse(baseurl.Substring(baseurl.LastIndexOf('/') + 1)));
         int lastid = -1;
+        string lastResponse = "";
+        bool lastSuccess = false;
 
-        public Form1()
+        public MainForm()
         {
             InitializeComponent();
             CoverCrypt.CalculateCryptoKey();
@@ -91,11 +94,14 @@ namespace ADM
 
         private void transmitButton_Click(object sender, EventArgs e)
         {
+            receiveTextBox.Clear();
+            transmitTextBox.ReadOnly = true;
             Postmaster.QueryResponse response = Postmaster.PostXML(new Uri(baseurl + ":8081/"), transmitTextBox.Text);
-            if (response.Success)
-                MessageBox.Show(string.Format("HTTP {0} {1}:\n\n{2}", response.StatusCode, response.Message, response.TextualResponse));
-            else
-                MessageBox.Show("An error occured: " + response.Message);
+            receiveTextBox.Text = response.Success ? string.Format("HTTP {0} {1}:\n\n{2}", response.StatusCode, response.Message, response.TextualResponse).Replace("\n", "\r\n")
+                : "An error occured: " + response.Message;
+            lastSuccess = response.Success;
+            lastResponse = response.TextualResponse;
+            transmitTextBox.ReadOnly = false;
         }
 
         private void transmitClearButton_Click(object sender, EventArgs e)
@@ -363,6 +369,28 @@ namespace ADM
 
             if (!stereo.Play())
                 MessageBox.Show("Fail!");
+        }
+
+        private void transmitTryParseButton_Click(object sender, EventArgs e)
+        {
+            if(!lastSuccess)
+            {
+                MessageBox.Show("The previous request did not complete successfully. Parsing cannot be performed!", "Error!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                return;
+            }
+
+
+            WADMParser parser = new WADMParser("contentdataset", "contentdata", true);
+            WADMResult result = parser.Parse(lastResponse, true);
+            if (result.Success)
+            {
+                if (MessageBox.Show(string.Format("The parsing succeeded!\n{0} root elements and {1} list elements were found.\n\nDo you want to break the program to see the list?",
+                    result.Elements.Count, result.WasList ? result.List.Count : 0), "Success!", MessageBoxButtons.YesNo, MessageBoxIcon.Information, MessageBoxDefaultButton.Button2) == DialogResult.Yes)
+                    ((string)null).ToLower(); // Crash the program
+            }
+            else
+                MessageBox.Show(string.Format("The parsing FAILED!\n\nError:\n{0}", result.ErrorMessage), "Error!",
+                    MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
         }
     }
 }

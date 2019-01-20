@@ -2,41 +2,35 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
-using nxgmci.Protocol;
 
 namespace nxgmci.Protocol
 {
-    public static class RequestRawData
+    public static class RequestPlayableData
     {
-        // This request is used to fetch title data in chunks or as a whole.
-        // It accepts both a start index (skip) and a max. items parameter (count).
-        // Using the parameters 0,0 will fetch all titles. This is not recommended for large databases.
-        // The stereo has limited RAM and processing capabilities and a database with 1000s of titles may overflow.
-        // It is recommended to fetch 100 titles at a time. The first request will return a total number of titles.
-        // This number can be used to generate the correct number of requests to fetch all titles successfully.
-        // The 0,0 method is not used by the official application.
+        // This call provides a DLNA-like folder and media browser with the ability to display cover art.
 
         // ContentDataSet Parser
         private readonly static WADMParser parser = new WADMParser("contentdataset", "contentdata", true);
 
-        // RequestRawData-Request:
+        // RequestArtistIndexTable-Reqest:
         /// <summary>
-        /// Assembles a RequestRawData request.
+        /// 
         /// </summary>
-        /// <param name="FromIndex">First index to be included into the response</param>
-        /// <param name="NumElem">Number of elements to be included; -1 means all elements</param>
-        /// <returns>XML request ready to be sent</returns>
-        public static string Build(uint FromIndex, uint NumElem = 0)
+        /// <param name="NodeID">Parent node ID to fetch the child elements from</param>
+        /// <param name="NumElem">Maximum number of elements (0 returns all elements)</param>
+        /// <returns></returns>
+        public static string Build(uint NodeID, uint NumElem)
         {
+            int processedNumElem = (int)NumElem; // Potentional overflow here
+            if (NodeID == 0 && NumElem == 0)
+                processedNumElem = -1;
+
             return string.Format(
-                "<requestrawdata>" +
-                "<requestparameters>" +
-                "<fromindex>{0}</fromindex>" +
-                "<numelem>{1}</numelem>" +
-                "</requestparameters>" +
-                "</requestrawdata>",
-                FromIndex,
+                "<requestplayabledata>"+
+                "<nodeid>{0}</nodeid>"+
+                "<numelem>{1}</numelem>"+
+                "</requestplayabledata>",
+                NodeID,
                 NumElem);
         }
 
@@ -70,9 +64,11 @@ namespace nxgmci.Protocol
                 return new ActionResult<ContentDataSet>(string.Format("Could not locate parameter '{0}'!", "numelem"));
             if (!result.Elements.ContainsKey("updateid"))
                 return new ActionResult<ContentDataSet>(string.Format("Could not locate parameter '{0}'!", "updateid"));
-            
+
             // Then, try to parse the parameters
             uint totNumElem, fromIndex, numElem, updateID;
+            bool alphanumeric = result.Elements.ContainsKey("alphanumeric");
+
             if (!uint.TryParse(result.Elements["totnumelem"], out totNumElem))
                 return new ActionResult<ContentDataSet>(string.Format("Could not parse parameter '{0}' as uint!", "totnumelem"));
             if (!uint.TryParse(result.Elements["fromindex"], out fromIndex))
@@ -85,9 +81,9 @@ namespace nxgmci.Protocol
             // If required, perform some sanity checks on the data
             if (ValidateInput)
             {
-                if(totNumElem < numElem)
+                if (totNumElem < numElem)
                     return new ActionResult<ContentDataSet>("totnumelem < numelem");
-                if(fromIndex + numElem > totNumElem)
+                if (fromIndex + numElem > totNumElem)
                     return new ActionResult<ContentDataSet>("fromindex + numelem > totnumelem");
                 if (result.List.Count != numElem)
                     return new ActionResult<ContentDataSet>("Number of list items != numelem");
@@ -107,25 +103,58 @@ namespace nxgmci.Protocol
                 if (listItem == null)
                     continue;
 
+                /*
+                        <name>Sick of Me</name>
+                        <title>Sick of Me</title>
+                        <nodeid>402683184</nodeid>
+                        <parentid>385875968</parentid>
+                        <playable />
+                        <url>http://192.168.10.3:80/media/30/30000.mp3</url>
+                        <album>Aggressive (Deluxe Edition)</album>
+                        <albumarturl>http://192.168.10.3:80/jpeg/0/382.jpg</albumarturl>
+                        <albumarttnurl>http://192.168.10.3:80/jpeg/0/382.tn.jpg</albumarttnurl>
+                        <trackno>6</trackno>
+                        <year>2017</year>
+                        <likemusic>false</likemusic>
+                        <artist>Beartooth</artist>
+                        <genre>Hard Rock &amp; Metal</genre>
+                        <dmmcookie>735906930</dmmcookie>
+                 */
+
                 // First, make sure our mandatory arguments exist
                 if (!listItem.ContainsKey("name"))
                     return new ActionResult<ContentDataSet>(string.Format("Could not locate parameter '{0}' in item #{1}!", "name", elementNo));
+                if (!listItem.ContainsKey("title"))
+                    return new ActionResult<ContentDataSet>(string.Format("Could not locate parameter '{0}' in item #{1}!", "title", elementNo));
                 if (!listItem.ContainsKey("nodeid"))
                     return new ActionResult<ContentDataSet>(string.Format("Could not locate parameter '{0}' in item #{1}!", "nodeid", elementNo));
+                if (!listItem.ContainsKey("parentid"))
+                    return new ActionResult<ContentDataSet>(string.Format("Could not locate parameter '{0}' in item #{1}!", "parentid", elementNo));
+                if (!listItem.ContainsKey("url"))
+                    return new ActionResult<ContentDataSet>(string.Format("Could not locate parameter '{0}' in item #{1}!", "url", elementNo));
                 if (!listItem.ContainsKey("album"))
                     return new ActionResult<ContentDataSet>(string.Format("Could not locate parameter '{0}' in item #{1}!", "album", elementNo));
                 if (!listItem.ContainsKey("trackno"))
                     return new ActionResult<ContentDataSet>(string.Format("Could not locate parameter '{0}' in item #{1}!", "trackno", elementNo));
+                if (!listItem.ContainsKey("year"))
+                    return new ActionResult<ContentDataSet>(string.Format("Could not locate parameter '{0}' in item #{1}!", "year", elementNo));
                 if (!listItem.ContainsKey("artist"))
                     return new ActionResult<ContentDataSet>(string.Format("Could not locate parameter '{0}' in item #{1}!", "artist", elementNo));
                 if (!listItem.ContainsKey("genre"))
                     return new ActionResult<ContentDataSet>(string.Format("Could not locate parameter '{0}' in item #{1}!", "genre", elementNo));
-                if (!listItem.ContainsKey("year"))
-                    return new ActionResult<ContentDataSet>(string.Format("Could not locate parameter '{0}' in item #{1}!", "year", elementNo));
-                if (!listItem.ContainsKey("mediatype"))
-                    return new ActionResult<ContentDataSet>(string.Format("Could not locate parameter '{0}' in item #{1}!", "mediatype", elementNo));
                 if (!listItem.ContainsKey("dmmcookie"))
                     return new ActionResult<ContentDataSet>(string.Format("Could not locate parameter '{0}' in item #{1}!", "dmmcookie", elementNo));
+
+                if (!listItem.ContainsKey("containertype"))
+                    return new ActionResult<ContentDataSet>(string.Format("Could not locate parameter '{0}' in item #{1}!", "containertype", elementNo));
+                if (!listItem.ContainsKey("playable"))
+                    return new ActionResult<ContentDataSet>(string.Format("Could not locate parameter '{0}' in item #{1}!", "playable", elementNo));
+                if (!listItem.ContainsKey("albumarturl"))
+                    return new ActionResult<ContentDataSet>(string.Format("Could not locate parameter '{0}' in item #{1}!", "albumarturl", elementNo));
+                if (!listItem.ContainsKey("albumarttnurl"))
+                    return new ActionResult<ContentDataSet>(string.Format("Could not locate parameter '{0}' in item #{1}!", "albumarttnurl", elementNo));
+                if (!listItem.ContainsKey("likemusic"))
+                    return new ActionResult<ContentDataSet>(string.Format("Could not locate parameter '{0}' in item #{1}!", "likemusic", elementNo));
 
                 // Then, try to parse the parameters
                 string name;
@@ -210,15 +239,42 @@ namespace nxgmci.Protocol
 
         public class ContentData
         {
+                /*"name"
+                "title"
+                "nodeid"
+                "parentid"
+                "url"
+                "album"
+                "trackno"
+                "year"
+                "artist"
+                "genre"
+                "dmmcookie"
+
+                "containertype"
+                "playable"
+                "albumarturl"
+                "albumarttnurl"
+                "likemusic"*/
+
             public string Name;
+            public string Title;
             public uint NodeID;
+            public uint ParentID;
+            public string URL;
             public uint Album;
             public uint TrackNo;
+            public uint Year;
             public uint Artist;
             public uint Genre;
-            public uint Year;
-            public uint MediaType;
             public uint DMMCookie;
+
+            public bool HasContainerType;
+            public uint ContainerType;
+            public bool Playable;
+            public string AlbumArtURL;
+            public string AlbumArtTnURL;
+            public bool LikeMusic;
 
             internal ContentData()
             {
@@ -233,7 +289,6 @@ namespace nxgmci.Protocol
                 this.Artist = Artist;
                 this.Genre = Genre;
                 this.Year = Year;
-                this.MediaType = MediaType;
                 this.DMMCookie = DMMCookie;
             }
 

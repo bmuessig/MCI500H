@@ -59,6 +59,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Include="Protocol\RequestPlayableData.cs" />
     <Compile Include="Protocol\RequestUriMetaData.cs" />
     <Compile Include="Protocol\RequestGenreIndexTable.cs" />
     <Compile Include="Protocol\RequestAlbumIndexTable.cs" />

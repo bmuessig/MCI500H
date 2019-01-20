@@ -1,6 +1,6 @@
 ﻿namespace ADM
 {
-    partial class Form1
+    partial class MainForm
     {
         /// <summary>
         /// Erforderliche Designervariable.
@@ -62,20 +62,27 @@
             this.albumLabel = new System.Windows.Forms.Label();
             this.coverPictureBox = new System.Windows.Forms.PictureBox();
             this.tabPage1 = new System.Windows.Forms.TabPage();
+            this.extraSplitContainer = new System.Windows.Forms.SplitContainer();
+            this.transmitTryParseButton = new System.Windows.Forms.Button();
             this.playUriTextBox = new System.Windows.Forms.TextBox();
             this.playUriButton = new System.Windows.Forms.Button();
+            this.receiveTextBox = new System.Windows.Forms.TextBox();
             this.tabControl1.SuspendLayout();
             this.tabPage2.SuspendLayout();
             this.tabPage3.SuspendLayout();
             this.metaLayoutTable.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.coverPictureBox)).BeginInit();
             this.tabPage1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.extraSplitContainer)).BeginInit();
+            this.extraSplitContainer.Panel1.SuspendLayout();
+            this.extraSplitContainer.Panel2.SuspendLayout();
+            this.extraSplitContainer.SuspendLayout();
             this.SuspendLayout();
             // 
             // speedTestButton
             // 
             this.speedTestButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.speedTestButton.Location = new System.Drawing.Point(279, 304);
+            this.speedTestButton.Location = new System.Drawing.Point(338, 293);
             this.speedTestButton.Name = "speedTestButton";
             this.speedTestButton.Size = new System.Drawing.Size(75, 23);
             this.speedTestButton.TabIndex = 0;
@@ -96,19 +103,19 @@
             // 
             // transmitTextBox
             // 
-            this.transmitTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-                        | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
-            this.transmitTextBox.Location = new System.Drawing.Point(3, 3);
+            this.transmitTextBox.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.transmitTextBox.Location = new System.Drawing.Point(0, 0);
             this.transmitTextBox.Multiline = true;
             this.transmitTextBox.Name = "transmitTextBox";
-            this.transmitTextBox.Size = new System.Drawing.Size(461, 295);
+            this.transmitTextBox.Size = new System.Drawing.Size(277, 284);
             this.transmitTextBox.TabIndex = 3;
+            this.transmitTextBox.Text = "<requestplayabledata><nodeid>0</nodeid><numelem>-1</numelem></requestplayabledata" +
+                ">";
             // 
             // transmitButton
             // 
             this.transmitButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.transmitButton.Location = new System.Drawing.Point(3, 304);
+            this.transmitButton.Location = new System.Drawing.Point(3, 293);
             this.transmitButton.Name = "transmitButton";
             this.transmitButton.Size = new System.Drawing.Size(75, 23);
             this.transmitButton.TabIndex = 4;
@@ -119,7 +126,7 @@
             // transmitClearButton
             // 
             this.transmitClearButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.transmitClearButton.Location = new System.Drawing.Point(84, 304);
+            this.transmitClearButton.Location = new System.Drawing.Point(167, 293);
             this.transmitClearButton.Name = "transmitClearButton";
             this.transmitClearButton.Size = new System.Drawing.Size(75, 23);
             this.transmitClearButton.TabIndex = 5;
@@ -131,7 +138,7 @@
             // 
             this.topMostCheckBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.topMostCheckBox.AutoSize = true;
-            this.topMostCheckBox.Location = new System.Drawing.Point(209, 308);
+            this.topMostCheckBox.Location = new System.Drawing.Point(268, 297);
             this.topMostCheckBox.Name = "topMostCheckBox";
             this.topMostCheckBox.Size = new System.Drawing.Size(68, 17);
             this.topMostCheckBox.TabIndex = 6;
@@ -153,7 +160,7 @@
             // queryDiskSpaceButton
             // 
             this.queryDiskSpaceButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.queryDiskSpaceButton.Location = new System.Drawing.Point(360, 304);
+            this.queryDiskSpaceButton.Location = new System.Drawing.Point(419, 293);
             this.queryDiskSpaceButton.Name = "queryDiskSpaceButton";
             this.queryDiskSpaceButton.Size = new System.Drawing.Size(101, 23);
             this.queryDiskSpaceButton.TabIndex = 8;
@@ -172,7 +179,7 @@
             this.tabControl1.Location = new System.Drawing.Point(0, 0);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(464, 348);
+            this.tabControl1.Size = new System.Drawing.Size(534, 348);
             this.tabControl1.TabIndex = 9;
             // 
             // tabPage2
@@ -188,7 +195,7 @@
             this.tabPage2.Location = new System.Drawing.Point(4, 22);
             this.tabPage2.Name = "tabPage2";
             this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage2.Size = new System.Drawing.Size(456, 322);
+            this.tabPage2.Size = new System.Drawing.Size(526, 322);
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "Media";
             this.tabPage2.UseVisualStyleBackColor = true;
@@ -258,7 +265,7 @@
             this.columnHeader3});
             this.mediaView.Location = new System.Drawing.Point(3, 3);
             this.mediaView.Name = "mediaView";
-            this.mediaView.Size = new System.Drawing.Size(450, 284);
+            this.mediaView.Size = new System.Drawing.Size(515, 284);
             this.mediaView.TabIndex = 0;
             this.mediaView.UseCompatibleStateImageBehavior = false;
             this.mediaView.View = System.Windows.Forms.View.Details;
@@ -287,7 +294,7 @@
             this.tabPage3.Location = new System.Drawing.Point(4, 22);
             this.tabPage3.Name = "tabPage3";
             this.tabPage3.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage3.Size = new System.Drawing.Size(467, 333);
+            this.tabPage3.Size = new System.Drawing.Size(526, 322);
             this.tabPage3.TabIndex = 2;
             this.tabPage3.Text = "Track info";
             this.tabPage3.UseVisualStyleBackColor = true;
@@ -336,16 +343,16 @@
             this.metaLayoutTable.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
             this.metaLayoutTable.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
             this.metaLayoutTable.RowStyles.Add(new System.Windows.Forms.RowStyle());
-            this.metaLayoutTable.Size = new System.Drawing.Size(290, 120);
+            this.metaLayoutTable.Size = new System.Drawing.Size(344, 120);
             this.metaLayoutTable.TabIndex = 4;
             // 
             // idLabel
             // 
             this.idLabel.AutoEllipsis = true;
             this.idLabel.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.idLabel.Location = new System.Drawing.Point(91, 95);
+            this.idLabel.Location = new System.Drawing.Point(107, 95);
             this.idLabel.Name = "idLabel";
-            this.idLabel.Size = new System.Drawing.Size(195, 20);
+            this.idLabel.Size = new System.Drawing.Size(233, 20);
             this.idLabel.TabIndex = 9;
             this.idLabel.Text = "label8";
             this.idLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -354,9 +361,9 @@
             // 
             this.typeLabel.AutoEllipsis = true;
             this.typeLabel.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.typeLabel.Location = new System.Drawing.Point(91, 74);
+            this.typeLabel.Location = new System.Drawing.Point(107, 74);
             this.typeLabel.Name = "typeLabel";
-            this.typeLabel.Size = new System.Drawing.Size(195, 20);
+            this.typeLabel.Size = new System.Drawing.Size(233, 20);
             this.typeLabel.TabIndex = 8;
             this.typeLabel.Text = "label7";
             this.typeLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -365,9 +372,9 @@
             // 
             this.artistLabel.AutoEllipsis = true;
             this.artistLabel.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.artistLabel.Location = new System.Drawing.Point(91, 53);
+            this.artistLabel.Location = new System.Drawing.Point(107, 53);
             this.artistLabel.Name = "artistLabel";
-            this.artistLabel.Size = new System.Drawing.Size(195, 20);
+            this.artistLabel.Size = new System.Drawing.Size(233, 20);
             this.artistLabel.TabIndex = 7;
             this.artistLabel.Text = "label6";
             this.artistLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -381,7 +388,7 @@
             this.titleLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.titleLabel.Location = new System.Drawing.Point(4, 1);
             this.titleLabel.Name = "titleLabel";
-            this.titleLabel.Size = new System.Drawing.Size(282, 30);
+            this.titleLabel.Size = new System.Drawing.Size(336, 30);
             this.titleLabel.TabIndex = 1;
             this.titleLabel.Text = "Title";
             this.titleLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -392,7 +399,7 @@
             this.label3.Dock = System.Windows.Forms.DockStyle.Fill;
             this.label3.Location = new System.Drawing.Point(4, 53);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(80, 20);
+            this.label3.Size = new System.Drawing.Size(96, 20);
             this.label3.TabIndex = 3;
             this.label3.Text = "Artist";
             this.label3.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -403,7 +410,7 @@
             this.label2.Dock = System.Windows.Forms.DockStyle.Fill;
             this.label2.Location = new System.Drawing.Point(4, 32);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(80, 20);
+            this.label2.Size = new System.Drawing.Size(96, 20);
             this.label2.TabIndex = 2;
             this.label2.Text = "Album";
             this.label2.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -414,7 +421,7 @@
             this.label4.Dock = System.Windows.Forms.DockStyle.Fill;
             this.label4.Location = new System.Drawing.Point(4, 74);
             this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(80, 20);
+            this.label4.Size = new System.Drawing.Size(96, 20);
             this.label4.TabIndex = 4;
             this.label4.Text = "Type";
             this.label4.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -425,7 +432,7 @@
             this.label5.Dock = System.Windows.Forms.DockStyle.Fill;
             this.label5.Location = new System.Drawing.Point(4, 95);
             this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(80, 20);
+            this.label5.Size = new System.Drawing.Size(96, 20);
             this.label5.TabIndex = 5;
             this.label5.Text = "ID";
             this.label5.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -434,9 +441,9 @@
             // 
             this.albumLabel.AutoEllipsis = true;
             this.albumLabel.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.albumLabel.Location = new System.Drawing.Point(91, 32);
+            this.albumLabel.Location = new System.Drawing.Point(107, 32);
             this.albumLabel.Name = "albumLabel";
-            this.albumLabel.Size = new System.Drawing.Size(195, 20);
+            this.albumLabel.Size = new System.Drawing.Size(233, 20);
             this.albumLabel.TabIndex = 6;
             this.albumLabel.Text = "label1";
             this.albumLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -453,19 +460,50 @@
             // 
             // tabPage1
             // 
-            this.tabPage1.Controls.Add(this.transmitTextBox);
+            this.tabPage1.Controls.Add(this.transmitTryParseButton);
             this.tabPage1.Controls.Add(this.transmitButton);
             this.tabPage1.Controls.Add(this.transmitClearButton);
             this.tabPage1.Controls.Add(this.topMostCheckBox);
             this.tabPage1.Controls.Add(this.queryDiskSpaceButton);
             this.tabPage1.Controls.Add(this.speedTestButton);
+            this.tabPage1.Controls.Add(this.extraSplitContainer);
             this.tabPage1.Location = new System.Drawing.Point(4, 22);
             this.tabPage1.Name = "tabPage1";
             this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(467, 333);
+            this.tabPage1.Size = new System.Drawing.Size(526, 322);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "Extras";
             this.tabPage1.UseVisualStyleBackColor = true;
+            // 
+            // extraSplitContainer
+            // 
+            this.extraSplitContainer.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+                        | System.Windows.Forms.AnchorStyles.Left)
+                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.extraSplitContainer.Location = new System.Drawing.Point(3, 3);
+            this.extraSplitContainer.Name = "extraSplitContainer";
+            // 
+            // extraSplitContainer.Panel1
+            // 
+            this.extraSplitContainer.Panel1.Controls.Add(this.transmitTextBox);
+            // 
+            // extraSplitContainer.Panel2
+            // 
+            this.extraSplitContainer.Panel2.Controls.Add(this.receiveTextBox);
+            this.extraSplitContainer.Size = new System.Drawing.Size(517, 284);
+            this.extraSplitContainer.SplitterDistance = 277;
+            this.extraSplitContainer.TabIndex = 10;
+            // 
+            // transmitTryParseButton
+            // 
+            this.transmitTryParseButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.transmitTryParseButton.Location = new System.Drawing.Point(84, 293);
+            this.transmitTryParseButton.Name = "transmitTryParseButton";
+            this.transmitTryParseButton.Size = new System.Drawing.Size(75, 23);
+            this.transmitTryParseButton.TabIndex = 9;
+            this.transmitTryParseButton.Text = "Try Parse";
+            this.transmitTryParseButton.UseVisualStyleBackColor = true;
+            this.transmitTryParseButton.Click += new System.EventHandler(this.transmitTryParseButton_Click);
             // 
             // playUriTextBox
             // 
@@ -473,14 +511,14 @@
                         | System.Windows.Forms.AnchorStyles.Right)));
             this.playUriTextBox.Location = new System.Drawing.Point(4, 354);
             this.playUriTextBox.Name = "playUriTextBox";
-            this.playUriTextBox.Size = new System.Drawing.Size(358, 20);
+            this.playUriTextBox.Size = new System.Drawing.Size(428, 20);
             this.playUriTextBox.TabIndex = 10;
             this.playUriTextBox.Text = "http://mp3-live.swr3.de/swr3raka03_m.m3u";
             // 
             // playUriButton
             // 
             this.playUriButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.playUriButton.Location = new System.Drawing.Point(368, 352);
+            this.playUriButton.Location = new System.Drawing.Point(438, 352);
             this.playUriButton.Name = "playUriButton";
             this.playUriButton.Size = new System.Drawing.Size(92, 23);
             this.playUriButton.TabIndex = 11;
@@ -488,15 +526,27 @@
             this.playUriButton.UseVisualStyleBackColor = true;
             this.playUriButton.Click += new System.EventHandler(this.playUriButton_Click);
             // 
-            // Form1
+            // receiveTextBox
+            // 
+            this.receiveTextBox.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.receiveTextBox.Location = new System.Drawing.Point(0, 0);
+            this.receiveTextBox.Multiline = true;
+            this.receiveTextBox.Name = "receiveTextBox";
+            this.receiveTextBox.ReadOnly = true;
+            this.receiveTextBox.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+            this.receiveTextBox.Size = new System.Drawing.Size(236, 284);
+            this.receiveTextBox.TabIndex = 4;
+            this.receiveTextBox.Text = "Click send to get a reply!";
+            // 
+            // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(464, 381);
+            this.ClientSize = new System.Drawing.Size(534, 381);
             this.Controls.Add(this.playUriButton);
             this.Controls.Add(this.playUriTextBox);
             this.Controls.Add(this.tabControl1);
-            this.Name = "Form1";
+            this.Name = "MainForm";
             this.Text = "MCI500H - nxgmci - ADM Test";
             this.tabControl1.ResumeLayout(false);
             this.tabPage2.ResumeLayout(false);
@@ -505,6 +555,12 @@
             ((System.ComponentModel.ISupportInitialize)(this.coverPictureBox)).EndInit();
             this.tabPage1.ResumeLayout(false);
             this.tabPage1.PerformLayout();
+            this.extraSplitContainer.Panel1.ResumeLayout(false);
+            this.extraSplitContainer.Panel1.PerformLayout();
+            this.extraSplitContainer.Panel2.ResumeLayout(false);
+            this.extraSplitContainer.Panel2.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.extraSplitContainer)).EndInit();
+            this.extraSplitContainer.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -548,6 +604,9 @@
         private System.Windows.Forms.Label albumLabel;
         private System.Windows.Forms.Button getUrlButton;
         private System.Windows.Forms.Button fetchButton;
+        private System.Windows.Forms.Button transmitTryParseButton;
+        private System.Windows.Forms.SplitContainer extraSplitContainer;
+        private System.Windows.Forms.TextBox receiveTextBox;
     }
 }
 
