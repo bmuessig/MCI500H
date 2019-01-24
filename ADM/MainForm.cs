@@ -18,8 +18,8 @@ namespace ADM
 {
     public partial class MainForm : Form
     {
-        //private static string baseurl = "http://10.0.0.10";
-        private static string baseurl = "http://192.168.10.3";
+        private static string baseurl = "http://10.0.0.10";
+        //private static string baseurl = "http://192.168.10.3";
         private MCI500H stereo = new MCI500H(IPAddress.Parse(baseurl.Substring(baseurl.LastIndexOf('/') + 1)));
         int lastid = -1;
         string lastResponse = "";
