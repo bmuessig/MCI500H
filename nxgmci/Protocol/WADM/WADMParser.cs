@@ -4,11 +4,25 @@ using System.Text.RegularExpressions;
 
 namespace nxgmci.Protocol.WADM
 {
+    /// <summary>
+    /// Universal parser for parsing WADM API responses into result objects.
+    /// </summary>
     public class WADMParser
     {
-        readonly string RootName;
-        readonly string WrapOrListName;
-        readonly bool IsList;
+        /// <summary>
+        /// The name of the root wrapper node.
+        /// </summary>
+        public readonly string RootName;
+
+        /// <summary>
+        /// The name of the second wrapper node or the list wrapper node.
+        /// </summary>
+        public readonly string WrapOrListName;
+
+        /// <summary>
+        /// Indicates whether the input is parsed as a list.
+        /// </summary>
+        public readonly bool IsList;
 
         private const string ROOT_WRAP_REGEX = @"^\s*<{0}>\s*<{1}>\s*([\s\S]*)\s*<\/{1}>\s*<\/{0}>\s*$";
         private const string ROOT_LIST_REGEX = @"^\s*<{0}>\s*([\s\S]*)\s*<\/{0}>\s*$";
@@ -19,6 +33,12 @@ namespace nxgmci.Protocol.WADM
         private readonly Regex listRegex;
         private readonly Regex elementRegex;
 
+        /// <summary>
+        /// Default public constructor.
+        /// </summary>
+        /// <param name="RootName">The name of the root wrapper node.</param>
+        /// <param name="WrapOrListName">The name of the second wrapper node or the list wrapper node.</param>
+        /// <param name="IsList">Indicates whether the input is parsed as a list.</param>
         public WADMParser(string RootName, string WrapOrListName, bool IsList)
         {
             // Sanity check input
@@ -51,6 +71,12 @@ namespace nxgmci.Protocol.WADM
                     RegexOptions.Compiled | RegexOptions.IgnoreCase);
         }
 
+        /// <summary>
+        /// Parses an input string and returns the result of the process.
+        /// </summary>
+        /// <param name="Input">The input string received from the stereo.</param>
+        /// <param name="LooseSyntax">Indicates whether to ignore certain minor syntax errors. Setting this to false will abort on every error.</param>
+        /// <returns>A result object. If the parsing succeeded, the resulting object is also returned.</returns>
         public Result<WADMProduct> Parse(string Input, bool LooseSyntax = false)
         {
             // Allocate the result
@@ -141,6 +167,13 @@ namespace nxgmci.Protocol.WADM
             return result.Succeed(product);
         }
 
+        /// <summary>
+        /// Internal function for parsing the elements.
+        /// </summary>
+        /// <param name="Input">The input to be parsed.</param>
+        /// <param name="Error">Outputs an error string if the process failed.</param>
+        /// <param name="LooseSyntax">Indicates whether to ignore minor syntax errors.</param>
+        /// <returns>A dictionary of nodes found. Key: XML node name. Value: XML node value.</returns>
         private Dictionary<string, string> ParseElements(string Input, out string Error, bool LooseSyntax = false)
         {
             // Check input
