@@ -1,20 +1,30 @@
 ﻿namespace nxgmci.Protocol.WADM
 {
+    /// <summary>
+    /// This request returns both the free and used harddisk space.
+    /// This information can be used to determine whether new files could be uploaded or not.
+    /// </summary>
     public static class QueryDiskSpace
     {
-        // This request returns both free and used harddisk space.
-        // We can use this information to determine whether we can upload new files or not.
-
         // DiskSpace Parser
         private readonly static WADMParser parser = new WADMParser("querydiskspace", "responseparameters", false);
 
-        // QueryDiskSpace-Reqest:
+        /// <summary>
+        /// Assembles a QueryDiskSpace request to be passed to the stereo.
+        /// </summary>
+        /// <returns></returns>
         public static string Build()
         {
             return "<querydiskspace></querydiskspace>";
         }
 
-        // QueryDiskSpace-Response:
+        /// <summary>
+        /// Parses QueryDiskSpace's ResponseParameters and returns the result.
+        /// </summary>
+        /// <param name="Response">The response received from the stereo.</param>
+        /// <param name="ValidateInput">Indicates whether to validate the data values received.</param>
+        /// <param name="LazySyntax">Indicates whether to ignore minor syntax errors.</param>
+        /// <returns>A result object that contains a serialized version of the response data.</returns>
         public static ActionResult<ResponseParameters> Parse(string Response, bool ValidateInput = true, bool LazySyntax = false)
         {
             // Make sure the response is not null
@@ -65,14 +75,26 @@
             return new ActionResult<ResponseParameters>(new ResponseParameters(size, totalSize));
         }
 
-        // QueryDiskSpace-ResponseParameters-Structure:
-        // size	        (ulong): Free harddisk space in bytes
-        // totalsize	(ulong): Total harddisk space in bytes
+        /// <summary>
+        /// QueryDiskSpace's ResponseParameters reply.
+        /// </summary>
         public class ResponseParameters
         {
+            /// <summary>
+            /// Free harddisk space in bytes.
+            /// </summary>
             public readonly ulong Size;
+
+            /// <summary>
+            /// Total harddisk space in bytes.
+            /// </summary>
             public readonly ulong TotalSize;
 
+            /// <summary>
+            /// Default internal constructor.
+            /// </summary>
+            /// <param name="Size">Free harddisk space in bytes.</param>
+            /// <param name="TotalSize">Total harddisk space in bytes.</param>
             internal ResponseParameters(ulong Size, ulong TotalSize)
             {
                 this.Size = Size;
