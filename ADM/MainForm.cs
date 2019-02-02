@@ -382,15 +382,16 @@ namespace ADM
 
 
             WADMParser parser = new WADMParser("contentdataset", "contentdata", true);
-            WADMResult result = parser.Parse(lastResponse, true);
+            Result<WADMProduct> result = parser.Parse(lastResponse, true);
             if (result.Success)
             {
                 if (MessageBox.Show(string.Format("The parsing succeeded!\n{0} root elements and {1} list elements were found.\n\nDo you want to break the program to see the list?",
-                    result.Elements.Count, result.WasList ? result.List.Count : 0), "Success!", MessageBoxButtons.YesNo, MessageBoxIcon.Information, MessageBoxDefaultButton.Button2) == DialogResult.Yes)
+                    result.Product.Elements.Count, result.Product.WasList ? result.Product.List.Count : 0), "Success!",
+                    MessageBoxButtons.YesNo, MessageBoxIcon.Information, MessageBoxDefaultButton.Button2) == DialogResult.Yes)
                     ((string)null).ToLower(); // Crash the program
             }
             else
-                MessageBox.Show(string.Format("The parsing FAILED!\n\nError:\n{0}", result.ErrorMessage), "Error!",
+                MessageBox.Show(string.Format("The parsing FAILED!\n\nError:\n{0}", result.Product.ToString()), "Error!",
                     MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
         }
 

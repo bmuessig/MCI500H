@@ -121,10 +121,10 @@ namespace nxgmci
         }
 
         /// <summary>
-        /// Finalizes the result set to success and returns itself.
+        /// Finalizes the result set to success with only a message and returns itself.
         /// </summary>
         /// <returns>Itself to ease return statements.</returns>
-        public Result<T> Succeed(string Message = null)
+        public Result<T> SucceedMessage(string Message)
         {
             // Make sure that the class is not already finalized
             if (this.Finalized)
@@ -177,6 +177,16 @@ namespace nxgmci
         }
 
         /// <summary>
+        /// Finalizes the result set to an error with only a message and returns itself.
+        /// </summary>
+        /// <param name="Message">A custom error message that could be shown to the user.</param>
+        /// <returns>Itself to ease return statements.</returns>
+        public Result<T> FailMessage(string Message)
+        {
+            return Fail(Message, null);
+        }
+
+        /// <summary>
         /// Finalizes the result set to an error and returns itself.
         /// </summary>
         /// <param name="Error">An exception that was thrown preventing a successful result.</param>
@@ -192,7 +202,7 @@ namespace nxgmci
         /// <param name="Message">A custom error message that could be shown to the user.</param>
         /// <param name="Error">An exception that was thrown preventing a successful result.</param>
         /// <returns>Itself to ease return statements.</returns>
-        public Result<T> Fail(string Message, Exception Error = null)
+        public Result<T> Fail(string Message, Exception Error)
         {
             // Make sure that the class is not already finalized
             if (this.Finalized)

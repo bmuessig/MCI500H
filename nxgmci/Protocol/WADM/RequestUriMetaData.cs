@@ -31,43 +31,47 @@ namespace nxgmci.Protocol.WADM
                 return new ActionResult<ResponseParameters>("The response may not be null!");
 
             // Then, parse the response
-            WADMResult result = parser.Parse(Response, LazySyntax);
+            Result<WADMProduct> result = parser.Parse(Response, LazySyntax);
 
             // Check if it failed
             if (!result.Success)
-                if (!string.IsNullOrWhiteSpace(result.ErrorMessage))
-                    return new ActionResult<ResponseParameters>(result.ErrorMessage);
+                if (!string.IsNullOrWhiteSpace(result.Message))
+                    return new ActionResult<ResponseParameters>(result.ToString());
                 else
                     return new ActionResult<ResponseParameters>("The parsing failed for unknown reasons!");
 
+            // Make sure the product is there
+            if (result.Product == null)
+                return new ActionResult<ResponseParameters>("The parsing product was null!");
+
             // And also make sure our state is correct
-            if (result.Elements == null)
+            if (result.Product.Elements == null)
                 return new ActionResult<ResponseParameters>("The list of parsed elements is null!");
 
             // Now, make sure our mandatory arguments exist
-            if (!result.Elements.ContainsKey("uripath"))
+            if (!result.Product.Elements.ContainsKey("uripath"))
                 return new ActionResult<ResponseParameters>(string.Format("Could not locate parameter '{0}'!", "uripath"));
-            if (!result.Elements.ContainsKey("idmask"))
+            if (!result.Product.Elements.ContainsKey("idmask"))
                 return new ActionResult<ResponseParameters>(string.Format("Could not locate parameter '{0}'!", "idmask"));
-            if (!result.Elements.ContainsKey("containersize"))
+            if (!result.Product.Elements.ContainsKey("containersize"))
                 return new ActionResult<ResponseParameters>(string.Format("Could not locate parameter '{0}'!", "containersize"));
-            if (!result.Elements.ContainsKey("mediatypekey"))
+            if (!result.Product.Elements.ContainsKey("mediatypekey"))
                 return new ActionResult<ResponseParameters>(string.Format("Could not locate parameter '{0}'!", "mediatypekey"));
-            if (!result.Elements.ContainsKey("updateid"))
+            if (!result.Product.Elements.ContainsKey("updateid"))
                 return new ActionResult<ResponseParameters>(string.Format("Could not locate parameter '{0}'!", "updateid"));
 
             // Then, try to parse the parameters
             string uriPath, mediaTypeKey;
             uint idMask, containerSize, updateID;
-            if (string.IsNullOrWhiteSpace((uriPath = result.Elements["uripath"])))
+            if (string.IsNullOrWhiteSpace((uriPath = result.Product.Elements["uripath"])))
                 return new ActionResult<ResponseParameters>(string.Format("Could not parse parameter '{0}' as string!", "uripath"));
-            if (!uint.TryParse(result.Elements["idmask"], out idMask))
+            if (!uint.TryParse(result.Product.Elements["idmask"], out idMask))
                 return new ActionResult<ResponseParameters>(string.Format("Could not parse parameter '{0}' as uint!", "idmask"));
-            if (!uint.TryParse(result.Elements["containersize"], out containerSize))
+            if (!uint.TryParse(result.Product.Elements["containersize"], out containerSize))
                 return new ActionResult<ResponseParameters>(string.Format("Could not parse parameter '{0}' as uint!", "containersize"));
-            if (string.IsNullOrWhiteSpace((mediaTypeKey = result.Elements["mediatypekey"])))
+            if (string.IsNullOrWhiteSpace((mediaTypeKey = result.Product.Elements["mediatypekey"])))
                 return new ActionResult<ResponseParameters>(string.Format("Could not parse parameter '{0}' as string!", "mediatypekey"));
-            if (!uint.TryParse(result.Elements["updateid"], out updateID))
+            if (!uint.TryParse(result.Product.Elements["updateid"], out updateID))
                 return new ActionResult<ResponseParameters>(string.Format("Could not parse parameter '{0}' as uint!", "updateid"));
 
             // We may have to perform some sanity checks

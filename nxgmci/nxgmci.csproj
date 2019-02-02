@@ -64,6 +64,7 @@
     </Compile>
     <Compile Include="Protocol\NVRAM\MCI500NVRAM.cs" />
     <Compile Include="Protocol\NVRAM\NVRAM.cs" />
+    <Compile Include="Protocol\WADM\WADMProduct.cs" />
     <Compile Include="Protocol\WADM\RequestPlayableData.cs" />
     <Compile Include="Protocol\WADM\RequestUriMetaData.cs" />
     <Compile Include="Protocol\WADM\RequestGenreIndexTable.cs" />

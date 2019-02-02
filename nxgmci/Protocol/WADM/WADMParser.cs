@@ -52,11 +52,14 @@ namespace nxgmci.Protocol.WADM
 
         }
 
-        public WADMResult Parse(string Input, bool LooseSyntax = false)
+        public Result<WADMProduct> Parse(string Input, bool LooseSyntax = false)
         {
+            // Allocate the result
+            Result<WADMProduct> result = new Result<WADMProduct>();
+
             // Input sanity check
             if (string.IsNullOrWhiteSpace(Input))
-                return new WADMResult("The input may not be null, empty or white-space only!");
+                return result.FailMessage("The input may not be null, empty or white-space only!");
             
             // Match the input against our root level Regex
             // This is used to verify that the reply is correct and it will strip away the root wrapper
@@ -64,14 +67,14 @@ namespace nxgmci.Protocol.WADM
 
             // Make sure we've got success and two match groups
             if (!rootMatch.Success)
-                return new WADMResult("The root structure did not match!");
+                return result.FailMessage("The root structure did not match!");
             if (rootMatch.Groups.Count != 2)
-                return new WADMResult("The root group count was incorrect!");
+                return result.FailMessage("The root group count was incorrect!");
             if (!rootMatch.Groups[1].Success)
-                return new WADMResult("The root content group did not succeed!");
+                return result.FailMessage("The root content group did not succeed!");
 
-            // Allocate space for our successful reply
-            WADMResult result = new WADMResult(RootName, WrapOrListName, IsList);
+            // Allocate space for our product
+            WADMProduct product = new WADMProduct(RootName, WrapOrListName, IsList);
 
             // Now, match the inner elements
             string innerText = rootMatch.Groups[1].Value;
@@ -95,25 +98,25 @@ namespace nxgmci.Protocol.WADM
                         if (LooseSyntax)
                             continue;
                         else
-                            return new WADMResult("The list item did not match successfully in strict mode!");
+                            return result.FailMessage("The list item did not match successfully in strict mode!");
 
                     // Also make sure we've got the right number of groups
                     if (listMatch.Groups.Count != 2)
                         if (LooseSyntax)
                             continue;
                         else
-                            return new WADMResult("The number of matched list item groups was incorrect in strict mode!");
+                            return result.FailMessage("The number of matched list item groups was incorrect in strict mode!");
 
                     if(listMatch.Groups[1].Value == null)
                         if (LooseSyntax)
                             continue;
                         else
-                            return new WADMResult("The value of the matched list item group was null in strict mode!");
+                            return result.FailMessage("The value of the matched list item group was null in strict mode!");
 
                     // If everything's right, we will parse the inner elements
                     Dictionary<string, string> innerElements = ParseElements(listMatch.Groups[1].Value, out parserError, LooseSyntax);
                     if (innerElements == null)
-                        return new WADMResult(parserError);
+                        return result.FailMessage(parserError);
 
                     // Finally, we will add the element to our list
                     // Yes, we will even add empty elements, as they were potentionally intentionally left blank
@@ -124,19 +127,19 @@ namespace nxgmci.Protocol.WADM
                 innerText = listRegex.Replace(innerText, string.Empty);
 
                 // And finally, we will add the list to the result
-                result.List = list;
+                product.List = list;
             }
 
             // Parse the root level key-value elements
             Dictionary<string, string> elements = ParseElements(innerText, out parserError, LooseSyntax);
             if (elements == null)
-                return new WADMResult(parserError);
+                return result.FailMessage(parserError);
 
-            // And store them in the result
-            result.Elements = elements;
+            // And store them in the product
+            product.Elements = elements;
 
             // Finally, successfully return the result
-            return result;
+            return result.Succeed(product);
         }
 
         private Dictionary<string, string> ParseElements(string Input, out string Error, bool LooseSyntax = false)

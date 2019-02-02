@@ -23,27 +23,30 @@ namespace nxgmci.Protocol.WADM
             if (string.IsNullOrWhiteSpace(Response))
                 return new ActionResult<ContentDataSet>("The response may not be null!");
 
-            // Then, parse the response
-            WADMResult result = parser.Parse(Response, LazySyntax);
+            Result<WADMProduct> result = parser.Parse(Response, LazySyntax);
 
             // Check if it failed
             if (!result.Success)
-                if (!string.IsNullOrWhiteSpace(result.ErrorMessage))
-                    return new ActionResult<ContentDataSet>(result.ErrorMessage);
+                if (!string.IsNullOrWhiteSpace(result.Message))
+                    return new ActionResult<ContentDataSet>(result.ToString());
                 else
                     return new ActionResult<ContentDataSet>("The parsing failed for unknown reasons!");
 
+            // Make sure the product is there
+            if (result.Product == null)
+                return new ActionResult<ContentDataSet>("The parsing product was null!");
+
             // And also make sure our state is correct
-            if (result.Elements == null || result.List == null)
+            if (result.Product.Elements == null || result.Product.List == null)
                 return new ActionResult<ContentDataSet>("The list of parsed elements or list items is null!");
 
             // Now, make sure our mandatory argument exists
-            if (!result.Elements.ContainsKey("updateid"))
+            if (!result.Product.Elements.ContainsKey("updateid"))
                 return new ActionResult<ContentDataSet>(string.Format("Could not locate parameter '{0}'!", "updateid"));
             
             // Then, try to parse the parameter
             uint updateID;
-            if (!uint.TryParse(result.Elements["updateid"], out updateID))
+            if (!uint.TryParse(result.Product.Elements["updateid"], out updateID))
                 return new ActionResult<ContentDataSet>(string.Format("Could not parse parameter '{0}' as uint!", "updateid"));
 
             // Allocate our result object
@@ -51,7 +54,7 @@ namespace nxgmci.Protocol.WADM
 
             // Next, pay attention to the list items (yes, there are a lot of them)
             uint elementNo = 0;
-            foreach (Dictionary<string, string> listItem in result.List)
+            foreach (Dictionary<string, string> listItem in result.Product.List)
             {
                 // Increment the element ID to simplify fault-finding
                 elementNo++;

@@ -50,40 +50,44 @@ namespace nxgmci.Protocol.WADM
                 return new ActionResult<ContentDataSet>("The response may not be null!");
 
             // Then, parse the response
-            WADMResult result = parser.Parse(Response, LazySyntax);
+            Result<WADMProduct> result = parser.Parse(Response, LazySyntax);
 
             // Check if it failed
             if (!result.Success)
-                if (!string.IsNullOrWhiteSpace(result.ErrorMessage))
-                    return new ActionResult<ContentDataSet>(result.ErrorMessage);
+                if (!string.IsNullOrWhiteSpace(result.Message))
+                    return new ActionResult<ContentDataSet>(result.ToString());
                 else
                     return new ActionResult<ContentDataSet>("The parsing failed for unknown reasons!");
 
+            // Make sure the product is there
+            if (result.Product == null)
+                return new ActionResult<ContentDataSet>("The parsing product was null!");
+
             // And also make sure our state is correct
-            if (result.Elements == null || result.List == null)
+            if (result.Product.Elements == null || result.Product.List == null)
                 return new ActionResult<ContentDataSet>("The list of parsed elements or list items is null!");
 
             // Now, make sure our mandatory arguments exist
-            if (!result.Elements.ContainsKey("totnumelem"))
+            if (!result.Product.Elements.ContainsKey("totnumelem"))
                 return new ActionResult<ContentDataSet>(string.Format("Could not locate parameter '{0}'!", "totnumelem"));
-            if (!result.Elements.ContainsKey("fromindex"))
+            if (!result.Product.Elements.ContainsKey("fromindex"))
                 return new ActionResult<ContentDataSet>(string.Format("Could not locate parameter '{0}'!", "fromindex"));
-            if (!result.Elements.ContainsKey("numelem"))
+            if (!result.Product.Elements.ContainsKey("numelem"))
                 return new ActionResult<ContentDataSet>(string.Format("Could not locate parameter '{0}'!", "numelem"));
-            if (!result.Elements.ContainsKey("updateid"))
+            if (!result.Product.Elements.ContainsKey("updateid"))
                 return new ActionResult<ContentDataSet>(string.Format("Could not locate parameter '{0}'!", "updateid"));
 
             // Then, try to parse the parameters
             uint totNumElem, fromIndex, numElem, updateID;
-            bool alphanumeric = result.Elements.ContainsKey("alphanumeric");
+            bool alphanumeric = result.Product.Elements.ContainsKey("alphanumeric");
 
-            if (!uint.TryParse(result.Elements["totnumelem"], out totNumElem))
+            if (!uint.TryParse(result.Product.Elements["totnumelem"], out totNumElem))
                 return new ActionResult<ContentDataSet>(string.Format("Could not parse parameter '{0}' as uint!", "totnumelem"));
-            if (!uint.TryParse(result.Elements["fromindex"], out fromIndex))
+            if (!uint.TryParse(result.Product.Elements["fromindex"], out fromIndex))
                 return new ActionResult<ContentDataSet>(string.Format("Could not parse parameter '{0}' as uint!", "fromindex"));
-            if (!uint.TryParse(result.Elements["numelem"], out numElem))
+            if (!uint.TryParse(result.Product.Elements["numelem"], out numElem))
                 return new ActionResult<ContentDataSet>(string.Format("Could not parse parameter '{0}' as uint!", "numelem"));
-            if (!uint.TryParse(result.Elements["updateid"], out updateID))
+            if (!uint.TryParse(result.Product.Elements["updateid"], out updateID))
                 return new ActionResult<ContentDataSet>(string.Format("Could not parse parameter '{0}' as uint!", "updateid"));
 
             // If required, perform some sanity checks on the data
@@ -93,7 +97,7 @@ namespace nxgmci.Protocol.WADM
                     return new ActionResult<ContentDataSet>("totnumelem < numelem");
                 if (fromIndex + numElem > totNumElem)
                     return new ActionResult<ContentDataSet>("fromindex + numelem > totnumelem");
-                if (result.List.Count != numElem)
+                if (result.Product.List.Count != numElem)
                     return new ActionResult<ContentDataSet>("Number of list items != numelem");
             }
 
@@ -102,7 +106,7 @@ namespace nxgmci.Protocol.WADM
 
             // Next, pay attention to the list items (yes, there are a lot of them)
             uint elementNo = 0;
-            foreach (Dictionary<string, string> listItem in result.List)
+            foreach (Dictionary<string, string> listItem in result.Product.List)
             {
                 // Increment the element ID to simplify fault-finding
                 elementNo++;
