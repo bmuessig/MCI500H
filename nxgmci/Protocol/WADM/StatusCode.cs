@@ -3,8 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace nxgmci.Protocol
+namespace nxgmci.Protocol.WADM
 {
+    /// <summary>
+    /// This enum provides a list of status codes returned by the WADM API.
+    /// </summary>
     public enum StatusCode
     {
         None,
@@ -13,7 +16,7 @@ namespace nxgmci.Protocol
         Unknown,
         Busy,
         ParameterError,
-        UpdateIdMismatch,
+        UpdateIDMismatch,
         InvalidIndex,
         DatabaseFull,
         Idle

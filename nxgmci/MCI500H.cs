@@ -6,6 +6,7 @@ using System.Net;
 using System.Text.RegularExpressions;
 using nxgmci.Protocol;
 using nxgmci.Network;
+using nxgmci.Protocol.DLNA;
 
 namespace nxgmci
 {

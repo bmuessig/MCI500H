@@ -5,20 +5,20 @@ using System.Text;
 using System.Text.RegularExpressions;
 using nxgmci.Protocol;
 
-namespace nxgmci.Protocol
+namespace nxgmci.Protocol.WADM
 {
-    public static class RequestAlbumIndexTable
+    public static class RequestArtistIndexTable
     {
-        // This request returns a key-value-pair table of all album ids and their clear text names.
-        // We can use this information to map the album ids returned by RequestRawData to strings.
+        // This request returns a key-value-pair table of all artist ids and their clear text names.
+        // We can use this information to map the artist ids returned by RequestRawData to strings.
 
         // ContentDataSet Parser
         private readonly static WADMParser parser = new WADMParser("contentdataset", "contentdata", true);
 
-        // RequestAlbumIndexTable-Reqest:
+        // RequestArtistIndexTable-Reqest:
         public static string Build()
         {
-            return "<requestalbumindextable></requestalbumindextable>";
+            return "<requestartistindextable></requestartistindextable>";
         }
 
         // ContentDataSet-Response
@@ -206,8 +206,8 @@ namespace nxgmci.Protocol
         }
 
         // ContentData-Structure:
-        // name		    (string):	Name of the album
-        // index	    (uint):	    ID number of the album
+        // name		    (string):	Name of the artist
+        // index	    (uint):	    ID number of the artist
         // => KeyValuePair(index, name)
 
         public class ContentData

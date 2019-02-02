@@ -13,6 +13,7 @@ using nxgmci.Network;
 using nxgmci.Protocol;
 using nxgmci.Cover;
 using nxgmci.Metadata;
+using nxgmci.Protocol.WADM;
 
 namespace ADM
 {
@@ -391,6 +392,16 @@ namespace ADM
             else
                 MessageBox.Show(string.Format("The parsing FAILED!\n\nError:\n{0}", result.ErrorMessage), "Error!",
                     MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+        }
+
+        private void treeUpButton_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void treeResetButton_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }

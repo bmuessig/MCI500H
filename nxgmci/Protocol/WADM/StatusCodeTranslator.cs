@@ -3,9 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace nxgmci.Protocol
+namespace nxgmci.Protocol.WADM
 {
-    public static class StatusCodeMediator
+    /// <summary>
+    /// This class provides functions to convert between the internal enum based error codes and the strings used by the WADM API.
+    /// </summary>
+    public static class StatusCodeTranslator
     {
         /// <summary>
         /// Attempts to parse a string to a status code.
@@ -39,7 +42,7 @@ namespace nxgmci.Protocol
                     return StatusCode.ParameterError;
 
                 case "updateidmismatch":
-                    return StatusCode.UpdateIdMismatch;
+                    return StatusCode.UpdateIDMismatch;
 
                 case "invalidindex":
                     return StatusCode.InvalidIndex;
@@ -80,7 +83,7 @@ namespace nxgmci.Protocol
                 case StatusCode.ParameterError:
                     return "parametererror";
 
-                case StatusCode.UpdateIdMismatch:
+                case StatusCode.UpdateIDMismatch:
                     return "updateidmismatch";
 
                 case StatusCode.InvalidIndex:

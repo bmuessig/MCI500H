@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace nxgmci.Protocol
+namespace nxgmci.Protocol.WADM
 {
     public class WADMParser
     {

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace nxgmci.Protocol
+namespace nxgmci.Protocol.WADM
 {
     /// <summary>
     /// This API call provides a DLNA-like folder and media browser with the ability to display cover art.
@@ -467,6 +467,20 @@ namespace nxgmci.Protocol
             // Loop through the list of returned items
             foreach (ContentData data in RootDataSet.ContentData)
             {
+                // Check, whether the node is somehow zero
+                if (data == null)
+                {
+                    // Increment the counter
+                    counter++;
+
+                    // Check if we can skip the invalid entry or if we have to return an error
+                    if (SkipInvalidChilds)
+                        continue;
+
+                    // If we might not skip the error, we return an error
+                    return new ActionResult<Dictionary<ContainerType, uint>>(string.Format("The child node {0} is null!", counter));
+                }
+
                 // If any of our elements has a parent ID that is non-zero, there must be a problem
                 if (data.ParentID != 0)
                     return new ActionResult<Dictionary<ContainerType,uint>>("The ID of the parent node is non-zero!");

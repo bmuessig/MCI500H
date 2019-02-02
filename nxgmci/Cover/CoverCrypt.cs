@@ -42,7 +42,7 @@ namespace nxgmci.Cover
         }
 
         /// <summary>
-        /// Returns the current crypto key. If is not calculated yet, calculate it.
+        /// Returns the current crypto key. If is not yet calculated, calculates it.
         /// </summary>
         /// <returns>The crypto key.</returns>
         public static byte[] GetCryptoKey()
@@ -57,7 +57,7 @@ namespace nxgmci.Cover
         }
 
         /// <summary>
-        /// Calculate the crypto key and overwrite the current one. This can be used to pre-calculate the key ahead of time.
+        /// Calculates the crypto key and overwrites the current one. This can be used to pre-calculate the key ahead of time.
         /// </summary>
         /// <returns>True, if the key could be calculated and set successfully. False on error.</returns>
         public static bool CalculateCryptoKey()
@@ -97,7 +97,7 @@ namespace nxgmci.Cover
         public static bool SetCryptoKey(byte[] Key)
         {
             // Check the user supplied key
-            if (VerifyCryptoKey(Key, true))
+            if (VerifyCryptoKey(Key, false))
             {
                 cryptoKey = Key;
                 return true;
@@ -111,9 +111,9 @@ namespace nxgmci.Cover
         /// Verifies a supplied crypto key.
         /// </summary>
         /// <param name="Key">The key to be verified.</param>
-        /// <param name="QuickScan">If false, loop over the key's data and check it's validity. If true, only check the size.</param>
+        /// <param name="QuickCheck">If false, loop over the key's data and check it's validity. If true, only check the size.</param>
         /// <returns>True if the key is valid and false, if it's not.</returns>
-        public static bool VerifyCryptoKey(byte[] Key, bool QuickScan)
+        public static bool VerifyCryptoKey(byte[] Key, bool QuickCheck)
         {
             // Input sanity checks
             if (Key == null)
@@ -124,16 +124,20 @@ namespace nxgmci.Cover
                 return false;
 
             // There are no null bytes in a valid key. They are forbidden!
-            foreach (byte b in Key)
-                if (b == 0)
-                    return false;
+            // For a quick check, we skip this
+            if (!QuickCheck)
+            {
+                foreach (byte b in Key)
+                    if (b == 0)
+                        return false;
+            }
 
             // Return success
             return true;
         }
 
         /// <summary>
-        /// Apply the key to a buffer.
+        /// Applies the key to a buffer.
         /// </summary>
         /// <param name="Buffer">The buffer to be modified.</param>
         /// <param name="Length">The number of bytes to be modified.</param>
@@ -162,7 +166,7 @@ namespace nxgmci.Cover
         }
 
         /// <summary>
-        /// Apply the key to an input stream and write the result to an output stream.
+        /// Applies the key to an input stream and writes the result to an output stream.
         /// </summary>
         /// <param name="InputStream">The stream to read the input data from.</param>
         /// <param name="OutputStream">The stream to write the output data to.</param>

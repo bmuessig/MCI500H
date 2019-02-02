@@ -5,7 +5,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using nxgmci.Protocol;
 
-namespace nxgmci.Protocol
+namespace nxgmci.Protocol.WADM
 {
     public static class RequestUriMetaData
     {

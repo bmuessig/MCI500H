@@ -41,10 +41,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Browser\MediaBrowser.cs" />
     <Compile Include="CompletedEventArgs.cs" />
     <Compile Include="Cover\CoverCrop.cs" />
     <Compile Include="Cover\CoverCropMode.cs" />
     <Compile Include="Cover\CoverCrypt.cs" />
+    <Compile Include="DeviceDescriptor.cs" />
+    <Compile Include="Library\LibraryManager.cs" />
     <Compile Include="MCI500H.cs" />
     <Compile Include="MediaLibrary.cs" />
     <Compile Include="MediaElement.cs" />
@@ -59,25 +62,29 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="Protocol\RequestPlayableData.cs" />
-    <Compile Include="Protocol\RequestUriMetaData.cs" />
-    <Compile Include="Protocol\RequestGenreIndexTable.cs" />
-    <Compile Include="Protocol\RequestAlbumIndexTable.cs" />
-    <Compile Include="Protocol\RequestArtistIndexTable.cs" />
+    <Compile Include="Protocol\NVRAM\MCI500NVRAM.cs" />
+    <Compile Include="Protocol\NVRAM\NVRAM.cs" />
+    <Compile Include="Protocol\WADM\RequestPlayableData.cs" />
+    <Compile Include="Protocol\WADM\RequestUriMetaData.cs" />
+    <Compile Include="Protocol\WADM\RequestGenreIndexTable.cs" />
+    <Compile Include="Protocol\WADM\RequestAlbumIndexTable.cs" />
+    <Compile Include="Protocol\WADM\RequestArtistIndexTable.cs" />
     <Compile Include="Network\NetUtils.cs" />
     <Compile Include="Network\Postmaster.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Protocol\DLNA.cs" />
-    <Compile Include="Protocol\StatusCode.cs" />
-    <Compile Include="Protocol\StatusCodeMediator.cs" />
-    <Compile Include="Protocol\WADMParser.cs" />
-    <Compile Include="Protocol\WADMResult.cs" />
+    <Compile Include="Protocol\DLNA\DLNA.cs" />
+    <Compile Include="Protocol\WADM\StatusCode.cs" />
+    <Compile Include="Protocol\WADM\StatusCodeTranslator.cs" />
+    <Compile Include="Protocol\WADM\WADMParser.cs" />
+    <Compile Include="Protocol\WADM\WADMResult.cs" />
     <Compile Include="ActionResult.cs" />
-    <Compile Include="Protocol\RequestRawData.cs" />
-    <Compile Include="Protocol\QueryDiskSpace.cs" />
+    <Compile Include="Protocol\WADM\RequestRawData.cs" />
+    <Compile Include="Protocol\WADM\QueryDiskSpace.cs" />
     <Compile Include="Query\Query.cs" />
     <Compile Include="Query\QueryInstruction.cs" />
     <Compile Include="Query\QueryToken.cs" />
+    <Compile Include="Result.cs" />
+    <Compile Include="ResultEventArgs.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\Resources.resx">
