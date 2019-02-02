@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace nxgmci.Protocol.WADM
+﻿namespace nxgmci.Protocol.WADM
 {
     /// <summary>
     /// This enum provides a list of status codes returned by the WADM API.

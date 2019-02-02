@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace nxgmci.Protocol.WADM
+﻿namespace nxgmci.Protocol.WADM
 {
     /// <summary>
     /// This class provides functions to convert between the internal enum based error codes and the strings used by the WADM API.
