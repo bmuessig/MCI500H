@@ -49,7 +49,6 @@ namespace nxgmci.Protocol.WADM
             else // This Regex matches the root and wrap of our elements
                 rootWrapOrListRegex = new Regex(string.Format(ROOT_WRAP_REGEX, this.RootName, this.WrapOrListName),
                     RegexOptions.Compiled | RegexOptions.IgnoreCase);
-
         }
 
         public Result<WADMProduct> Parse(string Input, bool LooseSyntax = false)
