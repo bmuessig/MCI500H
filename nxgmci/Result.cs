@@ -123,8 +123,10 @@ namespace nxgmci
         /// <summary>
         /// Finalizes the result set to success with only a message and returns itself.
         /// </summary>
+        /// <param name="Message">A custom success message that could be shown to the user. This can optionally be string.Format formatted.</param>
+        /// <param name="Arguments">Optional string.Format arguments.</param>
         /// <returns>Itself to ease return statements.</returns>
-        public Result<T> SucceedMessage(string Message)
+        public Result<T> SucceedMessage(string Message, params object[] Arguments)
         {
             // Make sure that the class is not already finalized
             if (this.Finalized)
@@ -135,6 +137,20 @@ namespace nxgmci
 
             // Store the time of finalization
             this.TimeFinalized = DateTime.Now;
+
+            // Attempt to format the message (if possible)
+            if (string.IsNullOrWhiteSpace(Message) && Arguments != null)
+            {
+                if (Arguments.Length > 0)
+                {
+                    try
+                    {
+                        Message = string.Format(Message, Arguments);
+                    }
+                    catch (Exception)
+                    { }
+                }
+            }
 
             // Assign the values
             this.Success = true;
@@ -179,10 +195,25 @@ namespace nxgmci
         /// <summary>
         /// Finalizes the result set to an error with only a message and returns itself.
         /// </summary>
-        /// <param name="Message">A custom error message that could be shown to the user.</param>
+        /// <param name="Message">A custom error message that could be shown to the user. This can optionally be string.Format formatted.</param>
+        /// <param name="Arguments">Optional string.Format arguments.</param>
         /// <returns>Itself to ease return statements.</returns>
-        public Result<T> FailMessage(string Message)
+        public Result<T> FailMessage(string Message, params object[] Arguments)
         {
+            // Attempt to format the message (if possible)
+            if (string.IsNullOrWhiteSpace(Message) && Arguments != null)
+            {
+                if (Arguments.Length > 0)
+                {
+                    try
+                    {
+                        Message = string.Format(Message, Arguments);
+                    }
+                    catch (Exception)
+                    { }
+                }
+            }
+
             return Fail(Message, null);
         }
 
