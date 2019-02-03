@@ -2,26 +2,26 @@
 
 namespace nxgmci.Protocol.WADM
 {
+    /// <summary>
+    /// This request is used to fetch title data in chunks or as a whole.
+    /// It accepts both a start index (skip) and a max. items parameter (count).
+    /// Using the parameters 0,0 will fetch all titles. This is not recommended for large databases.
+    /// The stereo has limited RAM and processing capabilities and a database with 1000s of titles may overflow.
+    /// It is recommended to fetch 100 titles at a time. The first request will return a total number of titles.
+    /// This number can be used to generate the correct number of requests to fetch all titles successfully.
+    /// The 0,0 method is not used by the official application, whereas the 100 element method is used.
+    /// </summary>
     public static class RequestRawData
     {
-        // This request is used to fetch title data in chunks or as a whole.
-        // It accepts both a start index (skip) and a max. items parameter (count).
-        // Using the parameters 0,0 will fetch all titles. This is not recommended for large databases.
-        // The stereo has limited RAM and processing capabilities and a database with 1000s of titles may overflow.
-        // It is recommended to fetch 100 titles at a time. The first request will return a total number of titles.
-        // This number can be used to generate the correct number of requests to fetch all titles successfully.
-        // The 0,0 method is not used by the official application.
-
         // ContentDataSet Parser
         private readonly static WADMParser parser = new WADMParser("contentdataset", "contentdata", true);
-
-        // RequestRawData-Request:
+        
         /// <summary>
-        /// Assembles a RequestRawData request.
+        /// Assembles a RequestRawData request to be passed to the stereo.
         /// </summary>
-        /// <param name="FromIndex">First index to be included into the response</param>
-        /// <param name="NumElem">Number of elements to be included; -1 means all elements</param>
-        /// <returns>XML request ready to be sent</returns>
+        /// <param name="FromIndex">First index to be included into the query.</param>
+        /// <param name="NumElem">Number of elements to be queried. Use zero to query all elements.</param>
+        /// <returns>A request string that can be passed to the stereo.</returns>
         public static string Build(uint FromIndex, uint NumElem = 0)
         {
             return string.Format(
@@ -35,7 +35,13 @@ namespace nxgmci.Protocol.WADM
                 NumElem);
         }
 
-        // ContentDataSet-Response
+        /// <summary>
+        /// Parses RequestRawData's ContentDataSet and returns the result.
+        /// </summary>
+        /// <param name="Response">The response received from the stereo.</param>
+        /// <param name="ValidateInput">Indicates whether to validate the data values received.</param>
+        /// <param name="LazySyntax">Indicates whether to ignore minor syntax errors.</param>
+        /// <returns>A result object that contains a serialized version of the response data.</returns>
         public static ActionResult<ContentDataSet> Parse(string Response, bool ValidateInput = true, bool LazySyntax = false)
         {
             // Make sure the response is not null
@@ -167,18 +173,34 @@ namespace nxgmci.Protocol.WADM
             return new ActionResult<ContentDataSet>(new ContentDataSet(items, totNumElem, fromIndex, numElem, updateID));
         }
 
-        // ContentDataSet-Structure:
-        // elements:            Returned elements
-        // totnumelem	(uint): Total number of elements that could potentionally be queried
-        // fromindex	(uint): Copy of the request start index parameter
-        // numelem		(uint):	Number of elements returned in this query
-        // updateid		(uint): UNKNOWN! e.g. 422
+        /// <summary>
+        /// RequestRawData's ContentDataSet reply.
+        /// </summary>
         public class ContentDataSet
         {
+            /// <summary>
+            /// List of returned elements.
+            /// </summary>
             public List<ContentData> ContentData;
+
+            /// <summary>
+            /// Total number of elements that could potentionally be queried.
+            /// </summary>
             public readonly uint TotNumElem;
+
+            /// <summary>
+            /// Echo of the request start index parameter.
+            /// </summary>
             public readonly uint FromIndex;
+
+            /// <summary>
+            /// Number of elements returned in this query.
+            /// </summary>
             public readonly uint NumElem;
+
+            /// <summary>
+            /// Unknown update ID.
+            /// </summary>
             public readonly uint UpdateID;
 
             internal ContentDataSet(uint TotNumElem, uint FromIndex, uint NumElem, uint UpdateID)
@@ -196,33 +218,75 @@ namespace nxgmci.Protocol.WADM
             }
         }
 
-        // ContentData-Structure:
-        // name		    (string):	Track title
-        // nodeid	    (uint):	    Special ID number that has to be masked with & idmask to get the file's path
-        // album	    (uint):	    ID number of the album set it belongs to
-        // trackno	    (uint):	    Positional index of the track in the album (might potentionally be string not int)
-        // artist	    (uint):	    ID number of the artist it belongs to
-        // genre	    (uint):	    ID number of the genre it belongs to
-        // year		    (uint):	    Year that the track was published / recorded in (might potentionally be string not int)
-        // mediatype	(uint):	    Type of the media (refers to the urimetadata table of media types)
-        // dmmcookie	(uint):	    UNKNOWN! e.g. 1644662629
-
+        /// <summary>
+        /// RequestRawData's ContentDataSet's ContentData.
+        /// </summary>
         public class ContentData
         {
+            /// <summary>
+            /// Title of the track.
+            /// </summary>
             public string Name;
+
+            /// <summary>
+            /// Universal track node ID number that has to be bitwise AND'ed with idmask.
+            /// </summary>
             public uint NodeID;
+
+            /// <summary>
+            /// Universal album node ID number that has to be bitwise AND'ed with idmask.
+            /// </summary>
             public uint Album;
+
+            /// <summary>
+            /// Positional index of the track in the album.
+            /// </summary>
             public uint TrackNo;
+
+            /// <summary>
+            /// Universal artist node ID number that has to be bitwise AND'ed with idmask.
+            /// </summary>
             public uint Artist;
+
+            /// <summary>
+            /// Universal genre node ID number that has to be bitwise AND'ed with idmask.
+            /// </summary>
             public uint Genre;
+
+            /// <summary>
+            /// Year that the track was published / recorded in.
+            /// </summary>
             public uint Year;
+
+            /// <summary>
+            /// File format of the media item (index into the urimetadata table of media types).
+            /// </summary>
             public uint MediaType;
+
+            /// <summary>
+            /// Unknown DMMCookie. e.g. 1644662629.
+            /// </summary>
             public uint DMMCookie;
 
+            /// <summary>
+            /// Parameterless internal constructor.
+            /// </summary>
             internal ContentData()
             {
             }
 
+            /// <summary>
+            /// Internal constructor.
+            /// </summary>
+            /// <param name="Name">Title of the track.</param>
+            /// <param name="NodeID">Universal track node ID number that has to be bitwise AND'ed with idmask.</param>
+            /// <param name="Album">Universal album node ID number that has to be bitwise AND'ed with idmask.</param>
+            /// <param name="TrackNo">Positional index of the track in the album.</param>
+            /// <param name="Artist">Universal artist node ID number that has to be bitwise AND'ed with idmask.</param>
+            /// <param name="Genre">Universal genre node ID number that has to be bitwise AND'ed with idmask.</param>
+            /// <param name="Year">Year that the track was published / recorded in.</param>
+            /// <param name="MediaType">File format of the media item (index into the urimetadata table of media types).</param>
+            /// <param name="DMMCookie">Unknown DMMCookie. e.g. 1644662629.</param>
             internal ContentData(string Name, uint NodeID, uint Album, uint TrackNo, uint Artist, uint Genre, uint Year, uint MediaType, uint DMMCookie)
             {
                 this.Name = Name;
@@ -236,6 +300,10 @@ namespace nxgmci.Protocol.WADM
                 this.DMMCookie = DMMCookie;
             }
 
+            /// <summary>
+            /// Returns the string representation of the entry. Usually returns the album name, if available.
+            /// </summary>
+            /// <returns>A string representation of the object.</returns>
             public override string ToString()
             {
                 if (string.IsNullOrWhiteSpace(Name))
