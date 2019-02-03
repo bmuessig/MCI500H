@@ -12,7 +12,7 @@
         /// <summary>
         /// Assembles a QueryDiskSpace request to be passed to the stereo.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>A request string that can be passed to the stereo.</returns>
         public static string Build()
         {
             return "<querydiskspace></querydiskspace>";

@@ -177,17 +177,17 @@ namespace ADM
                 MessageBox.Show("An error occured: " + response.Message);
                 return;
             }
-            ActionResult<RequestUriMetaData.ResponseParameters> metaDataResp = RequestUriMetaData.Parse(response.TextualResponse);
+            Result<RequestUriMetaData.ResponseParameters> metaDataResp = RequestUriMetaData.Parse(response.TextualResponse);
             if (!metaDataResp.Success)
             {
-                MessageBox.Show("An error occured: " + metaDataResp.ErrorMessage);
+                MessageBox.Show("An error occured: " + metaDataResp.ToString());
                 return;
             }
 
             currentMediaLib = contentResp.Result;
             currentArtistIndex = artistResp.Result;
             currentAlbumIndex = albumResp.Result;
-            currentUriMetaData = metaDataResp.Result;
+            currentUriMetaData = metaDataResp.Product;
             updateLib();
         }
 
