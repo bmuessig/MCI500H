@@ -244,19 +244,19 @@ namespace ADM
                 return;
             }
 
-            ActionResult<QueryDiskSpace.ResponseParameters> parserResp = QueryDiskSpace.Parse(response.TextualResponse);
+            Result<QueryDiskSpace.ResponseParameters> parserResp = QueryDiskSpace.Parse(response.TextualResponse);
             if (!parserResp.Success)
             {
-                MessageBox.Show("An error occured: " + parserResp.ErrorMessage);
+                MessageBox.Show("An error occured: " + parserResp.ToString());
                 return;
             }
 
             DateTime internalStop = DateTime.Now;
 
             MessageBox.Show(string.Format("Free disk space: {0} GB / {1} GB ({2}%)\n\nTook {3}ms for request, response and parsing.",
-                parserResp.Result.Size / 1024 / 1024 / 1024,
-                parserResp.Result.TotalSize / 1024 / 1024 / 1024,
-                (parserResp.Result.Size * 100) / parserResp.Result.TotalSize,
+                parserResp.Product.Size / 1024 / 1024 / 1024,
+                parserResp.Product.TotalSize / 1024 / 1024 / 1024,
+                (parserResp.Product.Size * 100) / parserResp.Product.TotalSize,
                 (internalStop - internalStart).TotalMilliseconds));
         }
 
