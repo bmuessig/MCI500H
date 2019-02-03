@@ -27,44 +27,47 @@ namespace nxgmci.Protocol.WADM
         /// <param name="ValidateInput">Indicates whether to validate the data values received.</param>
         /// <param name="LazySyntax">Indicates whether to ignore minor syntax errors.</param>
         /// <returns>A result object that contains a serialized version of the response data.</returns>
-        public static ActionResult<ContentDataSet> Parse(string Response, bool ValidateInput = true, bool LazySyntax = false)
+        public static Result<ContentDataSet> Parse(string Response, bool ValidateInput = true, bool LazySyntax = false)
         {
+            // Allocate the result object
+            Result<ContentDataSet> result = new Result<ContentDataSet>();
+
             // Make sure the response is not null
             if (string.IsNullOrWhiteSpace(Response))
-                return new ActionResult<ContentDataSet>("The response may not be null!");
+                return result.FailMessage("The response may not be null!");
 
-            Result<WADMProduct> result = parser.Parse(Response, LazySyntax);
+            Result<WADMProduct> parserResult = parser.Parse(Response, LazySyntax);
 
             // Check if it failed
-            if (!result.Success)
-                if (!string.IsNullOrWhiteSpace(result.Message))
-                    return new ActionResult<ContentDataSet>(result.ToString());
+            if (!parserResult.Success)
+                if (!string.IsNullOrWhiteSpace(parserResult.Message))
+                    return result.FailMessage("The parsing failed:\n{0}", parserResult.ToString());
                 else
-                    return new ActionResult<ContentDataSet>("The parsing failed for unknown reasons!");
+                    return result.FailMessage("The parsing failed for unknown reasons!");
 
             // Make sure the product is there
-            if (result.Product == null)
-                return new ActionResult<ContentDataSet>("The parsing product was null!");
+            if (parserResult.Product == null)
+                return result.FailMessage("The parsing product was null!");
 
             // And also make sure our state is correct
-            if (result.Product.Elements == null || result.Product.List == null)
-                return new ActionResult<ContentDataSet>("The list of parsed elements or list items is null!");
+            if (parserResult.Product.Elements == null || parserResult.Product.List == null)
+                return result.FailMessage("The list of parsed elements or list items is null!");
 
             // Now, make sure our mandatory argument exists
-            if (!result.Product.Elements.ContainsKey("updateid"))
-                return new ActionResult<ContentDataSet>(string.Format("Could not locate parameter '{0}'!", "updateid"));
+            if (!parserResult.Product.Elements.ContainsKey("updateid"))
+                return result.FailMessage("Could not locate parameter '{0}'!", "updateid");
             
             // Then, try to parse the parameter
             uint updateID;
-            if (!uint.TryParse(result.Product.Elements["updateid"], out updateID))
-                return new ActionResult<ContentDataSet>(string.Format("Could not parse parameter '{0}' as uint!", "updateid"));
+            if (!uint.TryParse(parserResult.Product.Elements["updateid"], out updateID))
+                return result.FailMessage("Could not parse parameter '{0}' as uint!", "updateid");
 
             // Allocate our result object
             ContentDataSet set = new ContentDataSet(updateID);
 
             // Next, pay attention to the list items (yes, there are a lot of them)
             uint elementNo = 0;
-            foreach (Dictionary<string, string> listItem in result.Product.List)
+            foreach (Dictionary<string, string> listItem in parserResult.Product.List)
             {
                 // Increment the element ID to simplify fault-finding
                 elementNo++;
@@ -75,30 +78,30 @@ namespace nxgmci.Protocol.WADM
 
                 // First, make sure our mandatory arguments exist
                 if (!listItem.ContainsKey("name"))
-                    return new ActionResult<ContentDataSet>(string.Format("Could not locate parameter '{0}' in item #{1}!", "name", elementNo));
+                    return result.FailMessage("Could not locate parameter '{0}' in item #{1}!", "name", elementNo);
                 if (!listItem.ContainsKey("index"))
-                    return new ActionResult<ContentDataSet>(string.Format("Could not locate parameter '{0}' in item #{1}!", "index", elementNo));
+                    return result.FailMessage("Could not locate parameter '{0}' in item #{1}!", "index", elementNo);
 
                 // Then, try to parse the parameters
                 string name;
                 uint index;
                 if (string.IsNullOrWhiteSpace((name = listItem["name"])))
-                    return new ActionResult<ContentDataSet>(string.Format("Could not parse parameter '{0}' in item #{1} as string!", "name", elementNo));
+                    return result.FailMessage("Could not parse parameter '{0}' in item #{1} as string!", "name", elementNo);
                 if (!uint.TryParse(listItem["index"], out index))
-                    return new ActionResult<ContentDataSet>(string.Format("Could not parse parameter '{0}' in item #{1} as uint!", "index", elementNo));
+                    return result.FailMessage("Could not parse parameter '{0}' in item #{1} as uint!", "index", elementNo);
 
                 // If we need to, perform sanity checks on the input data
                 if (ValidateInput)
                     if (index == 0)
-                        return new ActionResult<ContentDataSet>(string.Format("nodeid #{0} == 0", elementNo));
+                        return result.FailMessage("nodeid #{0} == 0", elementNo);
 
                 // Finally, assemble and add the object
                 if (!set.AddEntry(name, index, true))
-                    return new ActionResult<ContentDataSet>(string.Format("Could not append item #{0} to the list!", elementNo));
+                    return result.FailMessage("Could not append item #{0} to the list!", elementNo);
             }
 
             // Finally, return the response
-            return new ActionResult<ContentDataSet>(set);
+            return result.Succeed(set);
         }
 
         /// <summary>
