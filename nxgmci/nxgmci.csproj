@@ -77,7 +77,6 @@
     <Compile Include="Protocol\WADM\StatusCode.cs" />
     <Compile Include="Protocol\WADM\StatusCodeTranslator.cs" />
     <Compile Include="Protocol\WADM\WADMParser.cs" />
-    <Compile Include="ActionResult.cs" />
     <Compile Include="Protocol\WADM\RequestRawData.cs" />
     <Compile Include="Protocol\WADM\QueryDiskSpace.cs" />
     <Compile Include="Query\Query.cs" />
