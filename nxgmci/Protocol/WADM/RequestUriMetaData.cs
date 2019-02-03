@@ -3,13 +3,14 @@ using System.Text.RegularExpressions;
 
 namespace nxgmci.Protocol.WADM
 {
+    /// <summary>
+    /// This request is used to retrieve lots of important flags from the stereo.
+    /// For instance, this will provide the public directory of the media files.
+    /// It will also provide the bitmask mask that needs to be applied to work with the node IDs.
+    /// Apart from that it presents a list of supported file formats along with their type-ID mapping.
+    /// </summary>
     public static class RequestUriMetaData
     {
-        // This request is used to retrieve lots of important flags from the stereo
-        // For instance, this will tell us the public directory of the files.
-        // It will also tell us the mask we need to apply to the nodeids to get their file, as well as the directory size.
-        // Apart from that it tells us what file formats are supported and returns the mapping of type-ids to extension.
-
         // RequestUriMetaData Parser
         private readonly static WADMParser parser = new WADMParser("requesturimetadata", "responseparameters", false);
 
@@ -17,74 +18,86 @@ namespace nxgmci.Protocol.WADM
         private static readonly Regex mediaTypeKeyRegex = new Regex(@"(\d+)\s*=+\s*(\w+)(?:\s*,|$)",
             RegexOptions.Singleline | RegexOptions.Compiled);
 
-        // RequestUriMetaData-Reqest:
+        /// <summary>
+        /// Assembles a RequestUriMetaData request to be passed to the stereo.
+        /// </summary>
+        /// <returns>A request string that can be passed to the stereo.</returns>
         public static string Build()
         {
             return "<requesturimetadata></requesturimetadata>";
         }
 
-        // RequestUriMetaData-Response:
-        public static ActionResult<ResponseParameters> Parse(string Response, bool ValidateInput = true, bool LazySyntax = false)
+        /// <summary>
+        /// Parses RequestUriMetaData's ResponseParameters and returns the result.
+        /// </summary>
+        /// <param name="Response">The response received from the stereo.</param>
+        /// <param name="ValidateInput">Indicates whether to validate the data values received.</param>
+        /// <param name="LazySyntax">Indicates whether to ignore minor syntax errors.</param>
+        /// <returns>A result object that contains a serialized version of the response data.</returns>
+        public static Result<ResponseParameters> Parse(string Response, bool ValidateInput = true, bool LazySyntax = false)
         {
+            // Allocate the result object
+            Result<ResponseParameters> result = new Result<ResponseParameters>();
+
             // Make sure the response is not null
             if (string.IsNullOrWhiteSpace(Response))
-                return new ActionResult<ResponseParameters>("The response may not be null!");
+                return result.FailMessage("The response may not be null!");
 
             // Then, parse the response
-            Result<WADMProduct> result = parser.Parse(Response, LazySyntax);
+            Result<WADMProduct> parserResult = parser.Parse(Response, LazySyntax);
 
             // Check if it failed
-            if (!result.Success)
-                if (!string.IsNullOrWhiteSpace(result.Message))
-                    return new ActionResult<ResponseParameters>(result.ToString());
+            if (!parserResult.Success)
+                if (!string.IsNullOrWhiteSpace(parserResult.Message))
+                    return result.FailMessage("The parsing failed:\n{0}", parserResult.ToString());
                 else
-                    return new ActionResult<ResponseParameters>("The parsing failed for unknown reasons!");
+                    return result.FailMessage("The parsing failed for unknown reasons!");
 
             // Make sure the product is there
-            if (result.Product == null)
-                return new ActionResult<ResponseParameters>("The parsing product was null!");
+            if (parserResult.Product == null)
+                return result.FailMessage("The parsing product was null!");
 
             // And also make sure our state is correct
-            if (result.Product.Elements == null)
-                return new ActionResult<ResponseParameters>("The list of parsed elements is null!");
+            if (parserResult.Product.Elements == null)
+                return result.FailMessage("The list of parsed elements is null!");
 
             // Now, make sure our mandatory arguments exist
-            if (!result.Product.Elements.ContainsKey("uripath"))
-                return new ActionResult<ResponseParameters>(string.Format("Could not locate parameter '{0}'!", "uripath"));
-            if (!result.Product.Elements.ContainsKey("idmask"))
-                return new ActionResult<ResponseParameters>(string.Format("Could not locate parameter '{0}'!", "idmask"));
-            if (!result.Product.Elements.ContainsKey("containersize"))
-                return new ActionResult<ResponseParameters>(string.Format("Could not locate parameter '{0}'!", "containersize"));
-            if (!result.Product.Elements.ContainsKey("mediatypekey"))
-                return new ActionResult<ResponseParameters>(string.Format("Could not locate parameter '{0}'!", "mediatypekey"));
-            if (!result.Product.Elements.ContainsKey("updateid"))
-                return new ActionResult<ResponseParameters>(string.Format("Could not locate parameter '{0}'!", "updateid"));
+            if (!parserResult.Product.Elements.ContainsKey("uripath"))
+                return result.FailMessage("Could not locate parameter '{0}'!", "uripath");
+            if (!parserResult.Product.Elements.ContainsKey("idmask"))
+                return result.FailMessage("Could not locate parameter '{0}'!", "idmask");
+            if (!parserResult.Product.Elements.ContainsKey("containersize"))
+                return result.FailMessage("Could not locate parameter '{0}'!", "containersize");
+            if (!parserResult.Product.Elements.ContainsKey("mediatypekey"))
+                return result.FailMessage("Could not locate parameter '{0}'!", "mediatypekey");
+            if (!parserResult.Product.Elements.ContainsKey("updateid"))
+                return result.FailMessage("Could not locate parameter '{0}'!", "updateid");
 
             // Then, try to parse the parameters
             string uriPath, mediaTypeKey;
             uint idMask, containerSize, updateID;
-            if (string.IsNullOrWhiteSpace((uriPath = result.Product.Elements["uripath"])))
-                return new ActionResult<ResponseParameters>(string.Format("Could not parse parameter '{0}' as string!", "uripath"));
-            if (!uint.TryParse(result.Product.Elements["idmask"], out idMask))
-                return new ActionResult<ResponseParameters>(string.Format("Could not parse parameter '{0}' as uint!", "idmask"));
-            if (!uint.TryParse(result.Product.Elements["containersize"], out containerSize))
-                return new ActionResult<ResponseParameters>(string.Format("Could not parse parameter '{0}' as uint!", "containersize"));
-            if (string.IsNullOrWhiteSpace((mediaTypeKey = result.Product.Elements["mediatypekey"])))
-                return new ActionResult<ResponseParameters>(string.Format("Could not parse parameter '{0}' as string!", "mediatypekey"));
-            if (!uint.TryParse(result.Product.Elements["updateid"], out updateID))
-                return new ActionResult<ResponseParameters>(string.Format("Could not parse parameter '{0}' as uint!", "updateid"));
+            if (string.IsNullOrWhiteSpace((uriPath = parserResult.Product.Elements["uripath"])))
+                return result.FailMessage("Could not parse parameter '{0}' as string!", "uripath");
+            if (!uint.TryParse(parserResult.Product.Elements["idmask"], out idMask))
+                return result.FailMessage("Could not parse parameter '{0}' as uint!", "idmask");
+            if (!uint.TryParse(parserResult.Product.Elements["containersize"], out containerSize))
+                return result.FailMessage("Could not parse parameter '{0}' as uint!", "containersize");
+            if (string.IsNullOrWhiteSpace((mediaTypeKey = parserResult.Product.Elements["mediatypekey"])))
+                return result.FailMessage("Could not parse parameter '{0}' as string!", "mediatypekey");
+            if (!uint.TryParse(parserResult.Product.Elements["updateid"], out updateID))
+                return result.FailMessage("Could not parse parameter '{0}' as uint!", "updateid");
 
             // We may have to perform some sanity checks
             if (ValidateInput)
             {
                 if (string.IsNullOrWhiteSpace(uriPath))
-                    return new ActionResult<ResponseParameters>("uripath is null or white-space!");
+                    return result.FailMessage("uripath is null or white-space!");
                 if (string.IsNullOrWhiteSpace(mediaTypeKey))
-                    return new ActionResult<ResponseParameters>("mediatypekey is null or white-space!");
+                    return result.FailMessage("mediatypekey is null or white-space!");
                 if (idMask == 0)
-                    return new ActionResult<ResponseParameters>("idmask == 0");
+                    return result.FailMessage("idmask == 0");
                 if (containerSize == 0)
-                    return new ActionResult<ResponseParameters>("containersize == 0");
+                    return result.FailMessage("containersize == 0");
             }
 
             // Next, we will parse the mediaTypeKey - note that the designers were a bit lazy here
@@ -92,7 +105,7 @@ namespace nxgmci.Protocol.WADM
             // Like done here with the custom XML parser and HTTP client... (if they had cared more about the standards that might have been redundant)
             MatchCollection mediaTypeMatches = mediaTypeKeyRegex.Matches(mediaTypeKey);
             if (mediaTypeMatches == null)
-                return new ActionResult<ResponseParameters>("The mediatypekey match collection is null!");
+                return result.FailMessage("The mediatypekey match collection is null!");
 
             // Allocate the results dictionary
             Dictionary<uint, string> mediaTypeDict = new Dictionary<uint, string>();
@@ -122,23 +135,48 @@ namespace nxgmci.Protocol.WADM
             }
 
             // Finally, return the response
-            return new ActionResult<ResponseParameters>(new ResponseParameters(uriPath, idMask, containerSize, mediaTypeDict, updateID));
+            return result.Succeed(new ResponseParameters(uriPath, idMask, containerSize, mediaTypeDict, updateID));
         }
 
-        // RequestUriMetaData-ResponseParameters-Structure:
-        // uripath		    (string):				This contains the absolute http path to the root (no trailing /) of the media webserver.
-        // idmask		    (int):				    This idmask is used to get the file name from title IDs. Usually 16777215 and AND'ed with the title ID.
-        // containersize    (int):				    This describes the size of each folder container on the harddisk. It's usually 1000.
-        // mediatypekey	    (kvp<int==string>[]):	This is used to map the content type IDs to their actual file type.
-        // updateid		    (int):				    UNKNOWN! e.g. 422
+        /// <summary>
+        /// RequestUriMetaData's ResponseParameters reply.
+        /// </summary>
         public class ResponseParameters
         {
+            /// <summary>
+            /// This contains the absolute HTTP path to the root (no trailing /) of the media webserver.
+            /// </summary>
             public readonly string URIPath;
+
+            /// <summary>
+            /// This ID-mask is used to get the universal IDs. Usually 16777215 and AND'ed with the node ID.
+            /// </summary>
             public readonly uint IDMask;
+
+            /// <summary>
+            /// This describes the size of each folder container on the harddisk. It's usually 1000.
+            /// </summary>
             public readonly uint ContainerSize;
+
+            /// <summary>
+            /// This is used to map the content type IDs to their actual file type.
+            /// KeyValuePair[] of uint==string.
+            /// </summary>
             public readonly Dictionary<uint, string> MediaTypeKey;
+
+            /// <summary>
+            /// UNKNOWN! e.g. 422.
+            /// </summary>
             public readonly uint UpdateID;
 
+            /// <summary>
+            /// Default internal constructor.
+            /// </summary>
+            /// <param name="URIPath">The absolute HTTP path to the root of the media webserver.</param>
+            /// <param name="IDMask">The ID-mask used to get the universal IDs.</param>
+            /// <param name="ContainerSize">The size of each folder container on the harddisk.</param>
+            /// <param name="MediaTypeKey">A KeyValuePair-collection that stores the supported file formats along their IDs.</param>
+            /// <param name="UpdateID">Unknown ID.</param>
             internal ResponseParameters(string URIPath, uint IDMask, uint ContainerSize, Dictionary<uint, string> MediaTypeKey, uint UpdateID)
             {
                 this.URIPath = URIPath;
