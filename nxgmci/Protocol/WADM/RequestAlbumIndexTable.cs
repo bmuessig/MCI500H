@@ -261,7 +261,7 @@ namespace nxgmci.Protocol.WADM
         }
 
         /// <summary>
-        /// RequestAlbumIndexTable's ContentDataSet's ContentDataSet.
+        /// RequestAlbumIndexTable's ContentDataSet's ContentData.
         /// </summary>
         public class ContentData
         {
