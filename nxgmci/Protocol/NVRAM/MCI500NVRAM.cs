@@ -7,5 +7,10 @@ namespace nxgmci.Protocol.NVRAM
 {
     public class MCI500NVRAM //: NVRAM
     {
+
+        public enum Language : byte
+        {
+
+        }
     }
 }
