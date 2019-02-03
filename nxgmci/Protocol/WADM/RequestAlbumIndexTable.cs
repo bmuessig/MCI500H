@@ -3,7 +3,7 @@
 namespace nxgmci.Protocol.WADM
 {
     /// <summary>
-    /// This request returns a Dictionary of all album IDs and their cleartext names.
+    /// This request returns a dictionary of all album IDs and their cleartext names.
     /// This information can be used to map the album IDs returned by RequestRawData to strings.
     /// </summary>
     public static class RequestAlbumIndexTable
