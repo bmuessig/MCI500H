@@ -44,7 +44,7 @@ namespace nxgmci.Protocol.WADM
             // Now, make sure our mandatory argument exists
             if (!result.Product.Elements.ContainsKey("updateid"))
                 return new ActionResult<ContentDataSet>(string.Format("Could not locate parameter '{0}'!", "updateid"));
-            
+
             // Then, try to parse the parameter
             uint updateID;
             if (!uint.TryParse(result.Product.Elements["updateid"], out updateID))
@@ -92,20 +92,36 @@ namespace nxgmci.Protocol.WADM
             return new ActionResult<ContentDataSet>(set);
         }
 
-        // ContentDataSet-Structure:
-        // elements:            Returned elements
-        // updateid		(uint): UNKNOWN! e.g. 422
+        /// <summary>
+        /// RequestArtistIndexTable's ContentDataSet reply.
+        /// </summary>
         public class ContentDataSet
         {
+            /// <summary>
+            /// List of returned elements.
+            /// </summary>
             public List<ContentData> ContentData;
+
+            /// <summary>
+            /// Unknown update ID.
+            /// </summary>
             public readonly uint UpdateID;
 
+            /// <summary>
+            /// Internal constructor.
+            /// </summary>
+            /// <param name="UpdateID">Unknown update ID.</param>
             internal ContentDataSet(uint UpdateID)
             {
                 this.UpdateID = UpdateID;
                 this.ContentData = new List<ContentData>();
             }
 
+            /// <summary>
+            /// Internal constructor.
+            /// </summary>
+            /// <param name="ContentData">List of returned elements.</param>
+            /// <param name="UpdateID">Unknown update ID.</param>
             internal ContentDataSet(List<ContentData> ContentData, uint UpdateID)
                 : this(UpdateID)
             {
@@ -114,10 +130,16 @@ namespace nxgmci.Protocol.WADM
                     this.ContentData = ContentData;
             }
 
+            /// <summary>
+            /// Adds a new entry to the collection.
+            /// </summary>
+            /// <param name="Data">The new entry to add.</param>
+            /// <param name="ReplaceDuplicates">True, if a conflicting entry should be replaced and false if not.</param>
+            /// <returns>True, if the entry could be added and false otherwise.</returns>
             public bool AddEntry(ContentData Data, bool ReplaceDuplicates = true)
             {
                 // Perform some input sanity checks
-                if(Data == null)
+                if (Data == null)
                     return false;
                 if (string.IsNullOrWhiteSpace(Data.Name))
                     return false;
@@ -125,7 +147,8 @@ namespace nxgmci.Protocol.WADM
                 // Just making sure we don't get any null issues
                 if (ContentData == null)
                     ContentData = new List<ContentData>();
-                else {
+                else
+                {
                     // If we may not replace duplicates, and have a duplicate, fail
                     if (!ReplaceDuplicates)
                         if (ContainsEntry(Data.Index))
@@ -134,7 +157,7 @@ namespace nxgmci.Protocol.WADM
                     // Otherwise just check for a duplicate and remove it if present
                     RemoveEntry(Data.Index);
                 }
-                
+
                 // Finally, add the new entry
                 ContentData.Add(Data);
 
@@ -142,12 +165,23 @@ namespace nxgmci.Protocol.WADM
                 return true;
             }
 
+            /// <summary>
+            /// Adds a new entry to the collection. Shorthand function for directly adding a name and index.
+            /// </summary>
+            /// <param name="Name">Name of the new entry.</param>
+            /// <param name="Index">Index of the new entry.</param>
+            /// <param name="ReplaceDuplicates">True, if a conflicting entry should be replaced and false if not.</param>
+            /// <returns>True, if the entry could be added and false otherwise.</returns>
             public bool AddEntry(string Name, uint Index, bool ReplaceDuplicates = true)
             {
                 // This is just an easy wrapper to use base types for the arguments
                 return AddEntry(new ContentData(Name, Index), ReplaceDuplicates);
             }
 
+            /// <summary>
+            /// Attempts to remove an entry by the index. No error is thrown if the entry did not exist.
+            /// </summary>
+            /// <param name="Index">The index that should be removed from the collection.</param>
             public void RemoveEntry(uint Index)
             {
                 // Just making sure we don't get any null issues
@@ -167,10 +201,15 @@ namespace nxgmci.Protocol.WADM
                     }
             }
 
+            /// <summary>
+            /// Returns whether an entry with the desired index exists in the collection.
+            /// </summary>
+            /// <param name="Index">The index that should be searched for.</param>
+            /// <returns>True, if the entry exists and false otherwise.</returns>
             public bool ContainsEntry(uint Index)
             {
                 // Just making sure we don't get any null issues
-                if(ContentData == null)
+                if (ContentData == null)
                 {
                     ContentData = new List<ContentData>();
                     return false;
@@ -185,6 +224,11 @@ namespace nxgmci.Protocol.WADM
                 return false;
             }
 
+            /// <summary>
+            /// Attempts to return an entry by it's index.
+            /// </summary>
+            /// <param name="Index">The index that should be searched for.</param>
+            /// <returns>Returns the entry if it could be found. Null otherwise.</returns>
             public ContentData GetEntry(uint Index)
             {
                 // Just making sure we don't get any null issues
@@ -204,22 +248,36 @@ namespace nxgmci.Protocol.WADM
             }
         }
 
-        // ContentData-Structure:
-        // name		    (string):	Name of the artist
-        // index	    (uint):	    ID number of the artist
-        // => KeyValuePair(index, name)
-
+        /// <summary>
+        /// RequestArtistIndexTable's ContentDataSet's ContentDataSet.
+        /// </summary>
         public class ContentData
         {
+            /// <summary>
+            /// Name of the artist.
+            /// </summary>
             public string Name;
+
+            /// <summary>
+            /// Node ID number of the artist.
+            /// </summary>
             public uint Index;
 
+            /// <summary>
+            /// Default internal constructor.
+            /// </summary>
+            /// <param name="Name">Name of the artist.</param>
+            /// <param name="Index">Node ID number of the artist.</param>
             internal ContentData(string Name, uint Index)
             {
                 this.Name = Name;
                 this.Index = Index;
             }
 
+            /// <summary>
+            /// Returns the string representation of the entry. Usually returns the artist's name, if available.
+            /// </summary>
+            /// <returns>A string representation of the object.</returns>
             public override string ToString()
             {
                 if (string.IsNullOrWhiteSpace(Name))
@@ -227,5 +285,7 @@ namespace nxgmci.Protocol.WADM
                 return Name;
             }
         }
+
+
     }
 }
