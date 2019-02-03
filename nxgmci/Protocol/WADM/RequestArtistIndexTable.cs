@@ -2,21 +2,31 @@
 
 namespace nxgmci.Protocol.WADM
 {
+    /// <summary>
+    /// This request returns a dictionary of all artist IDs and their cleartext names.
+    /// This information can be used to map the artist IDs returned by RequestRawData to strings.
+    /// </summary>
     public static class RequestArtistIndexTable
     {
-        // This request returns a key-value-pair table of all artist ids and their clear text names.
-        // We can use this information to map the artist ids returned by RequestRawData to strings.
-
         // ContentDataSet Parser
         private readonly static WADMParser parser = new WADMParser("contentdataset", "contentdata", true);
 
-        // RequestArtistIndexTable-Reqest:
+        /// <summary>
+        /// Assembles a RequestArtistIndexTable request to be passed to the stereo.
+        /// </summary>
+        /// <returns>A request string that can be passed to the stereo.</returns>
         public static string Build()
         {
             return "<requestartistindextable></requestartistindextable>";
         }
 
-        // ContentDataSet-Response
+        /// <summary>
+        /// Parses RequestArtistIndexTable's ContentDataSet and returns the result.
+        /// </summary>
+        /// <param name="Response">The response received from the stereo.</param>
+        /// <param name="ValidateInput">Indicates whether to validate the data values received.</param>
+        /// <param name="LazySyntax">Indicates whether to ignore minor syntax errors.</param>
+        /// <returns>A result object that contains a serialized version of the response data.</returns>
         public static ActionResult<ContentDataSet> Parse(string Response, bool ValidateInput = true, bool LazySyntax = false)
         {
             // Make sure the response is not null
