@@ -12,7 +12,7 @@ namespace nxgmci.Query
 
         }
 
-        public static ActionResult<Query> Parse(string Input)
+        public static Result<Query> Parse(string Input)
         {
             return null;
         }

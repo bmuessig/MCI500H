@@ -22,14 +22,14 @@ namespace nxgmci.Protocol.NVRAM
             this.Device = Device;
         }
 
-        public ActionResult<Dictionary<string, string>> GetAll()
+        public Result<Dictionary<string, string>> GetAll()
         {
             return null;
         }
 
-        public ActionResult<string> Get(string Field)
+        public Result<string> Get(string Field)
         {
-            return new ActionResult<string>("");
+            return null;
         }
 
         public struct QueryResult
