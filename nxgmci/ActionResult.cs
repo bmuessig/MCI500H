@@ -5,6 +5,7 @@ using System.Text;
 
 namespace nxgmci
 {
+    [Obsolete("This is now obsolete and has been replaced by Result<T>.")]
     public class ActionResult<T>
     {
         public readonly bool Success;
