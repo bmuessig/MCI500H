@@ -279,7 +279,7 @@ namespace nxgmci.Protocol.WADM
             /// Default internal constructor.
             /// </summary>
             /// <param name="Name">Name of the album.</param>
-            /// <param name="Index">Default internal constructor.</param>
+            /// <param name="Index">Node ID number of the album.</param>
             internal ContentData(string Name, uint Index)
             {
                 this.Name = Name;
