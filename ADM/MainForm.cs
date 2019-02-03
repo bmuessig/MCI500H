@@ -162,10 +162,10 @@ namespace ADM
                 MessageBox.Show("An error occured: " + response.Message);
                 return;
             }
-            ActionResult<RequestAlbumIndexTable.ContentDataSet> albumResp = RequestAlbumIndexTable.Parse(response.TextualResponse);
+            Result<RequestAlbumIndexTable.ContentDataSet> albumResp = RequestAlbumIndexTable.Parse(response.TextualResponse);
             if (!albumResp.Success)
             {
-                MessageBox.Show("An error occured: " + albumResp.ErrorMessage);
+                MessageBox.Show("An error occured: " + albumResp.ToString());
                 return;
             }
 
@@ -186,7 +186,7 @@ namespace ADM
 
             currentMediaLib = contentResp.Result;
             currentArtistIndex = artistResp.Result;
-            currentAlbumIndex = albumResp.Result;
+            currentAlbumIndex = albumResp.Product;
             currentUriMetaData = metaDataResp.Product;
             updateLib();
         }

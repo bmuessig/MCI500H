@@ -2,60 +2,73 @@
 
 namespace nxgmci.Protocol.WADM
 {
+    /// <summary>
+    /// This request returns a Dictionary of all album IDs and their cleartext names.
+    /// This information can be used to map the album IDs returned by RequestRawData to strings.
+    /// </summary>
     public static class RequestAlbumIndexTable
     {
-        // This request returns a key-value-pair table of all album ids and their clear text names.
-        // We can use this information to map the album ids returned by RequestRawData to strings.
-
         // ContentDataSet Parser
         private readonly static WADMParser parser = new WADMParser("contentdataset", "contentdata", true);
 
-        // RequestAlbumIndexTable-Reqest:
+        /// <summary>
+        /// Assembles a RequestAlbumIndexTable request to be passed to the stereo.
+        /// </summary>
+        /// <returns>A request string that can be passed to the stereo.</returns>
         public static string Build()
         {
             return "<requestalbumindextable></requestalbumindextable>";
         }
 
-        // ContentDataSet-Response
-        public static ActionResult<ContentDataSet> Parse(string Response, bool ValidateInput = true, bool LazySyntax = false)
+        /// <summary>
+        /// Parses RequestAlbumIndexTable's ContentDataSet and returns the result.
+        /// </summary>
+        /// <param name="Response">The response received from the stereo.</param>
+        /// <param name="ValidateInput">Indicates whether to validate the data values received.</param>
+        /// <param name="LazySyntax">Indicates whether to ignore minor syntax errors.</param>
+        /// <returns>A result object that contains a serialized version of the response data.</returns>
+        public static Result<ContentDataSet> Parse(string Response, bool ValidateInput = true, bool LazySyntax = false)
         {
+            // Allocate the result object
+            Result<ContentDataSet> result = new Result<ContentDataSet>();
+
             // Make sure the response is not null
             if (string.IsNullOrWhiteSpace(Response))
-                return new ActionResult<ContentDataSet>("The response may not be null!");
+                return result.FailMessage("The response may not be null!");
 
             // Then, parse the response
-            Result<WADMProduct> result = parser.Parse(Response, LazySyntax);
+            Result<WADMProduct> parserResult = parser.Parse(Response, LazySyntax);
 
             // Check if it failed
-            if (!result.Success)
-                if (!string.IsNullOrWhiteSpace(result.Message))
-                    return new ActionResult<ContentDataSet>(result.ToString());
+            if (!parserResult.Success)
+                if (!string.IsNullOrWhiteSpace(parserResult.Message))
+                    return result.FailMessage("The parsing failed:\n{0}", parserResult.ToString());
                 else
-                    return new ActionResult<ContentDataSet>("The parsing failed for unknown reasons!");
+                    return result.FailMessage("The parsing failed for unknown reasons!");
 
             // Make sure the product is there
-            if (result.Product == null)
-                return new ActionResult<ContentDataSet>("The parsing product was null!");
+            if (parserResult.Product == null)
+                return result.FailMessage("The parsing product was null!");
 
             // And also make sure our state is correct
-            if (result.Product.Elements == null || result.Product.List == null)
-                return new ActionResult<ContentDataSet>("The list of parsed elements or list items is null!");
+            if (parserResult.Product.Elements == null || parserResult.Product.List == null)
+                return result.FailMessage("The list of parsed elements or list items is null!");
 
             // Now, make sure our mandatory argument exists
-            if (!result.Product.Elements.ContainsKey("updateid"))
-                return new ActionResult<ContentDataSet>(string.Format("Could not locate parameter '{0}'!", "updateid"));
+            if (!parserResult.Product.Elements.ContainsKey("updateid"))
+                return result.FailMessage("Could not locate parameter '{0}'!", "updateid");
             
             // Then, try to parse the parameter
             uint updateID;
-            if (!uint.TryParse(result.Product.Elements["updateid"], out updateID))
-                return new ActionResult<ContentDataSet>(string.Format("Could not parse parameter '{0}' as uint!", "updateid"));
+            if (!uint.TryParse(parserResult.Product.Elements["updateid"], out updateID))
+                return result.FailMessage("Could not parse parameter '{0}' as uint!", "updateid");
 
             // Allocate our result object
             ContentDataSet set = new ContentDataSet(updateID);
 
             // Next, pay attention to the list items (yes, there are a lot of them)
             uint elementNo = 0;
-            foreach (Dictionary<string, string> listItem in result.Product.List)
+            foreach (Dictionary<string, string> listItem in parserResult.Product.List)
             {
                 // Increment the element ID to simplify fault-finding
                 elementNo++;
@@ -66,46 +79,62 @@ namespace nxgmci.Protocol.WADM
 
                 // First, make sure our mandatory arguments exist
                 if (!listItem.ContainsKey("name"))
-                    return new ActionResult<ContentDataSet>(string.Format("Could not locate parameter '{0}' in item #{1}!", "name", elementNo));
+                    return result.FailMessage("Could not locate parameter '{0}' in item #{1}!", "name", elementNo);
                 if (!listItem.ContainsKey("index"))
-                    return new ActionResult<ContentDataSet>(string.Format("Could not locate parameter '{0}' in item #{1}!", "index", elementNo));
+                    return result.FailMessage("Could not locate parameter '{0}' in item #{1}!", "index", elementNo);
 
                 // Then, try to parse the parameters
                 string name;
                 uint index;
                 if (string.IsNullOrWhiteSpace((name = listItem["name"])))
-                    return new ActionResult<ContentDataSet>(string.Format("Could not parse parameter '{0}' in item #{1} as string!", "name", elementNo));
+                    return result.FailMessage("Could not parse parameter '{0}' in item #{1} as string!", "name", elementNo);
                 if (!uint.TryParse(listItem["index"], out index))
-                    return new ActionResult<ContentDataSet>(string.Format("Could not parse parameter '{0}' in item #{1} as uint!", "index", elementNo));
+                    return result.FailMessage("Could not parse parameter '{0}' in item #{1} as uint!", "index", elementNo);
 
                 // If we need to, perform sanity checks on the input data
                 if (ValidateInput)
                     if (index == 0)
-                        return new ActionResult<ContentDataSet>(string.Format("nodeid #{0} == 0", elementNo));
+                        return result.FailMessage("nodeid #{0} == 0", elementNo);
 
                 // Finally, assemble and add the object
                 if (!set.AddEntry(name, index, true))
-                    return new ActionResult<ContentDataSet>(string.Format("Could not append item #{0} to the list!", elementNo));
+                    return result.FailMessage("Could not append item #{0} to the list!", elementNo);
             }
 
             // Finally, return the response
-            return new ActionResult<ContentDataSet>(set);
+            return result.Succeed(set);
         }
 
-        // ContentDataSet-Structure:
-        // elements:            Returned elements
-        // updateid		(uint): UNKNOWN! e.g. 422
+        /// <summary>
+        /// RequestAlbumIndexTable's ContentDataSet reply.
+        /// </summary>
         public class ContentDataSet
         {
+            /// <summary>
+            /// List of returned elements.
+            /// </summary>
             public List<ContentData> ContentData;
+
+            /// <summary>
+            /// Unknown update ID.
+            /// </summary>
             public readonly uint UpdateID;
 
+            /// <summary>
+            /// Internal constructor.
+            /// </summary>
+            /// <param name="UpdateID">Unknown update ID.</param>
             internal ContentDataSet(uint UpdateID)
             {
                 this.UpdateID = UpdateID;
                 this.ContentData = new List<ContentData>();
             }
 
+            /// <summary>
+            /// Internal constructor.
+            /// </summary>
+            /// <param name="ContentData">List of returned elements.</param>
+            /// <param name="UpdateID">Unknown update ID.</param>
             internal ContentDataSet(List<ContentData> ContentData, uint UpdateID)
                 : this(UpdateID)
             {
@@ -114,6 +143,12 @@ namespace nxgmci.Protocol.WADM
                     this.ContentData = ContentData;
             }
 
+            /// <summary>
+            /// Adds a new entry to the collection.
+            /// </summary>
+            /// <param name="Data">The new entry to add.</param>
+            /// <param name="ReplaceDuplicates">True, if a conflicting entry should be replaced and false if not.</param>
+            /// <returns>True, if the entry could be added and false otherwise.</returns>
             public bool AddEntry(ContentData Data, bool ReplaceDuplicates = true)
             {
                 // Perform some input sanity checks
@@ -142,12 +177,23 @@ namespace nxgmci.Protocol.WADM
                 return true;
             }
 
+            /// <summary>
+            /// Adds a new entry to the collection. Shorthand function for directly adding a name and index.
+            /// </summary>
+            /// <param name="Name">Name of the new entry.</param>
+            /// <param name="Index">Index of the new entry.</param>
+            /// <param name="ReplaceDuplicates">True, if a conflicting entry should be replaced and false if not.</param>
+            /// <returns>True, if the entry could be added and false otherwise.</returns>
             public bool AddEntry(string Name, uint Index, bool ReplaceDuplicates = true)
             {
                 // This is just an easy wrapper to use base types for the arguments
                 return AddEntry(new ContentData(Name, Index), ReplaceDuplicates);
             }
 
+            /// <summary>
+            /// Attempts to remove an entry by the index. No error is thrown if the entry did not exist.
+            /// </summary>
+            /// <param name="Index">The index that should be removed from the collection.</param>
             public void RemoveEntry(uint Index)
             {
                 // Just making sure we don't get any null issues
@@ -167,6 +213,11 @@ namespace nxgmci.Protocol.WADM
                     }
             }
 
+            /// <summary>
+            /// Returns whether an entry with the desired index exists in the collection.
+            /// </summary>
+            /// <param name="Index">The index that should be searched for.</param>
+            /// <returns>True, if the entry exists and false otherwise.</returns>
             public bool ContainsEntry(uint Index)
             {
                 // Just making sure we don't get any null issues
@@ -185,6 +236,11 @@ namespace nxgmci.Protocol.WADM
                 return false;
             }
 
+            /// <summary>
+            /// Attempts to return an entry by it's index.
+            /// </summary>
+            /// <param name="Index">The index that should be searched for.</param>
+            /// <returns>Returns the entry if it could be found. Null otherwise.</returns>
             public ContentData GetEntry(uint Index)
             {
                 // Just making sure we don't get any null issues
@@ -204,22 +260,36 @@ namespace nxgmci.Protocol.WADM
             }
         }
 
-        // ContentData-Structure:
-        // name		    (string):	Name of the album
-        // index	    (uint):	    ID number of the album
-        // => KeyValuePair(index, name)
-
+        /// <summary>
+        /// RequestAlbumIndexTable's ContentDataSet's ContentDataSet.
+        /// </summary>
         public class ContentData
         {
+            /// <summary>
+            /// Name of the album.
+            /// </summary>
             public string Name;
+
+            /// <summary>
+            /// Node ID number of the album.
+            /// </summary>
             public uint Index;
 
+            /// <summary>
+            /// Default internal constructor.
+            /// </summary>
+            /// <param name="Name">Name of the album.</param>
+            /// <param name="Index">Default internal constructor.</param>
             internal ContentData(string Name, uint Index)
             {
                 this.Name = Name;
                 this.Index = Index;
             }
 
+            /// <summary>
+            /// Returns the string representation of the entry. Usually returns the album name, if available.
+            /// </summary>
+            /// <returns>A string representation of the object.</returns>
             public override string ToString()
             {
                 if (string.IsNullOrWhiteSpace(Name))
