@@ -37,37 +37,32 @@ namespace nxgmci
         }
 
         /// <summary>
-        /// Internal message string.
+        /// Internal success message string.
         /// </summary>
-        private string message;
+        private string successMessage;
 
         /// <summary>
-        /// Gets or sets the success or error message associated with the result.
+        /// Returns the success or error message associated with the result.
         /// A custom string has preference over an exception.
         /// </summary>
         public string Message
         {
             get
             {
-                // Returns a custom error message
-                if (!string.IsNullOrWhiteSpace(message))
-                    return string.Format("{0}: {1}", Success ? "Success" : "Error", message);
-                else if (!Success && Error != null) // Returns an exception
+                // Returns a custom success message
+                if (Success && !string.IsNullOrWhiteSpace(successMessage))
+                    return successMessage;
+                else if (!Success && Error != null)
                 {
-                    if (!string.IsNullOrWhiteSpace(Error.Message))
-                        return string.Format("Error ({0}): {1}", Error.GetType().ToString(), Error.Message);
+                    // There is no need to output the type name for vanilla exceptions
+                    if (Error.GetType() != typeof(Exception) && !string.IsNullOrWhiteSpace(Error.Message))
+                        return Error.Message;
                     else
-                        return string.Format("Error: {0}", Error.GetType().ToString());
+                        return Error.GetType().ToString();
                 }
 
                 // If no output message is available, an empty string is returned
                 return string.Empty;
-            }
-
-            private set
-            {
-                // Sets the internal message string
-                this.message = value;
             }
         }
 
@@ -114,10 +109,22 @@ namespace nxgmci
         /// <returns>A string representation of the object.</returns>
         public override string ToString()
         {
-            if (string.IsNullOrWhiteSpace(Message))
-                return base.ToString();
-            else
-                return Message;
+            // Returns a custom success message
+            if (Success && !string.IsNullOrWhiteSpace(successMessage))
+                return string.Format("Success: {0}", successMessage);
+            else if (!Success && Error != null)
+            {
+                // There is no need to output the type name for vanilla exceptions
+                if (Error.GetType() != typeof(Exception) && !string.IsNullOrWhiteSpace(Error.Message))
+                    return string.Format("Error ({0}): {1}", Error.GetType().ToString(), Error.Message);
+                else if (!string.IsNullOrWhiteSpace(Error.Message))
+                    return string.Format("Error: {0}", Error.Message);
+                else
+                    return string.Format("Error: {0}", Error.GetType().ToString());
+            }
+
+            // If no output message is available, return the default ToString()
+            return base.ToString();
         }
 
         /// <summary>
@@ -154,7 +161,7 @@ namespace nxgmci
 
             // Assign the values
             this.Success = true;
-            this.message = Message;
+            this.successMessage = Message;
             this.HasProduct = false;
             this.Error = null;
 
@@ -184,7 +191,7 @@ namespace nxgmci
 
             // Assign the values
             this.Success = true;
-            this.message = Message;
+            this.successMessage = Message;
             this.HasProduct = true;
             this.Error = null;
 
@@ -247,9 +254,13 @@ namespace nxgmci
 
             // Assign the values
             this.Success = false;
-            this.message = Message;
             this.HasProduct = false;
-            this.Error = Error;
+
+            // Nest the exception if possible
+            if (!string.IsNullOrWhiteSpace(Message))
+                this.Error = new Exception(Message, Error);
+            else
+                this.Error = Error;
 
             // Returning itself allows simple return statements
             return this;
