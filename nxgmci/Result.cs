@@ -139,7 +139,7 @@ namespace nxgmci
             this.TimeFinalized = DateTime.Now;
 
             // Attempt to format the message (if possible)
-            if (string.IsNullOrWhiteSpace(Message) && Arguments != null)
+            if (!string.IsNullOrWhiteSpace(Message) && Arguments != null)
             {
                 if (Arguments.Length > 0)
                 {
@@ -201,7 +201,7 @@ namespace nxgmci
         public Result<T> FailMessage(string Message, params object[] Arguments)
         {
             // Attempt to format the message (if possible)
-            if (string.IsNullOrWhiteSpace(Message) && Arguments != null)
+            if (!string.IsNullOrWhiteSpace(Message) && Arguments != null)
             {
                 if (Arguments.Length > 0)
                 {
