@@ -85,6 +85,10 @@ namespace nxgmci.Protocol.WADM
             // Input sanity check
             if (string.IsNullOrWhiteSpace(Input))
                 return result.FailMessage("The input may not be null, empty or white-space only!");
+
+            // Check, if the input perhaps signals an error
+            if (Input.ToLower().Trim() == "<pclinkinvalidcommand/>")
+                return result.FailMessage("The request failed with an invalid command message!");
             
             // Match the input against our root level Regex
             // This is used to verify that the reply is correct and it will strip away the root wrapper
