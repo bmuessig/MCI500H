@@ -340,7 +340,7 @@ namespace nxgmci.Network
             public string TextualResponse { get; private set; }
             public byte[] BinaryResponse { get; private set; }
             public bool Success { get; private set; }
-            public string Message {get; private set; }
+            public string Message { get; private set; }
 
             // This is the most basic constructor - the request failed with no more information
             internal QueryResponse(string Message = "")
