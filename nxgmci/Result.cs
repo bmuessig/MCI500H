@@ -54,10 +54,10 @@ namespace nxgmci
                     return successMessage;
                 else if (!Success && Error != null)
                 {
-                    // There is no need to output the type name for vanilla exceptions
-                    if (Error.GetType() != typeof(Exception) && !string.IsNullOrWhiteSpace(Error.Message))
+                    // If a message is available, return that one
+                    if (!string.IsNullOrWhiteSpace(Error.Message))
                         return Error.Message;
-                    else
+                    else // Otherwise, the type might be useful in some cases
                         return Error.GetType().ToString();
                 }
 
