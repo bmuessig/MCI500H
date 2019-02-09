@@ -35,34 +35,34 @@
                 return result.FailMessage("The response may not be null!");
 
             // Then, parse the response
-            Result<WADMProduct> parseResult = parser.Parse(Response, LazySyntax);
+            Result<WADMProduct> parserResult = parser.Parse(Response, LazySyntax);
 
             // Check if it failed
-            if (!parseResult.Success)
-                if (!string.IsNullOrWhiteSpace(parseResult.Message))
-                    return result.FailMessage("The parsing failed:\n{0}", parseResult.ToString());
+            if (!parserResult.Success)
+                if (!string.IsNullOrWhiteSpace(parserResult.Message))
+                    return result.Fail("The parsing failed!", parserResult.Error);
                 else
                     return result.FailMessage("The parsing failed for unknown reasons!");
 
             // Make sure the product is there
-            if (parseResult.Product == null)
+            if (parserResult.Product == null)
                 return result.FailMessage("The parsing product was null!");
 
             // And also make sure our state is correct
-            if (parseResult.Product.Elements == null)
+            if (parserResult.Product.Elements == null)
                 return result.FailMessage("The list of parsed elements is null!");
 
             // Now, make sure our mandatory arguments exist
-            if (!parseResult.Product.Elements.ContainsKey("size"))
+            if (!parserResult.Product.Elements.ContainsKey("size"))
                 return result.FailMessage("Could not locate parameter '{0}'!", "size");
-            if (!parseResult.Product.Elements.ContainsKey("totalsize"))
+            if (!parserResult.Product.Elements.ContainsKey("totalsize"))
                 return result.FailMessage("Could not locate parameter '{0}'!", "totalsize");
             
             // Then, try to parse the parameters
             ulong size, totalSize;
-            if (!ulong.TryParse(parseResult.Product.Elements["size"], out size))
+            if (!ulong.TryParse(parserResult.Product.Elements["size"], out size))
                 return result.FailMessage("Could not parse parameter '{0}' as ulong!", "size");
-            if (!ulong.TryParse(parseResult.Product.Elements["totalsize"], out totalSize))
+            if (!ulong.TryParse(parserResult.Product.Elements["totalsize"], out totalSize))
                 return result.FailMessage("Could not parse parameter '{0}' as ulong!", "totalsize");
 
             // Next, we will may have to perform some sanity checks
