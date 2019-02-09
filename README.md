@@ -1,12 +1,10 @@
 # MCI500H
-Interface library and GUI for managing the Philips MCI500H.
+Interface library and GUI for managing the Philips MCI500H hifi system.
 
 ## Intent
-A while back, I had picked up an MCI500H hi-fi system (which I tend to refer to as stereo),
-that allows storing content on the included harddisk.
+A while back, I had picked up a MCI500H hi-fi system (which I often tend to refer to as stereo), that allows storing content on the included harddisk.
 Usually you would transfer new tracks via an acient piece of Windows software that originated from Philips India division in 2007.
-Said software did never have many features to begin with (it also only uses a smaller set of the full WADM API) and stopped working.
-On later versions of Windows such as 8 (yes, the original software is Windows only...) the networking functionality ceased to work.
+Said software did never have many features to begin with - which is also obvious, it uses a smaller set of the full WADM API) and stopped working on later versions of Windows such as on Windows 8 (yes, the original software is Windows only...), as the networking functionality ceased to work properly and reliably.
 This rendered the nice hi-fi system basically unusable in this day and age, so I decided to go do something about it.
 Work on this started several months back, when I got the original application working inside an old virtual machine.
 I decided to go through every single function inside the GUI and capture the individual transactions with Wireshark.
