@@ -135,7 +135,7 @@ namespace ADM
             Result<RequestRawData.ContentDataSet> contentResp = RequestRawData.Parse(response.TextualResponse);
             if (!contentResp.Success)
             {
-                MessageBox.Show("An error occured: " + contentResp.ToString());
+                MessageBox.Show(contentResp.ToString());
                 return;
             }
 
@@ -150,7 +150,7 @@ namespace ADM
             Result<RequestArtistIndexTable.ContentDataSet> artistResp = RequestArtistIndexTable.Parse(response.TextualResponse);
             if (!artistResp.Success)
             {
-                MessageBox.Show("An error occured: " + artistResp.ToString());
+                MessageBox.Show(artistResp.ToString());
                 return;
             }
 
@@ -165,7 +165,7 @@ namespace ADM
             Result<RequestAlbumIndexTable.ContentDataSet> albumResp = RequestAlbumIndexTable.Parse(response.TextualResponse);
             if (!albumResp.Success)
             {
-                MessageBox.Show("An error occured: " + albumResp.ToString());
+                MessageBox.Show(albumResp.ToString());
                 return;
             }
 
@@ -180,7 +180,7 @@ namespace ADM
             Result<RequestUriMetaData.ResponseParameters> metaDataResp = RequestUriMetaData.Parse(response.TextualResponse);
             if (!metaDataResp.Success)
             {
-                MessageBox.Show("An error occured: " + metaDataResp.ToString());
+                MessageBox.Show(metaDataResp.ToString());
                 return;
             }
 
@@ -247,7 +247,7 @@ namespace ADM
             Result<QueryDiskSpace.ResponseParameters> parserResp = QueryDiskSpace.Parse(response.TextualResponse);
             if (!parserResp.Success)
             {
-                MessageBox.Show("An error occured: " + parserResp.ToString());
+                MessageBox.Show(parserResp.ToString());
                 return;
             }
 
@@ -329,7 +329,7 @@ namespace ADM
                     }
                 else
                 {
-                    MessageBox.Show("Can't make heads or tails about the entered string!");
+                    MessageBox.Show("Can't make heads or tails of the entered string!");
                     return;
                 }
 
@@ -391,7 +391,7 @@ namespace ADM
                     ((string)null).ToLower(); // Crash the program
             }
             else
-                MessageBox.Show(string.Format("The parsing FAILED after {0}ms!\n\n{1}", (int)result.TimeDelta.TotalMilliseconds, result.ToString()), "Error!",
+                MessageBox.Show(string.Format("The parsing FAILED after {0}ms!\n\n{1}", (int)result.TimeDelta.TotalMilliseconds, result.ToString(true, false, true)), "Error!",
                     MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
         }
 

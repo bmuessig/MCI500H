@@ -109,22 +109,114 @@ namespace nxgmci
         /// <returns>A string representation of the object.</returns>
         public override string ToString()
         {
+            return ToString(true, true, true);
+        }
+
+        /// <summary>
+        /// Returns a string representation of the object.
+        /// </summary>
+        /// <param name="PrintRecursive">If true, a recusive, line-by-line list of all errors is returned.</param>
+        /// <param name="PrintPrefix">
+        /// If true, in recursive mode, the presence of an error is indicated.
+        /// If true, in non-recursive mode or on success, an 'Error:' or 'Success:' prefix is prepended.
+        /// </param>
+        /// <param name="PrintLevels">If true, the relative level of the error is prepended.</param>
+        /// <returns>A string representation of the object.</returns>
+        public string ToString(bool PrintRecursive, bool PrintPrefix = true, bool PrintLevels = true)
+        {
             // Returns a custom success message
             if (Success && !string.IsNullOrWhiteSpace(successMessage))
-                return string.Format("Success: {0}", successMessage);
+                return string.Format(PrintPrefix ? "Success: {0}" : "{0}", successMessage);
+            else if (Success) // Success, without more info - the norm
+                return "Success";
             else if (!Success && Error != null)
             {
-                // There is no need to output the type name for vanilla exceptions
-                if (Error.GetType() != typeof(Exception) && !string.IsNullOrWhiteSpace(Error.Message))
-                    return string.Format("Error ({0}): {1}", Error.GetType().ToString(), Error.Message);
-                else if (!string.IsNullOrWhiteSpace(Error.Message))
-                    return string.Format("Error: {0}", Error.Message);
-                else
-                    return string.Format("Error: {0}", Error.GetType().ToString());
+                // Since stack recursion is undesireable, this stores the current inner exception
+                Exception error = Error;
+
+                // This is used to build the output string
+                StringBuilder outputBuilder = new StringBuilder();
+
+                // This stores whether a new line is required
+                bool requireNewline = false;
+
+                // If desired, print a recursive error description
+                if (PrintRecursive && PrintPrefix)
+                {
+                    outputBuilder.Append("One or multiple errors occured:");
+                    requireNewline = true;
+                }
+
+                // Loop through all levels of nesting and exit early, if only one level shall be returned
+                for (int level = 0; PrintRecursive || (level < 1 && !PrintRecursive); level++)
+                {
+                    // If a newline is required print it and reset the flag
+                    if (requireNewline)
+                    {
+                        outputBuilder.AppendLine();
+                        requireNewline = false;
+                    }
+
+                    // Generate the error line string
+                    string errorString = ErrorToString(error, !PrintRecursive && PrintPrefix);
+
+                    // Check, if the error string is empty
+                    if (!string.IsNullOrWhiteSpace(errorString))
+                    {
+                        // If desired, prepend the error level
+                        if (PrintLevels)
+                        {
+                            // Append the relative level
+                            for (int marker = 0; marker < level; marker++)
+                                outputBuilder.Append('>');
+
+                            // Append a space for readability
+                            outputBuilder.Append(' ');
+                        }
+
+                        // Append the string
+                        outputBuilder.Append(errorString);
+                        requireNewline = true;
+                    }
+
+                    // Assign the current to the inner exception
+                    error = error.InnerException;
+
+                    // Check if this is the final level
+                    if (error == null)
+                        break;
+                }
+
+                // Finally, return the result, if it is not empty
+                if (outputBuilder.Length > 0)
+                    return string.Copy(outputBuilder.ToString());
             }
+            else if (!Success) // An error occured and there is no more info
+                return "Error";
 
             // If no output message is available, return the default ToString()
             return base.ToString();
+        }
+
+        /// <summary>
+        /// Returns the matching message string to describe an exception.
+        /// </summary>
+        /// <param name="Error">The exception to print.</param>
+        /// <param name="UseErrorPrefix">Indicates whether to prefix the output with 'Error:'.</param>
+        /// <returns>A string that describes the exception.</returns>
+        private string ErrorToString(Exception Error, bool UseErrorPrefix)
+        {
+            // Sanity checking
+            if (Error == null)
+                return string.Empty;
+
+            // There is no need to output the type name for vanilla exceptions
+            if (Error.GetType() != typeof(Exception) && !string.IsNullOrWhiteSpace(Error.Message)) // There is a type and a message
+                return string.Format(UseErrorPrefix ? "Error ({0}): {1}" : "{0}: {1}", Error.GetType().ToString(), Error.Message);
+            else if (!string.IsNullOrWhiteSpace(Error.Message)) // There is a message and this is the default Exception type
+                return string.Format(UseErrorPrefix ? "Error: {0}" : "{0}", Error.Message);
+            else // There is only a type
+                return string.Format(UseErrorPrefix ? "Error: {0}" : "{0}", Error.GetType().ToString());
         }
 
         /// <summary>
