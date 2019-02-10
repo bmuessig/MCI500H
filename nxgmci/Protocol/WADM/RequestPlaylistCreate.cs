@@ -11,7 +11,7 @@ namespace nxgmci.Protocol.WADM
     public static class RequestPlaylistCreate
     {
         // RequestPlaylistCreate Parser
-        private readonly static WADMParser parser = new WADMParser("requestplaylistcreate", "requestparameters", false);
+        private readonly static WADMParser parser = new WADMParser("requestplaylistcreate", "responseparameters", false);
 
         /// <summary>
         /// Assembles a RequestPlaylistCreate request to be passed to the stereo.
@@ -38,7 +38,7 @@ namespace nxgmci.Protocol.WADM
         }
 
         /// <summary>
-        /// Parses RequestPlaylistCentre's ResponseParameters and returns the result.
+        /// Parses RequestPlaylistCreate's ResponseParameters and returns the result.
         /// </summary>
         /// <param name="Response">The response received from the stereo.</param>
         /// <param name="ValidateInput">Indicates whether to validate the data values received.</param>
