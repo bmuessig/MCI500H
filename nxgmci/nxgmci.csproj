@@ -66,6 +66,7 @@
     <Compile Include="Protocol\NVRAM\MCI500NVRAM.cs" />
     <Compile Include="Protocol\NVRAM\NVRAM.cs" />
     <Compile Include="Protocol\WADM\RequestPlaylistCreate.cs" />
+    <Compile Include="Protocol\WADM\RequestSubscribe.cs" />
     <Compile Include="Protocol\WADM\SvcDbDump.cs" />
     <Compile Include="Protocol\WADM\WADMProduct.cs" />
     <Compile Include="Protocol\WADM\RequestPlayableData.cs" />
