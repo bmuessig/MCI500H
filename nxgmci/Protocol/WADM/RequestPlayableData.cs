@@ -40,10 +40,11 @@ namespace nxgmci.Protocol.WADM
         /// Parses a ContentDataSet response.
         /// </summary>
         /// <param name="Response">Text response input from the stereo's server.</param>
+        /// <param name="NamespaceDict">Optional dictionary of namespaces used to categorize and verify the parsing result.</param>
         /// <param name="ValidateInput">Indicates whether to verify the contents received after parsing.</param>
         /// <param name="LazySyntax">Indicates whether minor parsing errors are ignored.</param>
         /// <returns></returns>
-        public static Result<ContentDataSet> Parse(string Response, bool ValidateInput = true, bool LazySyntax = false)
+        public static Result<ContentDataSet> Parse(string Response, Dictionary<ContainerType, uint> NamespaceDict = null, bool ValidateInput = true, bool LazySyntax = false)
         {
             // Allocate the result object
             Result<ContentDataSet> result = new Result<ContentDataSet>();
@@ -51,6 +52,10 @@ namespace nxgmci.Protocol.WADM
             // Make sure the response is not null
             if (string.IsNullOrWhiteSpace(Response))
                 return result.FailMessage("The response may not be null!");
+
+            // Check, if the namespace dictionary is null and initialize it if true
+            if (NamespaceDict == null)
+                NamespaceDict = new Dictionary<ContainerType, uint>();
 
             // Then, parse the response
             Result<WADMProduct> parserResult = parser.Parse(Response, LazySyntax);
@@ -104,6 +109,11 @@ namespace nxgmci.Protocol.WADM
                     return result.FailMessage("Number of list items != numelem");
             }
 
+
+
+
+            // Rewrite..... ///////
+
             // Allocate a list for the items
             List<ContentData> items = new List<ContentData>();
 
@@ -117,6 +127,9 @@ namespace nxgmci.Protocol.WADM
                 // Make sure that all our elements are non-null
                 if (listItem == null)
                     continue;
+                
+                // First, attempt to parse the required fields
+
 
                 /*
                 <contentdataset>
@@ -262,6 +275,99 @@ namespace nxgmci.Protocol.WADM
             return result.Succeed(new ContentDataSet(items, totNumElem, fromIndex, numElem, updateID));
         }
 
+        /// <summary>
+        /// Parses the root node for it's container node IDs. This is an essential function to fetch a complete list of tracks.
+        /// </summary>
+        /// <param name="RootDataSet">Root node input, as returned by the parser.</param>
+        /// <param name="RejectIncomplete">If set to true, an error will also be returned if some, but not all containers could be found.</param>
+        /// <param name="SkipInvalidChilds">If set to true, invalid child nodes are skipped and the process is not aborted.</param>
+        /// <returns>
+        /// Returns a Result yielding a dictionary with all node ID namespaces and their names.
+        /// If an error occured, the Result will reflect the error.
+        /// </returns>
+        public static Result<Dictionary<ContainerType, uint>> ParseRoot(ContentDataSet RootDataSet, bool RejectIncomplete = true, bool SkipInvalidChilds = false)
+        {
+            // TODO: Potentionally make a wrapper for this to do the XML parsing as well
+
+            // Allocate the result object
+            Result<Dictionary<ContainerType, uint>> result = new Result<Dictionary<ContainerType, uint>>();
+
+            // Input sanity check
+            if (RootDataSet == null)
+                throw new ArgumentNullException("RootDataSet"); // TODO: Potentionally replace this with an action result
+
+            // The node is simply invalid - no exception needs to be thrown here
+            if (RootDataSet.InvalidNodeID > 0 || RootDataSet.NumElem == 0 || RootDataSet.TotNumElem == 0 || RootDataSet.ContentData == null)
+                return result.FailMessage("The node's parameters are invalid!");
+
+            // In this case, the data set is also invalid, since there may not be zero elements inside the root node
+            if (RootDataSet.ContentData.Count == 0)
+                return result.FailMessage("The node does not contain any child elements!");
+
+            // Allocate the result dictionary
+            Dictionary<ContainerType, uint> resultDict = new Dictionary<ContainerType, uint>();
+            // Also run a loop-counter
+            int counter = 0;
+
+            // Loop through the list of returned items
+            foreach (ContentData data in RootDataSet.ContentData)
+            {
+                // Check, whether the node is somehow zero
+                if (data == null)
+                {
+                    // Increment the counter
+                    counter++;
+
+                    // Check if we can skip the invalid entry or if we have to return an error
+                    if (SkipInvalidChilds)
+                        continue;
+
+                    // If we might not skip the error, we return an error
+                    return result.FailMessage("The child node {0} is null!", counter);
+                }
+
+                // If any of our elements has a parent ID that is non-zero, there must be a problem
+                if (data.ParentID != 0)
+                    return result.FailMessage("The ID of the parent node is non-zero!");
+
+                // Validate the child node's contents
+                if (data.NodeID == 0 || data.ContainerType <= ContainerType.None || data.ContainerType > ContainerType.AllTracks)
+                {
+                    // Increment the counter
+                    counter++;
+
+                    // Check if we can skip the invalid entry or if we have to return an error
+                    if (SkipInvalidChilds)
+                        continue;
+
+                    // If we might not skip the error, we return an error
+                    return result.FailMessage("The parameters of child node {0} are invalid!", counter);
+                }
+
+                // Now, check if the item already exists and fail if true
+                if (resultDict.ContainsKey(data.ContainerType))
+                    return null;
+
+                // If everything appears to be fine, add the element
+                resultDict.Add(data.ContainerType, data.NodeID);
+
+                // Increment the counter
+                counter++;
+            }
+
+            // Check, if we don't require all containers to be present and in that case, return the dictionary early
+            if (!RejectIncomplete && resultDict.Count > 0)
+                return result.Succeed(resultDict);
+
+            // Finally, if required, check if all items are present
+            if (!resultDict.ContainsKey(ContainerType.Albums) || !resultDict.ContainsKey(ContainerType.AllTracks) || !resultDict.ContainsKey(ContainerType.Artists)
+                || !resultDict.ContainsKey(ContainerType.Genres) || !resultDict.ContainsKey(ContainerType.Playlists))
+                return result.FailMessage("Some required child nodes could not be found!");
+
+            // On success, return the resulting and complete dictionary
+            return result.Succeed(resultDict);
+        }
+
         // ContentDataSet-Structure:
         // elements:            Returned elements
         // totnumelem	(uint): Total number of elements that could potentionally be queried
@@ -361,8 +467,99 @@ namespace nxgmci.Protocol.WADM
         }
 
         /// <summary>
+        /// Indicates the programatically identified and verified type of the current container.
+        /// </summary>
+        public enum CurrentLevelType
+        {
+            /// <summary>
+            /// Global root node.
+            /// Path: Root (Branch)
+            /// Prefix: 0000 0000
+            /// </summary>
+            Root,
+
+            /// <summary>
+            /// Top playlists node.
+            /// Path: Root > Playlists (Branch)
+            /// Prefix: 0001 1011
+            /// </summary>
+            Playlists,
+
+            /// <summary>
+            /// Top genres node.
+            /// Path: Root > Genres (Branch)
+            /// Prefix: 0001 0010
+            /// </summary>
+            Genres,
+
+            /// <summary>
+            /// Top all tracks node.
+            /// Path: Root > All tracks (Branch)
+            /// Prefix: 0001 0111
+            /// </summary>
+            AllTracks,
+            
+            /// <summary>
+            /// Single track sub-node of all tracks.
+            /// Path: Root > All tracks > Track (Playable)
+            /// Prefix: 0001 1000
+            /// </summary>
+            AllTracks_Track,
+
+            /// <summary>
+            /// Top albums node.
+            /// Path: Root > Albums (Branch)
+            /// Prefix: 0000 0100
+            /// </summary>
+            Albums,
+
+            /// <summary>
+            /// Single album sub-node of albums.
+            /// Path: Root > Albums > Album (Branch)
+            /// Prefix: 0000 0101
+            /// </summary>
+            Albums_Album,
+
+            /// <summary>
+            /// Single track sub-node of single album node.
+            /// Path: Root > Albums > Album > Track (Playable)
+            /// Prefix: 0000 0110
+            /// </summary>
+            Albums_Album_Track,
+
+            /// <summary>
+            /// Top artists node.
+            /// Path: Root > Artists (Branch)
+            /// Prefix: 0000 1010
+            /// </summary>
+            Artists,
+
+            /// <summary>
+            /// Single artist sub-node of artists.
+            /// Path: Root > Artists > Artist (Branch)
+            /// Prefix: 0000 1011
+            /// </summary>
+            Artists_Artist,
+
+            /// <summary>
+            /// Single album sub node of single artist sub-node.
+            /// Path: Root > Artists > Artist > Album (Branch)
+            /// Prefix: 0000 1100
+            /// </summary>
+            Artists_Artist_Album,
+
+            /// <summary>
+            /// Single track sub node of single album sub-node.
+            /// Path: Root > Artists > Artist > Album > Track (Playable)
+            /// Prefix: 0000 1101
+            /// </summary>
+            Artists_Artist_Album_Track
+        }
+
+        /// <summary>
         /// Indicates the type and function of a container node.
         /// This enum matches the values returned in the containertype field.
+        /// 
         /// </summary>
         public enum ContainerType : sbyte
         {
@@ -372,7 +569,17 @@ namespace nxgmci.Protocol.WADM
             None = -1,
 
             /// <summary>
+            /// Indicates that a minimum number of fields is available.
+            /// This is set automatically once the minimum common denominator of fields could be parsed.
+            /// Note, that if the node is playable, the icontype is not available.
+            /// Available fields:
+            /// </summary>
+            [Obsolete]
+            Basic = -2,
+
+            /// <summary>
             /// Indicates the Playlist node.
+            /// Available fields:
             /// Example node format: 0001 1011 XXXX XXXX XXXX XXXX XXXX XXXX
             /// </summary>
             Playlists = 0,
@@ -440,116 +647,46 @@ namespace nxgmci.Protocol.WADM
             AllTracks = 4
         }
 
-        /// <summary>
-        /// Parses the root node for it's container node IDs. This is an essential function to fetch a complete list of tracks.
-        /// </summary>
-        /// <param name="RootDataSet">Root node input, as returned by the parser.</param>
-        /// <param name="RejectIncomplete">If set to true, an error will also be returned if some, but not all containers could be found.</param>
-        /// <param name="SkipInvalidChilds">If set to true, invalid child nodes are skipped and the process is not aborted.</param>
-        /// <returns>
-        /// Returns a Result yielding a dictionary with all node ID namespaces and their names.
-        /// If an error occured, the Result will reflect the error.
-        /// </returns>
-        public static Result<Dictionary<ContainerType, uint>> ParseRoot(ContentDataSet RootDataSet, bool RejectIncomplete = true, bool SkipInvalidChilds = false)
-        {
-            // Allocate the result object
-            Result<Dictionary<ContainerType, uint>> result = new Result<Dictionary<ContainerType, uint>>();
-
-            // Input sanity check
-            if (RootDataSet == null)
-                throw new ArgumentNullException("RootDataSet"); // TODO: Potentionally replace this with an action result
-
-            // The node is simply invalid - no exception needs to be thrown here
-            if (RootDataSet.InvalidNodeID > 0 || RootDataSet.NumElem == 0 || RootDataSet.TotNumElem == 0 || RootDataSet.ContentData == null)
-                return result.FailMessage("The node's parameters are invalid!");
-
-            // In this case, the data set is also invalid, since there may not be zero elements inside the root node
-            if (RootDataSet.ContentData.Count == 0)
-                return result.FailMessage("The node does not contain any child elements!");
-
-            // Allocate the result dictionary
-            Dictionary<ContainerType, uint> resultDict = new Dictionary<ContainerType, uint>();
-            // Also run a loop-counter
-            int counter = 0;
-
-            // Loop through the list of returned items
-            foreach (ContentData data in RootDataSet.ContentData)
-            {
-                // Check, whether the node is somehow zero
-                if (data == null)
-                {
-                    // Increment the counter
-                    counter++;
-
-                    // Check if we can skip the invalid entry or if we have to return an error
-                    if (SkipInvalidChilds)
-                        continue;
-
-                    // If we might not skip the error, we return an error
-                    return result.FailMessage("The child node {0} is null!", counter);
-                }
-
-                // If any of our elements has a parent ID that is non-zero, there must be a problem
-                if (data.ParentID != 0)
-                    return result.FailMessage("The ID of the parent node is non-zero!");
-
-                // Validate the child node's contents
-                if (data.NodeID == 0 || data.ContainerType <= ContainerType.None || data.ContainerType > ContainerType.AllTracks)
-                {
-                    // Increment the counter
-                    counter++;
-
-                    // Check if we can skip the invalid entry or if we have to return an error
-                    if (SkipInvalidChilds)
-                        continue;
-                    
-                    // If we might not skip the error, we return an error
-                    return result.FailMessage("The parameters of child node {0} are invalid!", counter);
-                }
-
-                // Now, check if the item already exists and fail if true
-                if (resultDict.ContainsKey(data.ContainerType))
-                    return null;
-
-                // If everything appears to be fine, add the element
-                resultDict.Add(data.ContainerType, data.NodeID);
-
-                // Increment the counter
-                counter++;
-            }
-
-            // Check, if we don't require all containers to be present and in that case, return the dictionary early
-            if (!RejectIncomplete && resultDict.Count > 0)
-                return result.Succeed(resultDict);
-
-            // Finally, if required, check if all items are present
-            if (!resultDict.ContainsKey(ContainerType.Albums) || !resultDict.ContainsKey(ContainerType.AllTracks) || !resultDict.ContainsKey(ContainerType.Artists)
-                || !resultDict.ContainsKey(ContainerType.Genres) || !resultDict.ContainsKey(ContainerType.Playlists))
-                return result.FailMessage("Some required child nodes could not be found!");
-
-            // On success, return the resulting and complete dictionary
-            return result.Succeed(resultDict);
-        }
-
         public class ContentData
         {
-                /*"name"
-                "title"
-                "nodeid"
-                "parentid"
-                "url"
-                "album"
-                "trackno"
-                "year"
-                "artist"
-                "genre"
-                "dmmcookie"
+            /// <summary>
+            /// This might later be used to indicate that an entry had been completely parsed and verfied.
+            /// </summary>
+            bool IsComplete;
 
-                "containertype"
-                "playable"
-                "albumarturl"
-                "albumarttnurl"
-                "likemusic"*/
+            /// <summary>
+            /// This will store whether cover art is present.
+            /// </summary>
+            bool HasCoverArt;
+
+            /* COMMON:
+                name
+                nodeid
+                parentid
+                (icontype - all branch, not playable track)
+                branch/playable
+             */
+
+            /* ALL:
+                name
+                title
+                nodeid
+                containertype
+                icontype
+                nooftracks
+                parentid
+                branch/playable
+                url
+                album
+                albumarturl
+                albumarttnurl
+                trackno
+                year
+                likemusic
+                artist
+                genre
+                dmmcookie
+             */
 
             /// <summary>
             /// The name or title of the node. May be equal to the title for tracks.

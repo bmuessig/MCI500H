@@ -36,7 +36,7 @@
                 case "parametererror":
                     return StatusCode.ParameterError;
 
-                case "updateidmismatch":
+                case "updateidmismatch": // CAUTON, TODO, BUG: These are actually "reasons", returned in a different field...
                     return StatusCode.UpdateIDMismatch;
 
                 case "invalidindex":

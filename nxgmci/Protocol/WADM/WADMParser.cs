@@ -15,23 +15,53 @@ namespace nxgmci.Protocol.WADM
         public readonly string RootName;
 
         /// <summary>
-        /// The name of the second wrapper node or the list wrapper node.
+        /// The name of the second wrapper node.
         /// </summary>
-        public readonly string WrapOrListName;
+        public readonly string WrapName;
+
+        /// <summary>
+        /// The name of the list items.
+        /// </summary>
+        public readonly string ListItemName;
+
+        /// <summary>
+        /// The name of the list wrapper node.
+        /// </summary>
+        public readonly string ListWrapName;
 
         /// <summary>
         /// Indicates whether the input is parsed as a list.
         /// </summary>
-        public readonly bool IsList;
+        public readonly bool HasList;
 
-        private const string ROOT_WRAP_REGEX = @"^\s*<{0}>\s*<{1}>\s*([\s\S]*)\s*<\/{1}>\s*<\/{0}>\s*$";
-        private const string ROOT_LIST_REGEX = @"^\s*<{0}>\s*([\s\S]*)\s*<\/{0}>\s*$";
-        private const string LIST_REGEX = @"<\s*{0}\s*>\s*([\s\S]*?)\s*<\s*\/\s*{0}\s*>";
-        private const string ELEM_REGEX = @"<\s*([\s\S]*?)\s*(?:\/\s*>|>([\s\S]*?)<\s*\/\1\s*>)";
+        /// <summary>
+        /// Indicates whether the input is parsed with a wrapper.
+        /// </summary>
+        public readonly bool HasWrap;
 
-        private readonly Regex rootWrapOrListRegex;
-        private readonly Regex listRegex;
-        private readonly Regex elementRegex;
+        /// <summary>
+        /// Indicates, whether the list is wrapped in another node.
+        /// </summary>
+        public readonly bool HasWrappedList;
+
+        private const string WRAP_REGEX = @"^\s*<{0}>\s*<{1}>\s*([\s\S]*)\s*<\/{1}>\s*<\/{0}>\s*$";
+        private const string LIST_REGEX = @"^\s*<{0}>\s*([\s\S]*)\s*<\/{0}>\s*$";
+        private const string LIST_WRAP_REGEX = @"^\s*<{0}>\s*<{1}>\s*([\s\S]*)\s*<{2}>\s*([\s\S]*)\s*<\/{2}>\s*([\s\S]*)\s*<\/{1}>\s*<\/{0}>\s*$";
+        private const string LIST_ELEM_REGEX = @"<\s*{0}\s*>\s*([\s\S]*?)\s*<\s*\/\s*{0}\s*>";
+        private const string ROOT_ELEM_REGEX = @"<\s*([\s\S]*?)\s*(?:\/\s*>|>([\s\S]*?)<\s*\/\1\s*>)";
+
+        // The precompiled Regexes
+        private readonly Regex mainRegex;
+        private readonly Regex listElementRegex;
+        private readonly Regex nodeElementRegex;
+
+        // TODO!
+        // Redo the parser regexes to:
+        // 1) Allow either a wrapper or a list or both
+        // 2) If both, a wrapper and a list are used, parse the wrapper first, as usual, then do the list, then the inner items
+        // 3) If a list is parsed, always concatenate the input before and after the list to get the non-list root items (change regex to do this!)
+        // 4) Fix all the errors
+        // 5) Test the new parser
 
         /// <summary>
         /// Default public constructor.
@@ -49,26 +79,71 @@ namespace nxgmci.Protocol.WADM
 
             // Initialize the state
             this.RootName = RootName.Trim();
-            this.WrapOrListName = WrapOrListName.Trim();
-            this.IsList = IsList;
+            if (this.HasList = IsList)
+                this.ListItemName = WrapOrListName.Trim();
+            else
+                this.WrapName = WrapOrListName.Trim();
+            this.HasWrap = !IsList;
+            this.HasWrappedList = false;
 
             // Initialize the Regexes
             // First, the element regex used to match each XML value element
-            elementRegex = new Regex(ELEM_REGEX, RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            nodeElementRegex = new Regex(ROOT_ELEM_REGEX, RegexOptions.Compiled | RegexOptions.IgnoreCase);
             
             // Then, initialize either Element-wrap or the List Regexes
             if (IsList)
             {
                 // This Regex matches only the root element of our list
-                rootWrapOrListRegex = new Regex(string.Format(ROOT_LIST_REGEX, this.RootName),
+                mainRegex = new Regex(string.Format(LIST_REGEX, this.RootName),
                     RegexOptions.Compiled | RegexOptions.IgnoreCase);
                 // This Regex matches each list item
-                listRegex = new Regex(string.Format(LIST_REGEX, this.WrapOrListName),
+                listElementRegex = new Regex(string.Format(LIST_ELEM_REGEX, this.ListItemName),
                     RegexOptions.Compiled | RegexOptions.IgnoreCase);
             }
             else // This Regex matches the root and wrap of our elements
-                rootWrapOrListRegex = new Regex(string.Format(ROOT_WRAP_REGEX, this.RootName, this.WrapOrListName),
+                mainRegex = new Regex(string.Format(WRAP_REGEX, this.RootName, this.WrapName),
                     RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        }
+
+        /// <summary>
+        /// Public constructor for double-wrapped lists.
+        /// </summary>
+        /// <param name="RootName">The name of the root wrapper node.</param>
+        /// <param name="WrapName">The name of the second wrapper node.</param>
+        /// <param name="ListWrapName">The name of the list wrapper node.</param>
+        /// <param name="ListItemName">The name of the list items.</param>
+        public WADMParser(string RootName, string WrapName, string ListWrapName, string ListItemName)
+        {
+            // Sanity check input
+            if (string.IsNullOrWhiteSpace(RootName))
+                throw new ArgumentNullException("RootName");
+            if (string.IsNullOrWhiteSpace(WrapName))
+                throw new ArgumentNullException("WrapName");
+            if (string.IsNullOrWhiteSpace(ListWrapName))
+                throw new ArgumentNullException("ListWrapName");
+            if (string.IsNullOrWhiteSpace(ListItemName))
+                throw new ArgumentNullException("ListItemName");
+
+            // Initialize the state
+            this.RootName = RootName.Trim();
+            this.WrapName = WrapName.Trim();
+            this.ListWrapName = ListWrapName.Trim();
+            this.ListItemName = ListItemName.Trim();
+            this.HasList = true;
+            this.HasWrap = true;
+            this.HasWrappedList = true;
+
+            // Initialize the Regexes
+            // First, the element regex used to match each XML value element
+            nodeElementRegex = new Regex(ROOT_ELEM_REGEX, RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            
+            // Then, initialize the list element regex
+            listElementRegex = new Regex(string.Format(LIST_ELEM_REGEX, this.ListItemName),
+                    RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+            // Finally, initialize the wrapped list regex
+            mainRegex = new Regex(string.Format(LIST_WRAP_REGEX, RootName, WrapName, ListWrapName),
+                RegexOptions.Compiled | RegexOptions.IgnoreCase);
         }
 
         /// <summary>
@@ -92,32 +167,67 @@ namespace nxgmci.Protocol.WADM
             
             // Match the input against our root level Regex
             // This is used to verify that the reply is correct and it will strip away the root wrapper
-            Match rootMatch = rootWrapOrListRegex.Match(Input);
-
-            // Make sure we've got success and two match groups
-            if (!rootMatch.Success)
-                return result.FailMessage("The root structure did not match!");
-            if (rootMatch.Groups.Count != 2)
-                return result.FailMessage("The root group count was incorrect!");
-            if (!rootMatch.Groups[1].Success)
-                return result.FailMessage("The root content group did not succeed!");
+            Match rootMatch = mainRegex.Match(Input);
 
             // Allocate space for our product
-            WADMProduct product = new WADMProduct(RootName, WrapOrListName, IsList);
+            WADMProduct product;
 
-            // Now, match the inner elements
-            string innerText = rootMatch.Groups[1].Value;
+            // And allocate the inner text variables
+            string innerNodes = string.Empty, innerList = string.Empty;
+
+            // Make sure we've got success and the correct number of matching groups
+            if (!rootMatch.Success)
+                return result.FailMessage("The root structure did not match!");
+            if (HasList && HasWrap && HasWrappedList)
+            {
+                if (rootMatch.Groups.Count != 4)
+                    return result.FailMessage("The root group count was incorrect (should be 4)!");
+                if (!rootMatch.Groups[1].Success || !rootMatch.Groups[2].Success || !rootMatch.Groups[3].Success)
+                    return result.FailMessage("One of the root content groups did not succeed!");
+                // Create the product
+                product = new WADMProduct(RootName, WrapName, ListWrapName, ListItemName);
+
+                // Concatenate the upper and lower half of the root node elements
+                innerNodes = rootMatch.Groups[1].Value.Trim() + rootMatch.Groups[3].Value.Trim();
+                innerList = rootMatch.Groups[2].Value.Trim();
+            }
+            else
+            {
+                if (rootMatch.Groups.Count != 2)
+                    return result.FailMessage("The root group count was incorrect (should be 2)!");
+                if (!rootMatch.Groups[1].Success)
+                    return result.FailMessage("The root content group did not succeed!");
+                if (HasList && !HasWrap && !HasWrappedList)
+                {
+                    // Create the product
+                    product = new WADMProduct(RootName, ListItemName, HasList);
+                    
+                    // Store the inner list data
+                    innerList = rootMatch.Groups[1].Value.Trim();
+                }
+                else if (!HasList && HasWrap && !HasWrappedList)
+                {
+                    // Create the product
+                    product = new WADMProduct(RootName, WrapName, HasList);
+
+                    // Store the inner element data
+                    innerNodes = rootMatch.Groups[1].Value.Trim();
+                }
+                else
+                    return result.FailMessage("The type flags were invalid (not list, not wrap)!");
+            }
+
             // Allocate a string for potentional parser error handling
             string parserError;
 
             // Inner text should later contain only non-list, elements
-            if (IsList)
+            if (HasList)
             {
                 // Allocate space for our list
                 List<Dictionary<string, string>> list = new List<Dictionary<string, string>>();
 
                 // Match all list elements
-                MatchCollection listMatches = listRegex.Matches(innerText);
+                MatchCollection listMatches = listElementRegex.Matches(innerList);
 
                 // Loop through the list elements
                 foreach (Match listMatch in listMatches)
@@ -152,15 +262,16 @@ namespace nxgmci.Protocol.WADM
                     list.Add(innerElements);
                 }
 
-                // Now, we remove the successful elements from further processing
-                innerText = listRegex.Replace(innerText, string.Empty);
+                // Now, we remove the successful elements from further processing (if not already done)
+                if (HasList && !HasWrap && !HasWrappedList)
+                    innerNodes = listElementRegex.Replace(innerList, string.Empty);
 
                 // And finally, we will add the list to the result
                 product.List = list;
             }
 
             // Parse the root level key-value elements
-            Dictionary<string, string> elements = ParseElements(innerText, out parserError, LooseSyntax);
+            Dictionary<string, string> elements = ParseElements(innerNodes, out parserError, LooseSyntax);
             if (elements == null)
                 return result.FailMessage(parserError);
 
@@ -191,7 +302,7 @@ namespace nxgmci.Protocol.WADM
             Dictionary<string, string> elements = new Dictionary<string, string>();
 
             // Match our elements
-            MatchCollection matches = elementRegex.Matches(Input);
+            MatchCollection matches = nodeElementRegex.Matches(Input);
             if (matches == null)
             {
                 Error = "The match-collection was null!";

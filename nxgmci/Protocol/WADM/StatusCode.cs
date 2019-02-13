@@ -1,8 +1,11 @@
-﻿namespace nxgmci.Protocol.WADM
+﻿using System;
+
+namespace nxgmci.Protocol.WADM
 {
     /// <summary>
     /// This enum provides a list of status codes returned by the WADM API.
     /// </summary>
+    [Obsolete("Replaced by RequestStatus")]
     public enum StatusCode
     {
         /// <summary>

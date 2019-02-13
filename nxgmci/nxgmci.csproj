@@ -65,7 +65,11 @@
     <Compile Include="Protocol\Delivery\DeliveryClient.cs" />
     <Compile Include="Protocol\NVRAM\MCI500NVRAM.cs" />
     <Compile Include="Protocol\NVRAM\NVRAM.cs" />
+    <Compile Include="Protocol\WADM\GetUpdateID.cs" />
+    <Compile Include="Protocol\WADM\QueryDatabase.cs" />
     <Compile Include="Protocol\WADM\RequestPlaylistCreate.cs" />
+    <Compile Include="Protocol\WADM\RequestPlaylistRename.cs" />
+    <Compile Include="Protocol\WADM\RequestStatus.cs" />
     <Compile Include="Protocol\WADM\RequestSubscribe.cs" />
     <Compile Include="Protocol\WADM\SvcDbDump.cs" />
     <Compile Include="Protocol\WADM\WADMProduct.cs" />
