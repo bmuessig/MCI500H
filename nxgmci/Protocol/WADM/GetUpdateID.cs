@@ -1,7 +1,8 @@
 ﻿namespace nxgmci.Protocol.WADM
 {
     /// <summary>
-    /// This request returns the current update ID.
+    /// This request returns the current update ID. This update ID has to be included into all destructive requests.
+    /// The update ID automatically increments by one after it has been used.
     /// </summary>
     public static class GetUpdateID
     {

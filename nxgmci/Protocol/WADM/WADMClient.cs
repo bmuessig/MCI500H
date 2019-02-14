@@ -69,6 +69,12 @@ namespace nxgmci.Protocol.WADM
             ipEndpoint = new IPEndPoint(new IPAddress(Endpoint.IPAddress), (int)Endpoint.PortWADM);
         }
 
+        /// <summary>
+        /// This request returns the current update ID. This update ID has to be included into all destructive requests.
+        /// The update ID automatically increments by one after it has been used.
+        /// </summary>
+        /// <param name="LazySyntax">Indicates whether to ignore minor syntax errors.</param>
+        /// <returns>A result object that contains a serialized version of the response data.</returns>
         public Result<GetUpdateID.ResponseParameters> GetUpdateID(bool LazySyntax = false)
         {
             // Create the result object
@@ -130,6 +136,11 @@ namespace nxgmci.Protocol.WADM
             return result.FailMessage("The parsing failed due to an unknown reason!");
         }
 
+        /// <summary>
+        /// This request returns some library statistics along the current update ID.
+        /// </summary>
+        /// <param name="LazySyntax">Indicates whether to ignore minor syntax errors.</param>
+        /// <returns>A result object that contains a serialized version of the response data.</returns>
         public Result<QueryDatabase.ResponseParameters> QueryDatabase(bool LazySyntax = false)
         {
             // Create the result object
@@ -191,7 +202,14 @@ namespace nxgmci.Protocol.WADM
             return result.FailMessage("The parsing failed due to an unknown reason!");
         }
 
-        public Result<QueryDiskSpace.ResponseParameters> QueryDiskSpace(bool LazySyntax = false)
+        /// <summary>
+        /// This request returns both the free and used harddisk space.
+        /// This information can be used to determine whether new files could be uploaded or not.
+        /// </summary>
+        /// <param name="ValidateInput">Indicates whether to validate the data values received.</param>
+        /// <param name="LazySyntax">Indicates whether to ignore minor syntax errors.</param>
+        /// <returns>A result object that contains a serialized version of the response data.</returns>
+        public Result<QueryDiskSpace.ResponseParameters> QueryDiskSpace(bool ValidateInput = true, bool LazySyntax = false)
         {
             // Create the result object
             Result<QueryDiskSpace.ResponseParameters> result = new Result<QueryDiskSpace.ResponseParameters>();
@@ -231,7 +249,7 @@ namespace nxgmci.Protocol.WADM
                     return result;
 
                 // Parse the response
-                parseResult = WADM.QueryDiskSpace.Parse(shadowResponse, LazySyntax);
+                parseResult = WADM.QueryDiskSpace.Parse(shadowResponse, ValidateInput, LazySyntax);
 
                 // Sanity check the result
                 if (parseResult == null)
