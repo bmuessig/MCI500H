@@ -10,6 +10,11 @@ namespace nxgmci.Protocol.WADM
     public class WADMParser
     {
         /// <summary>
+        /// The maximum length of an XML field.
+        /// </summary>
+        public const uint MaximumFieldLength = 128;
+
+        /// <summary>
         /// The name of the root wrapper node.
         /// </summary>
         public readonly string RootName;
@@ -415,6 +420,38 @@ namespace nxgmci.Protocol.WADM
 
             // Return the result
             return Value;
+        }
+
+        /// <summary>
+        /// This function trims a value to the maximum supported length and puts an ellipsis at the end.
+        /// XML encoded string will be trimmed encoding aware (i.e. no XML entities are butchered).
+        /// </summary>
+        /// <param name="Value">The value to trim.</param>
+        /// <param name="IsEncoded">Set to true, if the value is XML encoded.</param>
+        /// <returns>The trimmed value.</returns>
+        public static string TrimValue(string Value, bool IsEncoded)
+        {
+            // Sanity check
+            if (Value == null)
+                return null;
+
+            // Trim any whitespace
+            Value = Value.Trim();
+
+            // Check, if the maximum length is exceeded
+            if (Value.Length <= MaximumFieldLength)
+                return Value;
+
+            // If the value is encoded, decode it before shortening
+            if (IsEncoded)
+                Value = DecodeValue(Value);
+
+            // Trim the string
+            Value = Value.Substring(0, MaximumFieldLength > 3 ? (int)MaximumFieldLength - 3 : 0);
+            Value += "...";
+
+            // Return the result
+            return (IsEncoded ? EncodeValue(Value) : Value);
         }
     }
 }

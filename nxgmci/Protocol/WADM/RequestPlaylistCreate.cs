@@ -34,7 +34,7 @@ namespace nxgmci.Protocol.WADM
                 "<name>{1}</name>" +
                 "</requestparameters></requestplaylistcreate>",
                 UpdateID,
-                WADMParser.EncodeValue(Name));
+                WADMParser.TrimValue(WADMParser.EncodeValue(Name), true));
         }
 
         /// <summary>

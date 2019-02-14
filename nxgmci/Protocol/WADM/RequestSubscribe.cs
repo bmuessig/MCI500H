@@ -32,7 +32,7 @@ namespace nxgmci.Protocol.WADM
                 "<deliveryport>{1}</deliveryport>" +
                 "<timeout>{2}</timeout>" +
                 "</requestparameters></requestsubscribe>",
-                WADMParser.EncodeValue(DeliveryIP.ToString()),
+                WADMParser.TrimValue(WADMParser.EncodeValue(DeliveryIP.ToString()), true),
                 DeliveryPort,
                 Timeout);
         }
