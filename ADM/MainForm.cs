@@ -127,14 +127,7 @@ namespace ADM
         private void mediaFetchButton_Click(object sender, EventArgs e)
         {
             // Fetch media
-            Postmaster.QueryResponse response = Postmaster.PostXML(new Uri(baseurl + ":8081/"),
-                (transmitTextBox.Text = RequestRawData.Build(0, 0)), true);
-            if (!response.Success)
-            {
-                MessageBox.Show("An error occured: " + response.Message);
-                return;
-            }
-            Result<RequestRawData.ContentDataSet> contentResp = RequestRawData.Parse(response.TextualResponse);
+            Result<RequestRawData.ContentDataSet> contentResp = client.RequestRawData(0, 0);
             if (!contentResp.Success)
             {
                 MessageBox.Show(contentResp.ToString());
@@ -142,14 +135,7 @@ namespace ADM
             }
 
             // Fetch artists
-            response = Postmaster.PostXML(new Uri(baseurl + ":8081/"),
-                (transmitTextBox.Text = RequestArtistIndexTable.Build()), true);
-            if (!response.Success)
-            {
-                MessageBox.Show("An error occured: " + response.Message);
-                return;
-            }
-            Result<RequestArtistIndexTable.ContentDataSet> artistResp = RequestArtistIndexTable.Parse(response.TextualResponse);
+            Result<RequestArtistIndexTable.ContentDataSet> artistResp = client.RequestArtistIndexTable();
             if (!artistResp.Success)
             {
                 MessageBox.Show(artistResp.ToString());
@@ -157,29 +143,23 @@ namespace ADM
             }
 
             // Fetch albums
-            response = Postmaster.PostXML(new Uri(baseurl + ":8081/"),
-                (transmitTextBox.Text = RequestAlbumIndexTable.Build()), true);
-            if (!response.Success)
-            {
-                MessageBox.Show("An error occured: " + response.Message);
-                return;
-            }
-            Result<RequestAlbumIndexTable.ContentDataSet> albumResp = RequestAlbumIndexTable.Parse(response.TextualResponse);
+            Result<RequestAlbumIndexTable.ContentDataSet> albumResp = client.RequestAlbumIndexTable();
             if (!albumResp.Success)
             {
                 MessageBox.Show(albumResp.ToString());
                 return;
             }
 
-            // Fetch urimetadata
-            response = Postmaster.PostXML(new Uri(baseurl + ":8081/"),
-                (transmitTextBox.Text = RequestUriMetaData.Build()), true);
-            if (!response.Success)
+            // Fetch genres
+            Result<RequestGenreIndexTable.ContentDataSet> genreResp = client.RequestGenreIndexTable();
+            if (!genreResp.Success)
             {
-                MessageBox.Show("An error occured: " + response.Message);
+                MessageBox.Show(genreResp.ToString());
                 return;
             }
-            Result<RequestUriMetaData.ResponseParameters> metaDataResp = RequestUriMetaData.Parse(response.TextualResponse);
+
+            // Fetch urimetadata
+            Result<RequestUriMetaData.ResponseParameters> metaDataResp = client.RequestUriMetaData();
             if (!metaDataResp.Success)
             {
                 MessageBox.Show(metaDataResp.ToString());
@@ -189,6 +169,7 @@ namespace ADM
             currentMediaLib = contentResp.Product;
             currentArtistIndex = artistResp.Product;
             currentAlbumIndex = albumResp.Product;
+            currentGenreIndex = genreResp.Product;
             currentUriMetaData = metaDataResp.Product;
             updateLib();
         }
