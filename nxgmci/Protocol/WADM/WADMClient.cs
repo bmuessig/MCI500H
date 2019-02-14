@@ -434,6 +434,128 @@ namespace nxgmci.Protocol.WADM
             return result.FailMessage("The parsing failed due to an unknown reason!");
         }
 
+        public Result<RequestUriMetaData.ResponseParameters> RequestUriMetaData(bool LazySyntax = false)
+        {
+            // Create the result object
+            Result<RequestUriMetaData.ResponseParameters> result = new Result<RequestUriMetaData.ResponseParameters>();
+
+            // Lock the class to ensure thread safety
+            lock (eventLock)
+            {
+                // Allocate the response objects
+                Postmaster.QueryResponse queryResponse;
+                Result<RequestUriMetaData.ResponseParameters> parseResult;
+
+                // Create the event result object
+                Result<Postmaster.QueryResponse> queryResult = new Result<Postmaster.QueryResponse>();
+
+                // Allocate the shadow response text
+                string shadowResponse = string.Empty;
+
+                // Execute the request
+                queryResponse = Postmaster.PostXML(endpointUri, WADM.RequestUriMetaData.Build(), true);
+
+                // Check the result
+                if (queryResponse == null)
+                    result.FailMessage("The query response was null!");
+                else if (!queryResponse.Success)
+                    result.Fail("The query failed!", new Exception(queryResponse.Message));
+                else if (!queryResponse.IsTextualReponse || string.IsNullOrWhiteSpace(queryResponse.TextualResponse))
+                    result.FailMessage("The query response was invalid!");
+                else // Store a shadow copy of the response, as the query response is passed to the callee via an event and might later be compromized
+                    shadowResponse = string.Copy(queryResponse.TextualResponse.Trim());
+
+                // Raise the event
+                OnResponseReceived(new ResultEventArgs<Postmaster.QueryResponse>(
+                    queryResult.Succeed(queryResponse, "RequestUriMetaData")));
+
+                // Check, if the process failed
+                if (result.Finalized)
+                    return result;
+
+                // Parse the response
+                parseResult = WADM.RequestUriMetaData.Parse(shadowResponse, LazySyntax);
+
+                // Sanity check the result
+                if (parseResult == null)
+                    return result.FailMessage("The parsed result was null!");
+                if (parseResult.Success && (!parseResult.HasProduct || parseResult.Product == null))
+                    return result.FailMessage("The parsed product was invalid!");
+
+                // Check, if the result is a success and return it
+                if (parseResult.Success)
+                    return result.Succeed(parseResult.Product, parseResult.Message);
+
+                // Try to return a detailed error
+                if (parseResult.Error != null)
+                    return result.FailMessage("The parsing failed!", parseResult.Error);
+            }
+
+            // If not possible, return simple failure
+            return result.FailMessage("The parsing failed due to an unknown reason!");
+        }
+
+        public Result<RequestRawData.ContentDataSet> RequestRawData(uint FromIndex, uint NumElem = 0, bool LazySyntax = false)
+        {
+            // Create the result object
+            Result<RequestRawData.ContentDataSet> result = new Result<RequestRawData.ContentDataSet>();
+
+            // Lock the class to ensure thread safety
+            lock (eventLock)
+            {
+                // Allocate the response objects
+                Postmaster.QueryResponse queryResponse;
+                Result<RequestRawData.ContentDataSet> parseResult;
+
+                // Create the event result object
+                Result<Postmaster.QueryResponse> queryResult = new Result<Postmaster.QueryResponse>();
+
+                // Allocate the shadow response text
+                string shadowResponse = string.Empty;
+
+                // Execute the request
+                queryResponse = Postmaster.PostXML(endpointUri, WADM.RequestRawData.Build(FromIndex, NumElem), true);
+
+                // Check the result
+                if (queryResponse == null)
+                    result.FailMessage("The query response was null!");
+                else if (!queryResponse.Success)
+                    result.Fail("The query failed!", new Exception(queryResponse.Message));
+                else if (!queryResponse.IsTextualReponse || string.IsNullOrWhiteSpace(queryResponse.TextualResponse))
+                    result.FailMessage("The query response was invalid!");
+                else // Store a shadow copy of the response, as the query response is passed to the callee via an event and might later be compromized
+                    shadowResponse = string.Copy(queryResponse.TextualResponse.Trim());
+
+                // Raise the event
+                OnResponseReceived(new ResultEventArgs<Postmaster.QueryResponse>(
+                    queryResult.Succeed(queryResponse, "RequestRawData")));
+
+                // Check, if the process failed
+                if (result.Finalized)
+                    return result;
+
+                // Parse the response
+                parseResult = WADM.RequestRawData.Parse(shadowResponse, LazySyntax);
+
+                // Sanity check the result
+                if (parseResult == null)
+                    return result.FailMessage("The parsed result was null!");
+                if (parseResult.Success && (!parseResult.HasProduct || parseResult.Product == null))
+                    return result.FailMessage("The parsed product was invalid!");
+
+                // Check, if the result is a success and return it
+                if (parseResult.Success)
+                    return result.Succeed(parseResult.Product, parseResult.Message);
+
+                // Try to return a detailed error
+                if (parseResult.Error != null)
+                    return result.FailMessage("The parsing failed!", parseResult.Error);
+            }
+
+            // If not possible, return simple failure
+            return result.FailMessage("The parsing failed due to an unknown reason!");
+        }
+
         /// <summary>
         /// The internal event handler of the ResponseReceived event.
         /// </summary>
