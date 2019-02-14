@@ -9,18 +9,82 @@ using System.Text.RegularExpressions;
 
 namespace nxgmci.Network
 {
+    /// <summary>
+    /// Class for quickly sending WADM API compatible HTTP 1.0 POST requests to the device.
+    /// This static class is fully thread-safe.
+    /// </summary>
     public static class Postmaster
     {
-        internal static uint ConnectTimeoutMilliseconds = 5000;
-        internal static uint ResponseTimeoutMilliseconds = 1000;
-        internal static uint ReceiveTimeoutMilliseconds = 1500;
+        // Internal timeout storage variables
+        private static uint connectTimeoutMilliseconds = 5000,
+            responseTimeoutMilliseconds = 1000,
+            receiveTimeoutMilliseconds = 1500;
 
+        // Internal timeout lock
+        private volatile static object timeoutLock = new object();
+
+        /// <summary>
+        /// Returns or sets the maximum period in milliseconds that the connection process may take.
+        /// </summary>
+        public static uint ConnectTimeoutMilliseconds
+        {
+            get { return connectTimeoutMilliseconds; }
+            set
+            {
+                // A lock is required to make this thread-safe
+                lock (timeoutLock)
+                    connectTimeoutMilliseconds = value;
+            }
+        }
+
+        /// <summary>
+        /// Returns or sets the maximum period in milliseconds that the connection response may take.
+        /// </summary>
+        public static uint ResponseTimeoutMilliseconds
+        {
+            get { return responseTimeoutMilliseconds; }
+            set
+            {
+                // A lock is required to make this thread-safe
+                lock (timeoutLock)
+                    responseTimeoutMilliseconds = value;
+            }
+        }
+
+        /// <summary>
+        /// Returns or sets the maximum period in milliseconds that the connection response may take after init.
+        /// </summary>
+        public static uint ReceiveTimeoutMilliseconds
+        {
+            get { return receiveTimeoutMilliseconds; }
+            set
+            {
+                // A lock is required to make this thread-safe
+                lock (timeoutLock)
+                    receiveTimeoutMilliseconds = value;
+            }
+        }
+
+        /// <summary>
+        /// Private regex for parsing the main HTTP header.
+        /// </summary>
         private static readonly Regex httpRegex = new Regex("^HTTP\\/(\\d\\.\\d)[ \\t]+(\\d+)[ \\t]+([\\w ]+)$",
             RegexOptions.Singleline | RegexOptions.Compiled);
 
+        /// <summary>
+        /// Private regex for parsing the other HTTP headers.
+        /// </summary>
         private static readonly Regex headersRegex = new Regex("^([\\w-]+):[ \\t]+(.*)$",
             RegexOptions.Singleline | RegexOptions.Compiled);
 
+        /// <summary>
+        /// Posts a XML document to the specified Uri.
+        /// </summary>
+        /// <param name="Uri">The URI to post the document to.</param>
+        /// <param name="Payload">The XML string contents of the documents to post.</param>
+        /// <param name="ForceTextualResponse">Whether to enforce a response in text form.</param>
+        /// <param name="QueryHeaders">Additional HTTP headers to be sent along the request.</param>
+        /// <returns>A QueryResponse object with the status and received data.</returns>
         public static QueryResponse PostXML(Uri Uri, string Payload,
             bool ForceTextualResponse = false, Dictionary<string, string> QueryHeaders = null)
         {
@@ -34,6 +98,15 @@ namespace nxgmci.Network
             return PostString(Uri, Payload, ForceTextualResponse, QueryHeaders);
         }
 
+        /// <summary>
+        /// Posts a XML document to a specified IPEndPoint and path.
+        /// </summary>
+        /// <param name="EndPoint">The IP endpoint to post to.</param>
+        /// <param name="Path">The path on the server.</param>
+        /// <param name="Payload">The XML string contents of the document to post.</param>
+        /// <param name="ForceTextualResponse">Whether to enforce a response in text form.</param>
+        /// <param name="QueryHeaders">Additional HTTP headers to be sent along the request.</param>
+        /// <returns>A QueryResponse object with the status and received data.</returns>
         public static QueryResponse PostXML(IPEndPoint EndPoint, string Path, string Payload,
             bool ForceTextualResponse = false, Dictionary<string, string> QueryHeaders = null)
         {
@@ -47,6 +120,14 @@ namespace nxgmci.Network
             return PostString(EndPoint, Path, Payload, ForceTextualResponse, QueryHeaders);
         }
 
+        /// <summary>
+        /// Posts a text string to a specified Uri.
+        /// </summary>
+        /// <param name="Uri">The URI to post the document to.</param>
+        /// <param name="Payload">The string contents of the document to post.</param>
+        /// <param name="ForceTextualResponse">Whether to enforce a response in text form.</param>
+        /// <param name="QueryHeaders">Additional HTTP headers to be sent along the request.</param>
+        /// <returns>A QueryResponse object with the status and received data.</returns>
         public static QueryResponse PostString(Uri Uri, string Payload,
             bool ForceTextualResponse = false, Dictionary<string, string> QueryHeaders = null)
         {
@@ -57,6 +138,15 @@ namespace nxgmci.Network
             return PostString(endpoint, Uri.PathAndQuery, Payload, ForceTextualResponse, QueryHeaders);
         }
 
+        /// <summary>
+        /// Posts a text string to a specified IPEndPoint and path.
+        /// </summary>
+        /// <param name="EndPoint">The IP endpoint to post to.</param>
+        /// <param name="Path">The path on the server.</param>
+        /// <param name="Payload">The string contents of the document to post.</param>
+        /// <param name="ForceTextualResponse">Whether to enforce a response in text form.</param>
+        /// <param name="QueryHeaders">Additional HTTP headers to be sent along the request.</param>
+        /// <returns>A QueryResponse object with the status and received data.</returns>
         public static QueryResponse PostString(IPEndPoint EndPoint, string Path, string Payload,
             bool ForceTextualResponse = false, Dictionary<string, string> QueryHeaders = null)
         {
@@ -66,6 +156,16 @@ namespace nxgmci.Network
             return PostIt(EndPoint, Path, Encoding.UTF8.GetBytes(Payload), true, ForceTextualResponse, QueryHeaders);
         }
 
+        /// <summary>
+        /// Internal implementation of the HTTP 1.0 POST client.
+        /// </summary>
+        /// <param name="EndPoint">The IP endpoint to post to.</param>
+        /// <param name="Path">The path on the server.</param>
+        /// <param name="Payload">The contents of the document to post.</param>
+        /// <param name="TextualPayload">Whether the document contains text or raw data.</param>
+        /// <param name="ForceTextualResponse">Whether to enforce a response in text form.</param>
+        /// <param name="QueryHeaders">Additional HTTP headers to be sent along the request.</param>
+        /// <returns>A QueryResponse object with the status and received data.</returns>
         private static QueryResponse PostIt(IPEndPoint EndPoint, string Path, byte[] Payload, bool TextualPayload,
             bool ForceTextualResponse, Dictionary<string, string> QueryHeaders)
         {
@@ -330,19 +430,60 @@ namespace nxgmci.Network
             }
         }
 
+        /// <summary>
+        /// Class for storing the result of an HTTP POST request performed by Postmaster.
+        /// </summary>
         public class QueryResponse
         {
+            /// <summary>
+            /// The returned HTTP status code.
+            /// </summary>
             public uint StatusCode { get; private set; }
+
+            /// <summary>
+            /// The returned HTTP headers.
+            /// </summary>
             public Dictionary<string, string> Headers { get; private set; }
+
+            /// <summary>
+            /// The expected payload size from the HTTP response headers.
+            /// </summary>
             public uint ExpectedSize { get; private set; }
+
+            /// <summary>
+            /// The expected content type from the HTTP response headers.
+            /// </summary>
             public string ExpectedType { get; private set; }
+
+            /// <summary>
+            /// Indicates whether the response contains only text.
+            /// </summary>
             public bool IsTextualReponse { get; private set; }
+
+            /// <summary>
+            /// The received response text.
+            /// </summary>
             public string TextualResponse { get; private set; }
+
+            /// <summary>
+            /// The received response bytes.
+            /// </summary>
             public byte[] BinaryResponse { get; private set; }
+
+            /// <summary>
+            /// Indicates whether the transaction succeeded or not.
+            /// </summary>
             public bool Success { get; private set; }
+
+            /// <summary>
+            /// The HTTP answer or error message, depending on the state of success.
+            /// </summary>
             public string Message { get; private set; }
 
-            // This is the most basic constructor - the request failed with no more information
+            /// <summary>
+            /// Internal constructor. Indicates failure.
+            /// </summary>
+            /// <param name="Message">The error message</param>
             internal QueryResponse(string Message = "")
             {
                 if (Message == null)
@@ -353,6 +494,11 @@ namespace nxgmci.Network
                 this.Headers = new Dictionary<string,string>();
             }
 
+            /// <summary>
+            /// Internal constructor. Indicates failure. Contains the status code.
+            /// </summary>
+            /// <param name="StatusCode">The returned HTTP status code.</param>
+            /// <param name="Message">The error message.</param>
             internal QueryResponse(uint StatusCode, string Message)
             {
                 if (Message == null)
@@ -364,6 +510,14 @@ namespace nxgmci.Network
                 this.Headers = new Dictionary<string, string>();
             }
 
+            /// <summary>
+            /// Internal constructor. Indicates failure. Contains the status code, the returned headers and optionally the expected size and type.
+            /// </summary>
+            /// <param name="StatusCode">The returned HTTP status code.</param>
+            /// <param name="Message">The error message.</param>
+            /// <param name="Headers">The returned HTTP headers.</param>
+            /// <param name="ExpectedSize">The expected payload size from the HTTP response headers.</param>
+            /// <param name="ExpectedType">The expected content type from the HTTP response headers.</param>
             internal QueryResponse(uint StatusCode, string Message, Dictionary<string, string> Headers,
                 uint ExpectedSize = 0, string ExpectedType = null)
             {
@@ -380,6 +534,15 @@ namespace nxgmci.Network
                 this.ExpectedType = ExpectedType;
             }
 
+            /// <summary>
+            /// Internal constructor. Indicates a successful text response. Contains the status code, message, headers, payload and optionally the expected size and type.
+            /// </summary>
+            /// <param name="StatusCode">The returned HTTP status code.</param>
+            /// <param name="Message">The returned HTTP status message.</param>
+            /// <param name="Headers">The returned HTTP headers.</param>
+            /// <param name="TextualResponse">The text response.</param>
+            /// <param name="ExpectedSize">The expected payload size from the HTTP response headers.</param>
+            /// <param name="ExpectedType">The expected content type from the HTTP response headers.</param>
             internal QueryResponse(uint StatusCode, string Message, Dictionary<string, string> Headers, string TextualResponse,
                 uint ExpectedSize = 0, string ExpectedType = null)
             {
@@ -400,6 +563,15 @@ namespace nxgmci.Network
                 this.ExpectedType = ExpectedType;
             }
 
+            /// <summary>
+            /// Internal constructor. Indicates a successful binary response. Contains the status code, message, headers, payload and optionally the expected size and type.
+            /// </summary>
+            /// <param name="StatusCode">The returned HTTP status code.</param>
+            /// <param name="Message">The returned HTTP status message.</param>
+            /// <param name="Headers">The returned HTTP headers.</param>
+            /// <param name="BinaryResponse">The binary response.</param>
+            /// <param name="ExpectedSize">The expected payload size from the HTTP response headers.</param>
+            /// <param name="ExpectedType">The expected content type from the HTTP response headers.</param>
             internal QueryResponse(uint StatusCode, string Message, Dictionary<string, string> Headers, byte[] BinaryResponse,
                 uint ExpectedSize = 0, string ExpectedType = null)
             {
