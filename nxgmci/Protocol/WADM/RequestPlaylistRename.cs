@@ -18,8 +18,8 @@ namespace nxgmci.Protocol.WADM
         /// </summary>
         /// <param name="UpdateID">The update ID.</param>
         /// <param name="Index">The index of the playlist.</param>
-        /// <param name="Name">The new name of the new playlist.</param>
-        /// <param name="OriginalName">The original name of the new playlist.</param>
+        /// <param name="Name">The new name of the playlist.</param>
+        /// <param name="OriginalName">The original name of the playlist.</param>
         /// <returns>A request string that can be passed to the stereo.</returns>
         public static string Build(uint UpdateID, uint Index, string Name, string OriginalName = null)
         {
@@ -136,12 +136,12 @@ namespace nxgmci.Protocol.WADM
             public readonly string RawStatus;
 
             /// <summary>
-            /// The index of the playlist created. Contained inside the default playlist item namespace.
+            /// The index of the playlist renamed. Contained inside the default playlist item namespace.
             /// </summary>
             public readonly uint Index;
 
             /// <summary>
-            /// The name of the playlist created.
+            /// The name of the playlist renamed.
             /// </summary>
             public readonly string Name;
 
@@ -151,7 +151,7 @@ namespace nxgmci.Protocol.WADM
             public readonly int Offset;
 
             /// <summary>
-            /// Unknown update ID. Equal to the supplied update ID + 1.
+            /// The update ID passed as a token. Equal to the originally supplied update ID + 1.
             /// </summary>
             public readonly uint UpdateID;
 
@@ -163,7 +163,7 @@ namespace nxgmci.Protocol.WADM
             /// <param name="Index">The index of the playlist created. Contained inside the default playlist item namespace.</param>
             /// <param name="Name">The name of the playlist created.</param>
             /// <param name="Offset">Unknown offset. May be negative.</param>
-            /// <param name="UpdateID">Unknown update ID. Equal to the supplied update ID + 1.</param>
+            /// <param name="UpdateID">The update ID passed as a token. Equal to the originally supplied update ID + 1.</param>
             internal ResponseParameters(StatusCode Status, string RawStatus, uint Index, string Name, int Offset, uint UpdateID)
             {
                 this.Status = Status;

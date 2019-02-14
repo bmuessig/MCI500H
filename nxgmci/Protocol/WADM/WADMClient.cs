@@ -768,8 +768,8 @@ namespace nxgmci.Protocol.WADM
         /// Using this request will update the client's update ID.
         /// </summary>
         /// <param name="Index">The index of the playlist.</param>
-        /// <param name="Name">The new name of the new playlist.</param>
-        /// <param name="OriginalName">The original name of the new playlist.</param>
+        /// <param name="Name">The new name of the playlist.</param>
+        /// <param name="OriginalName">The original name of the playlist.</param>
         /// <returns>A result object that contains a serialized version of the response data.</returns>
         public Result<RequestPlaylistRename.ResponseParameters> RequestPlaylistRename(uint Index, string Name, string OriginalName = null)
         {
