@@ -25,13 +25,19 @@ namespace nxgmci.Network
 
         /// <summary>
         /// Returns or sets the maximum period in milliseconds that the connection process may take.
+        /// This is thread-safe.
         /// </summary>
         public static uint ConnectTimeoutMilliseconds
         {
-            get { return connectTimeoutMilliseconds; }
+            // A lock is required to make this thread-safe
+            get
+            {
+                lock (timeoutLock)
+                    return connectTimeoutMilliseconds;
+            }
+
             set
             {
-                // A lock is required to make this thread-safe
                 lock (timeoutLock)
                     connectTimeoutMilliseconds = value;
             }
@@ -39,13 +45,19 @@ namespace nxgmci.Network
 
         /// <summary>
         /// Returns or sets the maximum period in milliseconds that the connection response may take.
+        /// This is thread-safe.
         /// </summary>
         public static uint ResponseTimeoutMilliseconds
         {
-            get { return responseTimeoutMilliseconds; }
+            // A lock is required to make this thread-safe
+            get
+            {
+                lock (timeoutLock)
+                    return responseTimeoutMilliseconds;
+            }
+
             set
             {
-                // A lock is required to make this thread-safe
                 lock (timeoutLock)
                     responseTimeoutMilliseconds = value;
             }
@@ -53,13 +65,19 @@ namespace nxgmci.Network
 
         /// <summary>
         /// Returns or sets the maximum period in milliseconds that the connection response may take after init.
+        /// This is thread-safe.
         /// </summary>
         public static uint ReceiveTimeoutMilliseconds
         {
-            get { return receiveTimeoutMilliseconds; }
+            // A lock is required to make this thread-safe
+            get
+            {
+                lock (timeoutLock)
+                    return receiveTimeoutMilliseconds;
+            }
+
             set
             {
-                // A lock is required to make this thread-safe
                 lock (timeoutLock)
                     receiveTimeoutMilliseconds = value;
             }
