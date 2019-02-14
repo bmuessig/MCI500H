@@ -222,8 +222,8 @@ namespace nxgmci.Protocol.WADM
                 // Check, if the result is a success
                 if (parseResult.Success)
                 {
-                    // Also, store the update ID
-                    if (parseResult.Product.UpdateID != this.updateID && parseResult.Product.UpdateID != 0 && !freezeUpdateID)
+                    // Also, store the update ID (note that this function is intentionally less strict on the auto-updating)
+                    if (parseResult.Product.UpdateID != this.updateID && !freezeUpdateID)
                         this.updateID = parseResult.Product.UpdateID;
 
                     // Return the result
@@ -296,7 +296,7 @@ namespace nxgmci.Protocol.WADM
                 if (parseResult.Success)
                 {
                     // Also, store the update ID
-                    if (parseResult.Product.UpdateID != this.updateID && parseResult.Product.UpdateID != 0 && !freezeUpdateID)
+                    if (parseResult.Product.UpdateID > this.updateID && parseResult.Product.UpdateID != 0 && !freezeUpdateID)
                         this.updateID = parseResult.Product.UpdateID;
 
                     // Return the result
@@ -436,7 +436,7 @@ namespace nxgmci.Protocol.WADM
                 if (parseResult.Success)
                 {
                     // Also, store the update ID
-                    if (parseResult.Product.UpdateID != this.updateID && parseResult.Product.UpdateID != 0 && !freezeUpdateID)
+                    if (parseResult.Product.UpdateID > this.updateID && parseResult.Product.UpdateID != 0 && !freezeUpdateID)
                         this.updateID = parseResult.Product.UpdateID;
 
                     // Return the result
@@ -510,7 +510,7 @@ namespace nxgmci.Protocol.WADM
                 if (parseResult.Success)
                 {
                     // Also, store the update ID
-                    if (parseResult.Product.UpdateID != this.updateID && parseResult.Product.UpdateID != 0 && !freezeUpdateID)
+                    if (parseResult.Product.UpdateID > this.updateID && parseResult.Product.UpdateID != 0 && !freezeUpdateID)
                         this.updateID = parseResult.Product.UpdateID;
 
                     // Return the result
@@ -584,7 +584,7 @@ namespace nxgmci.Protocol.WADM
                 if (parseResult.Success)
                 {
                     // Also, store the update ID
-                    if (parseResult.Product.UpdateID != this.updateID && parseResult.Product.UpdateID != 0 && !freezeUpdateID)
+                    if (parseResult.Product.UpdateID > this.updateID && parseResult.Product.UpdateID != 0 && !freezeUpdateID)
                         this.updateID = parseResult.Product.UpdateID;
 
                     // Return the result
@@ -660,7 +660,7 @@ namespace nxgmci.Protocol.WADM
                 if (parseResult.Success)
                 {
                     // Also, store the update ID
-                    if (parseResult.Product.UpdateID != this.updateID && parseResult.Product.UpdateID != 0 && !freezeUpdateID)
+                    if (parseResult.Product.UpdateID > this.updateID && parseResult.Product.UpdateID != 0 && !freezeUpdateID)
                         this.updateID = parseResult.Product.UpdateID;
 
                     // Return the result
@@ -741,7 +741,7 @@ namespace nxgmci.Protocol.WADM
                 if (parseResult.Success)
                 {
                     // Also, store the update ID
-                    if (parseResult.Product.UpdateID != this.updateID && parseResult.Product.UpdateID != 0 && !freezeUpdateID)
+                    if (parseResult.Product.UpdateID > this.updateID && parseResult.Product.UpdateID != 0 && !freezeUpdateID)
                         this.updateID = parseResult.Product.UpdateID;
 
                     // Return the result
