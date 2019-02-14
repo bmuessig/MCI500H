@@ -696,7 +696,7 @@ namespace nxgmci.Protocol.WADM
             Result<RequestPlaylistCreate.ResponseParameters> result = new Result<RequestPlaylistCreate.ResponseParameters>();
 
             // Perform input sanity checks
-            if(Name == null)
+            if (Name == null)
                 return result.FailMessage("The argument '{0}' was null!", "Name");
 
             // Lock the class to ensure thread safety
@@ -777,7 +777,7 @@ namespace nxgmci.Protocol.WADM
             Result<RequestPlaylistRename.ResponseParameters> result = new Result<RequestPlaylistRename.ResponseParameters>();
 
             // Perform input sanity checks
-            if(Name == null)
+            if (Name == null)
                 return result.FailMessage("The argument '{0}' was null!", "Name");
             if (OriginalName == null)
                 OriginalName = string.Empty;
@@ -818,6 +818,86 @@ namespace nxgmci.Protocol.WADM
 
                 // Parse the response
                 parseResult = WADM.RequestPlaylistRename.Parse(shadowResponse, this.validateInput, this.looseSyntax);
+
+                // Sanity check the result
+                if (parseResult == null)
+                    return result.FailMessage("The parsed result was null!");
+                if (parseResult.Success && (!parseResult.HasProduct || parseResult.Product == null))
+                    return result.FailMessage("The parsed product was invalid!");
+
+                // Check, if the result is a success
+                if (parseResult.Success)
+                {
+                    // Also, store the update ID
+                    if (parseResult.Product.UpdateID > this.updateID && parseResult.Product.UpdateID != 0 && !freezeUpdateID)
+                        lock (updateIDLock)
+                            this.updateID = parseResult.Product.UpdateID;
+
+                    // Return the result
+                    return result.Succeed(parseResult.Product, parseResult.Message);
+                }
+
+                // Try to return a detailed error
+                if (parseResult.Error != null)
+                    return result.FailMessage("The parsing failed!", parseResult.Error);
+            }
+
+            // If not possible, return simple failure
+            return result.FailMessage("The parsing failed due to an unknown reason!");
+        }
+
+        /// <summary>
+        /// Attempts to delete a playlist. The original name appears to be optional.
+        /// Using this request will update the client's update ID.
+        /// </summary>
+        /// <param name="Index">The index of the playlist to be deleted.</param>
+        /// <param name="OriginalName">The original name of the playlist to be deleted.</param>
+        /// <returns>A result object that contains a serialized version of the response data.</returns>
+        public Result<RequestPlaylistDelete.ResponseParameters> RequestPlaylistDelete(uint Index, string OriginalName = null)
+        {
+            // Create the result object
+            Result<RequestPlaylistDelete.ResponseParameters> result = new Result<RequestPlaylistDelete.ResponseParameters>();
+
+            // Perform an input sanity check
+            if (OriginalName == null)
+                OriginalName = string.Empty;
+
+            // Lock the class to ensure thread safety
+            lock (eventLock)
+            {
+                // Allocate the response objects
+                Postmaster.QueryResponse queryResponse;
+                Result<RequestPlaylistDelete.ResponseParameters> parseResult;
+
+                // Create the event result object
+                Result<Postmaster.QueryResponse> queryResult = new Result<Postmaster.QueryResponse>();
+
+                // Allocate the shadow response text
+                string shadowResponse = string.Empty;
+
+                // Execute the request
+                queryResponse = Postmaster.PostXML(ipEndpoint, Path, WADM.RequestPlaylistDelete.Build(this.updateID, Index, OriginalName), true);
+
+                // Check the result
+                if (queryResponse == null)
+                    result.FailMessage("The query response was null!");
+                else if (!queryResponse.Success)
+                    result.Fail("The query failed!", new Exception(queryResponse.Message));
+                else if (!queryResponse.IsTextualReponse || string.IsNullOrWhiteSpace(queryResponse.TextualResponse))
+                    result.FailMessage("The query response was invalid!");
+                else // Store a shadow copy of the response, as the query response is passed to the callee via an event and might later be compromized
+                    shadowResponse = string.Copy(queryResponse.TextualResponse.Trim());
+
+                // Raise the event
+                OnResponseReceived(new ResultEventArgs<Postmaster.QueryResponse>(
+                    queryResult.Succeed(queryResponse, "RequestPlaylistDelete")));
+
+                // Check, if the process failed
+                if (result.Finalized)
+                    return result;
+
+                // Parse the response
+                parseResult = WADM.RequestPlaylistDelete.Parse(shadowResponse, this.validateInput, this.looseSyntax);
 
                 // Sanity check the result
                 if (parseResult == null)
