@@ -33,14 +33,24 @@ namespace nxgmci.Device
         /// </summary>
         private readonly IPAddress ipAddress;
 
+        // TODO, preliminary
         /// <summary>
-        /// Returns the string representation of the IP address of this instance.
+        /// Returns the string representation of the hostname or IP address of this instance.
         /// </summary>
-        public string IPAddress
+        public string Host
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Returns the bytes of the IP address.
+        /// </summary>
+        public byte[] IPAddress
         {
             get
             {
-                return ipAddress.ToString();
+                return ipAddress.GetAddressBytes();
             }
         }
 

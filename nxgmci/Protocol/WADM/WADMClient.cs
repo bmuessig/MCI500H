@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using nxgmci.Network;
 using nxgmci.Device;
+using System.Net;
 
 namespace nxgmci.Protocol.WADM
 {
@@ -12,11 +13,6 @@ namespace nxgmci.Protocol.WADM
     /// </summary>
     public class WADMClient
     {
-        /// <summary>
-        /// The default path of the WADM API endpoint relative to the server root.
-        /// </summary>
-        private const string DEFAULT_PATH = "/";
-
         /// <summary>
         /// The endpoint this instance of WADM associates with.
         /// </summary>
@@ -28,19 +24,24 @@ namespace nxgmci.Protocol.WADM
         public readonly string Path;
 
         /// <summary>
+        /// This event is triggered during each API call, after the response from the device was received (or the connection timed out).
+        /// </summary>
+        public event EventHandler<ResultEventArgs<Postmaster.QueryResponse>> ResponseReceived;
+
+        /// <summary>
         /// The internal lock object used to prevent parallel execution and ensure thread safety.
         /// </summary>
         private volatile object eventLock = new object();
 
         /// <summary>
-        /// The internal Uri to the WADM API endpoint.
+        /// The internal IP endpoint of the WADM API.
         /// </summary>
-        private readonly Uri endpointUri;
+        private readonly IPEndPoint ipEndpoint;
 
         /// <summary>
-        /// This event is triggered during each API call, after the response from the device was received (or the connection timed out).
+        /// The default path of the WADM API endpoint relative to the server root.
         /// </summary>
-        public event EventHandler<ResultEventArgs<Postmaster.QueryResponse>> ResponseReceived;
+        private const string DEFAULT_PATH = "/";
 
         /// <summary>
         /// Default public constructor.
@@ -63,9 +64,9 @@ namespace nxgmci.Protocol.WADM
             // Store the path
             this.Path = Path;
 
-            // And build the internal endpoint Uri
-            // This may fail, but that's the problem of the class creating this object
-            endpointUri = new Uri(string.Format("http://{0}:{1}{2}", Endpoint.IPAddress, Endpoint.PortWADM, Path));
+            // And build the internal endpoint
+            // TODO: Sanity check the IP
+            ipEndpoint = new IPEndPoint(new IPAddress(Endpoint.IPAddress), (int)Endpoint.PortWADM);
         }
 
         public Result<GetUpdateID.ResponseParameters> GetUpdateID(bool LazySyntax = false)
@@ -87,7 +88,7 @@ namespace nxgmci.Protocol.WADM
                 string shadowResponse = string.Empty;
 
                 // Execute the request
-                queryResponse = Postmaster.PostXML(endpointUri, WADM.GetUpdateID.Build(), true);
+                queryResponse = Postmaster.PostXML(ipEndpoint, Path, WADM.GetUpdateID.Build(), true);
 
                 // Check the result
                 if (queryResponse == null)
@@ -148,7 +149,7 @@ namespace nxgmci.Protocol.WADM
                 string shadowResponse = string.Empty;
 
                 // Execute the request
-                queryResponse = Postmaster.PostXML(endpointUri, WADM.QueryDatabase.Build(), true);
+                queryResponse = Postmaster.PostXML(ipEndpoint, Path, WADM.QueryDatabase.Build(), true);
 
                 // Check the result
                 if (queryResponse == null)
@@ -209,7 +210,7 @@ namespace nxgmci.Protocol.WADM
                 string shadowResponse = string.Empty;
 
                 // Execute the request
-                queryResponse = Postmaster.PostXML(endpointUri, WADM.QueryDiskSpace.Build(), true);
+                queryResponse = Postmaster.PostXML(ipEndpoint, Path, WADM.QueryDiskSpace.Build(), true);
 
                 // Check the result
                 if (queryResponse == null)
@@ -251,7 +252,14 @@ namespace nxgmci.Protocol.WADM
             return result.FailMessage("The parsing failed due to an unknown reason!");
         }
 
-        public Result<RequestAlbumIndexTable.ContentDataSet> RequestAlbumIndexTable(bool LazySyntax = false)
+        /// <summary>
+        /// This request returns a dictionary of all album IDs and their cleartext names.
+        /// This information can be used to map the album IDs returned by RequestRawData to strings.
+        /// </summary>
+        /// <param name="ValidateInput">Indicates whether to validate the data values received.</param>
+        /// <param name="LazySyntax">Indicates whether to ignore minor syntax errors.</param>
+        /// <returns>A result object that contains a serialized version of the response data.</returns>
+        public Result<RequestAlbumIndexTable.ContentDataSet> RequestAlbumIndexTable(bool ValidateInput = true, bool LazySyntax = false)
         {
             // Create the result object
             Result<RequestAlbumIndexTable.ContentDataSet> result = new Result<RequestAlbumIndexTable.ContentDataSet>();
@@ -270,7 +278,7 @@ namespace nxgmci.Protocol.WADM
                 string shadowResponse = string.Empty;
 
                 // Execute the request
-                queryResponse = Postmaster.PostXML(endpointUri, WADM.RequestAlbumIndexTable.Build(), true);
+                queryResponse = Postmaster.PostXML(ipEndpoint, Path, WADM.RequestAlbumIndexTable.Build(), true);
 
                 // Check the result
                 if (queryResponse == null)
@@ -291,7 +299,7 @@ namespace nxgmci.Protocol.WADM
                     return result;
 
                 // Parse the response
-                parseResult = WADM.RequestAlbumIndexTable.Parse(shadowResponse, LazySyntax);
+                parseResult = WADM.RequestAlbumIndexTable.Parse(shadowResponse, ValidateInput, LazySyntax);
 
                 // Sanity check the result
                 if (parseResult == null)
@@ -312,7 +320,14 @@ namespace nxgmci.Protocol.WADM
             return result.FailMessage("The parsing failed due to an unknown reason!");
         }
 
-        public Result<RequestArtistIndexTable.ContentDataSet> RequestArtistIndexTable(bool LazySyntax = false)
+        /// <summary>
+        /// This request returns a dictionary of all artist IDs and their cleartext names.
+        /// This information can be used to map the artist IDs returned by RequestRawData to strings.
+        /// </summary>
+        /// <param name="ValidateInput">Indicates whether to validate the data values received.</param>
+        /// <param name="LazySyntax">Indicates whether to ignore minor syntax errors.</param>
+        /// <returns>A result object that contains a serialized version of the response data.</returns>
+        public Result<RequestArtistIndexTable.ContentDataSet> RequestArtistIndexTable(bool ValidateInput = true, bool LazySyntax = false)
         {
             // Create the result object
             Result<RequestArtistIndexTable.ContentDataSet> result = new Result<RequestArtistIndexTable.ContentDataSet>();
@@ -331,7 +346,7 @@ namespace nxgmci.Protocol.WADM
                 string shadowResponse = string.Empty;
 
                 // Execute the request
-                queryResponse = Postmaster.PostXML(endpointUri, WADM.RequestArtistIndexTable.Build(), true);
+                queryResponse = Postmaster.PostXML(ipEndpoint, Path, WADM.RequestArtistIndexTable.Build(), true);
 
                 // Check the result
                 if (queryResponse == null)
@@ -352,7 +367,7 @@ namespace nxgmci.Protocol.WADM
                     return result;
 
                 // Parse the response
-                parseResult = WADM.RequestArtistIndexTable.Parse(shadowResponse, LazySyntax);
+                parseResult = WADM.RequestArtistIndexTable.Parse(shadowResponse, ValidateInput, LazySyntax);
 
                 // Sanity check the result
                 if (parseResult == null)
@@ -373,7 +388,14 @@ namespace nxgmci.Protocol.WADM
             return result.FailMessage("The parsing failed due to an unknown reason!");
         }
 
-        public Result<RequestGenreIndexTable.ContentDataSet> RequestGenreIndexTable(bool LazySyntax = false)
+        /// <summary>
+        /// This request returns a dictionary of all genre IDs and their cleartext names.
+        /// This information can be used to map the genre IDs returned by RequestRawData to strings.
+        /// </summary>
+        /// <param name="ValidateInput">Indicates whether to validate the data values received.</param>
+        /// <param name="LazySyntax">Indicates whether to ignore minor syntax errors.</param>
+        /// <returns>A result object that contains a serialized version of the response data.</returns>
+        public Result<RequestGenreIndexTable.ContentDataSet> RequestGenreIndexTable(bool ValidateInput = true, bool LazySyntax = false)
         {
             // Create the result object
             Result<RequestGenreIndexTable.ContentDataSet> result = new Result<RequestGenreIndexTable.ContentDataSet>();
@@ -392,7 +414,7 @@ namespace nxgmci.Protocol.WADM
                 string shadowResponse = string.Empty;
 
                 // Execute the request
-                queryResponse = Postmaster.PostXML(endpointUri, WADM.RequestGenreIndexTable.Build(), true);
+                queryResponse = Postmaster.PostXML(ipEndpoint, Path, WADM.RequestGenreIndexTable.Build(), true);
 
                 // Check the result
                 if (queryResponse == null)
@@ -413,7 +435,7 @@ namespace nxgmci.Protocol.WADM
                     return result;
 
                 // Parse the response
-                parseResult = WADM.RequestGenreIndexTable.Parse(shadowResponse, LazySyntax);
+                parseResult = WADM.RequestGenreIndexTable.Parse(shadowResponse, ValidateInput, LazySyntax);
 
                 // Sanity check the result
                 if (parseResult == null)
@@ -434,7 +456,16 @@ namespace nxgmci.Protocol.WADM
             return result.FailMessage("The parsing failed due to an unknown reason!");
         }
 
-        public Result<RequestUriMetaData.ResponseParameters> RequestUriMetaData(bool LazySyntax = false)
+        /// <summary>
+        /// This request is used to retrieve lots of important flags from the stereo.
+        /// For instance, this will provide the public directory of the media files.
+        /// It will also provide the bitmask mask that needs to be applied to work with the node IDs.
+        /// Apart from that it presents a list of supported file formats along with their type-ID mapping.
+        /// </summary>
+        /// <param name="ValidateInput">Indicates whether to validate the data values received.</param>
+        /// <param name="LazySyntax">Indicates whether to ignore minor syntax errors.</param>
+        /// <returns>A result object that contains a serialized version of the response data.</returns>
+        public Result<RequestUriMetaData.ResponseParameters> RequestUriMetaData(bool ValidateInput = true, bool LazySyntax = false)
         {
             // Create the result object
             Result<RequestUriMetaData.ResponseParameters> result = new Result<RequestUriMetaData.ResponseParameters>();
@@ -453,7 +484,7 @@ namespace nxgmci.Protocol.WADM
                 string shadowResponse = string.Empty;
 
                 // Execute the request
-                queryResponse = Postmaster.PostXML(endpointUri, WADM.RequestUriMetaData.Build(), true);
+                queryResponse = Postmaster.PostXML(ipEndpoint, Path, WADM.RequestUriMetaData.Build(), true);
 
                 // Check the result
                 if (queryResponse == null)
@@ -474,7 +505,7 @@ namespace nxgmci.Protocol.WADM
                     return result;
 
                 // Parse the response
-                parseResult = WADM.RequestUriMetaData.Parse(shadowResponse, LazySyntax);
+                parseResult = WADM.RequestUriMetaData.Parse(shadowResponse, ValidateInput, LazySyntax);
 
                 // Sanity check the result
                 if (parseResult == null)
@@ -495,7 +526,21 @@ namespace nxgmci.Protocol.WADM
             return result.FailMessage("The parsing failed due to an unknown reason!");
         }
 
-        public Result<RequestRawData.ContentDataSet> RequestRawData(uint FromIndex, uint NumElem = 0, bool LazySyntax = false)
+        /// <summary>
+        /// This request is used to fetch title data in chunks or as a whole.
+        /// It accepts both a start index (skip) and a max. items parameter (count).
+        /// Using the parameters 0,0 will fetch all titles. This is not recommended for large databases.
+        /// The stereo has limited RAM and processing capabilities and a database with 1000s of titles may overflow.
+        /// It is recommended to fetch 100 titles at a time. The first request will return a total number of titles.
+        /// This number can be used to generate the correct number of requests to fetch all titles successfully.
+        /// The 0,0 method is not used by the official application, whereas the 100 element method is used.
+        /// </summary>
+        /// <param name="FromIndex">First index to be included into the query.</param>
+        /// <param name="NumElem">Number of elements to be queried. Use zero to query all elements.</param>
+        /// <param name="ValidateInput">Indicates whether to validate the data values received.</param>
+        /// <param name="LazySyntax">Indicates whether to ignore minor syntax errors.</param>
+        /// <returns>A result object that contains a serialized version of the response data.</returns>
+        public Result<RequestRawData.ContentDataSet> RequestRawData(uint FromIndex, uint NumElem = 0, bool ValidateInput = true, bool LazySyntax = false)
         {
             // Create the result object
             Result<RequestRawData.ContentDataSet> result = new Result<RequestRawData.ContentDataSet>();
@@ -514,7 +559,7 @@ namespace nxgmci.Protocol.WADM
                 string shadowResponse = string.Empty;
 
                 // Execute the request
-                queryResponse = Postmaster.PostXML(endpointUri, WADM.RequestRawData.Build(FromIndex, NumElem), true);
+                queryResponse = Postmaster.PostXML(ipEndpoint, Path, WADM.RequestRawData.Build(FromIndex, NumElem), true);
 
                 // Check the result
                 if (queryResponse == null)
@@ -535,7 +580,7 @@ namespace nxgmci.Protocol.WADM
                     return result;
 
                 // Parse the response
-                parseResult = WADM.RequestRawData.Parse(shadowResponse, LazySyntax);
+                parseResult = WADM.RequestRawData.Parse(shadowResponse, ValidateInput, LazySyntax);
 
                 // Sanity check the result
                 if (parseResult == null)
