@@ -9,7 +9,7 @@ using System.Net;
 namespace nxgmci.Protocol.WADM
 {
     /// <summary>
-    /// This class provides a client for communicating with the WADM API.
+    /// This class provides a thread-safe client for communicating with the WADM API.
     /// </summary>
     public class WADMClient
     {
