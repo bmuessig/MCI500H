@@ -24,6 +24,25 @@ namespace nxgmci.Protocol.WADM
         public readonly string Path;
 
         /// <summary>
+        /// Gets or sets the update ID included with the next request.
+        /// This is thread-safe.
+        /// </summary>
+        public uint UpdateID
+        {
+            get
+            {
+                lock (eventLock)
+                    return updateID;
+            }
+
+            set
+            {
+                lock (eventLock)
+                    updateID = value;
+            }
+        }
+
+        /// <summary>
         /// This event is triggered during each API call, after the response from the device was received (or the connection timed out).
         /// </summary>
         public event EventHandler<ResultEventArgs<Postmaster.QueryResponse>> ResponseReceived;
@@ -37,6 +56,11 @@ namespace nxgmci.Protocol.WADM
         /// The internal IP endpoint of the WADM API.
         /// </summary>
         private readonly IPEndPoint ipEndpoint;
+
+        /// <summary>
+        /// The internal update ID.
+        /// </summary>
+        private uint updateID;
 
         /// <summary>
         /// The default path of the WADM API endpoint relative to the server root.
@@ -72,6 +96,7 @@ namespace nxgmci.Protocol.WADM
         /// <summary>
         /// This request returns the current update ID. This update ID has to be included into all destructive requests.
         /// The update ID automatically increments by one after it has been used.
+        /// Using this request will update the client's update ID.
         /// </summary>
         /// <param name="LazySyntax">Indicates whether to ignore minor syntax errors.</param>
         /// <returns>A result object that contains a serialized version of the response data.</returns>
@@ -123,9 +148,16 @@ namespace nxgmci.Protocol.WADM
                 if (parseResult.Success && (!parseResult.HasProduct || parseResult.Product == null))
                     return result.FailMessage("The parsed product was invalid!");
 
-                // Check, if the result is a success and return it
+                // Check, if the result is a success
                 if (parseResult.Success)
+                {
+                    // Also, store the update ID
+                    if (parseResult.Product.UpdateID != this.updateID && parseResult.Product.UpdateID != 0)
+                        this.updateID = parseResult.Product.UpdateID;
+
+                    // Return the result
                     return result.Succeed(parseResult.Product, parseResult.Message);
+                }
 
                 // Try to return a detailed error
                 if (parseResult.Error != null)
@@ -189,9 +221,16 @@ namespace nxgmci.Protocol.WADM
                 if (parseResult.Success && (!parseResult.HasProduct || parseResult.Product == null))
                     return result.FailMessage("The parsed product was invalid!");
 
-                // Check, if the result is a success and return it
+                // Check, if the result is a success
                 if (parseResult.Success)
+                {
+                    // Also, store the update ID
+                    if (parseResult.Product.UpdateID != this.updateID && parseResult.Product.UpdateID != 0)
+                        this.updateID = parseResult.Product.UpdateID;
+
+                    // Return the result
                     return result.Succeed(parseResult.Product, parseResult.Message);
+                }
 
                 // Try to return a detailed error
                 if (parseResult.Error != null)
@@ -325,9 +364,16 @@ namespace nxgmci.Protocol.WADM
                 if (parseResult.Success && (!parseResult.HasProduct || parseResult.Product == null))
                     return result.FailMessage("The parsed product was invalid!");
 
-                // Check, if the result is a success and return it
+                // Check, if the result is a success
                 if (parseResult.Success)
+                {
+                    // Also, store the update ID
+                    if (parseResult.Product.UpdateID != this.updateID && parseResult.Product.UpdateID != 0)
+                        this.updateID = parseResult.Product.UpdateID;
+
+                    // Return the result
                     return result.Succeed(parseResult.Product, parseResult.Message);
+                }
 
                 // Try to return a detailed error
                 if (parseResult.Error != null)
@@ -393,9 +439,16 @@ namespace nxgmci.Protocol.WADM
                 if (parseResult.Success && (!parseResult.HasProduct || parseResult.Product == null))
                     return result.FailMessage("The parsed product was invalid!");
 
-                // Check, if the result is a success and return it
+                // Check, if the result is a success
                 if (parseResult.Success)
+                {
+                    // Also, store the update ID
+                    if (parseResult.Product.UpdateID != this.updateID && parseResult.Product.UpdateID != 0)
+                        this.updateID = parseResult.Product.UpdateID;
+
+                    // Return the result
                     return result.Succeed(parseResult.Product, parseResult.Message);
+                }
 
                 // Try to return a detailed error
                 if (parseResult.Error != null)
@@ -461,9 +514,16 @@ namespace nxgmci.Protocol.WADM
                 if (parseResult.Success && (!parseResult.HasProduct || parseResult.Product == null))
                     return result.FailMessage("The parsed product was invalid!");
 
-                // Check, if the result is a success and return it
+                // Check, if the result is a success
                 if (parseResult.Success)
+                {
+                    // Also, store the update ID
+                    if (parseResult.Product.UpdateID != this.updateID && parseResult.Product.UpdateID != 0)
+                        this.updateID = parseResult.Product.UpdateID;
+
+                    // Return the result
                     return result.Succeed(parseResult.Product, parseResult.Message);
+                }
 
                 // Try to return a detailed error
                 if (parseResult.Error != null)
@@ -531,9 +591,16 @@ namespace nxgmci.Protocol.WADM
                 if (parseResult.Success && (!parseResult.HasProduct || parseResult.Product == null))
                     return result.FailMessage("The parsed product was invalid!");
 
-                // Check, if the result is a success and return it
+                // Check, if the result is a success
                 if (parseResult.Success)
+                {
+                    // Also, store the update ID
+                    if (parseResult.Product.UpdateID != this.updateID && parseResult.Product.UpdateID != 0)
+                        this.updateID = parseResult.Product.UpdateID;
+
+                    // Return the result
                     return result.Succeed(parseResult.Product, parseResult.Message);
+                }
 
                 // Try to return a detailed error
                 if (parseResult.Error != null)
@@ -606,9 +673,16 @@ namespace nxgmci.Protocol.WADM
                 if (parseResult.Success && (!parseResult.HasProduct || parseResult.Product == null))
                     return result.FailMessage("The parsed product was invalid!");
 
-                // Check, if the result is a success and return it
+                // Check, if the result is a success
                 if (parseResult.Success)
+                {
+                    // Also, store the update ID
+                    if (parseResult.Product.UpdateID != this.updateID && parseResult.Product.UpdateID != 0)
+                        this.updateID = parseResult.Product.UpdateID;
+
+                    // Return the result
                     return result.Succeed(parseResult.Product, parseResult.Message);
+                }
 
                 // Try to return a detailed error
                 if (parseResult.Error != null)
