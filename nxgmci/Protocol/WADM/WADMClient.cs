@@ -43,6 +43,63 @@ namespace nxgmci.Protocol.WADM
         }
 
         /// <summary>
+        /// Gets or sets whether the update ID is frozen and therefore not automatically updated.
+        /// This is thread-safe.
+        /// </summary>
+        public bool FreezeUpdateID
+        {
+            get
+            {
+                lock (eventLock)
+                    return freezeUpdateID;
+            }
+
+            set
+            {
+                lock (eventLock)
+                    freezeUpdateID = value;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets whether to validate the data values received.
+        /// This is thread-safe.
+        /// </summary>
+        public bool ValidateInput
+        {
+            get
+            {
+                lock (eventLock)
+                    return validateInput;
+            }
+
+            set
+            {
+                lock (eventLock)
+                    validateInput = value;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets whether to ignore minor syntax errors.
+        /// This is thread-safe.
+        /// </summary>
+        public bool LooseSyntax
+        {
+            get
+            {
+                lock (eventLock)
+                    return looseSyntax;
+            }
+
+            set
+            {
+                lock (eventLock)
+                    looseSyntax = value;
+            }
+        }
+
+        /// <summary>
         /// This event is triggered during each API call, after the response from the device was received (or the connection timed out).
         /// </summary>
         public event EventHandler<ResultEventArgs<Postmaster.QueryResponse>> ResponseReceived;
@@ -61,6 +118,21 @@ namespace nxgmci.Protocol.WADM
         /// The internal update ID.
         /// </summary>
         private uint updateID = 0;
+
+        /// <summary>
+        /// An internal flag that indicates whether the update ID is frozen and will not be updated automatically.
+        /// </summary>
+        private bool freezeUpdateID = false;
+
+        /// <summary>
+        /// An internal flag that indicates whether to validate the data values received.
+        /// </summary>
+        private bool validateInput = true;
+
+        /// <summary>
+        /// An internal flag that indicates whether to ignore minor syntax errors.
+        /// </summary>
+        private bool looseSyntax = false;
 
         /// <summary>
         /// The default path of the WADM API endpoint relative to the server root.
@@ -98,9 +170,8 @@ namespace nxgmci.Protocol.WADM
         /// The update ID automatically increments by one after it has been used.
         /// Using this request will update the client's update ID.
         /// </summary>
-        /// <param name="LazySyntax">Indicates whether to ignore minor syntax errors.</param>
         /// <returns>A result object that contains a serialized version of the response data.</returns>
-        public Result<GetUpdateID.ResponseParameters> GetUpdateID(bool LazySyntax = false)
+        public Result<GetUpdateID.ResponseParameters> GetUpdateID()
         {
             // Create the result object
             Result<GetUpdateID.ResponseParameters> result = new Result<GetUpdateID.ResponseParameters>();
@@ -140,7 +211,7 @@ namespace nxgmci.Protocol.WADM
                     return result;
 
                 // Parse the response
-                parseResult = WADM.GetUpdateID.Parse(shadowResponse, LazySyntax);
+                parseResult = WADM.GetUpdateID.Parse(shadowResponse, this.looseSyntax);
 
                 // Sanity check the result
                 if (parseResult == null)
@@ -152,7 +223,7 @@ namespace nxgmci.Protocol.WADM
                 if (parseResult.Success)
                 {
                     // Also, store the update ID
-                    if (parseResult.Product.UpdateID != this.updateID && parseResult.Product.UpdateID != 0)
+                    if (parseResult.Product.UpdateID != this.updateID && parseResult.Product.UpdateID != 0 && !freezeUpdateID)
                         this.updateID = parseResult.Product.UpdateID;
 
                     // Return the result
@@ -172,9 +243,8 @@ namespace nxgmci.Protocol.WADM
         /// This request returns some library statistics along the current update ID.
         /// Using this request will update the client's update ID.
         /// </summary>
-        /// <param name="LazySyntax">Indicates whether to ignore minor syntax errors.</param>
         /// <returns>A result object that contains a serialized version of the response data.</returns>
-        public Result<QueryDatabase.ResponseParameters> QueryDatabase(bool LazySyntax = false)
+        public Result<QueryDatabase.ResponseParameters> QueryDatabase()
         {
             // Create the result object
             Result<QueryDatabase.ResponseParameters> result = new Result<QueryDatabase.ResponseParameters>();
@@ -214,7 +284,7 @@ namespace nxgmci.Protocol.WADM
                     return result;
 
                 // Parse the response
-                parseResult = WADM.QueryDatabase.Parse(shadowResponse, LazySyntax);
+                parseResult = WADM.QueryDatabase.Parse(shadowResponse, this.looseSyntax);
 
                 // Sanity check the result
                 if (parseResult == null)
@@ -226,7 +296,7 @@ namespace nxgmci.Protocol.WADM
                 if (parseResult.Success)
                 {
                     // Also, store the update ID
-                    if (parseResult.Product.UpdateID != this.updateID && parseResult.Product.UpdateID != 0)
+                    if (parseResult.Product.UpdateID != this.updateID && parseResult.Product.UpdateID != 0 && !freezeUpdateID)
                         this.updateID = parseResult.Product.UpdateID;
 
                     // Return the result
@@ -246,10 +316,8 @@ namespace nxgmci.Protocol.WADM
         /// This request returns both the free and used harddisk space.
         /// This information can be used to determine whether new files could be uploaded or not.
         /// </summary>
-        /// <param name="ValidateInput">Indicates whether to validate the data values received.</param>
-        /// <param name="LazySyntax">Indicates whether to ignore minor syntax errors.</param>
         /// <returns>A result object that contains a serialized version of the response data.</returns>
-        public Result<QueryDiskSpace.ResponseParameters> QueryDiskSpace(bool ValidateInput = true, bool LazySyntax = false)
+        public Result<QueryDiskSpace.ResponseParameters> QueryDiskSpace()
         {
             // Create the result object
             Result<QueryDiskSpace.ResponseParameters> result = new Result<QueryDiskSpace.ResponseParameters>();
@@ -289,7 +357,7 @@ namespace nxgmci.Protocol.WADM
                     return result;
 
                 // Parse the response
-                parseResult = WADM.QueryDiskSpace.Parse(shadowResponse, ValidateInput, LazySyntax);
+                parseResult = WADM.QueryDiskSpace.Parse(shadowResponse, this.validateInput, this.looseSyntax);
 
                 // Sanity check the result
                 if (parseResult == null)
@@ -315,10 +383,8 @@ namespace nxgmci.Protocol.WADM
         /// This information can be used to map the album IDs returned by RequestRawData to strings.
         /// Using this request will update the client's update ID.
         /// </summary>
-        /// <param name="ValidateInput">Indicates whether to validate the data values received.</param>
-        /// <param name="LazySyntax">Indicates whether to ignore minor syntax errors.</param>
         /// <returns>A result object that contains a serialized version of the response data.</returns>
-        public Result<RequestAlbumIndexTable.ContentDataSet> RequestAlbumIndexTable(bool ValidateInput = true, bool LazySyntax = false)
+        public Result<RequestAlbumIndexTable.ContentDataSet> RequestAlbumIndexTable()
         {
             // Create the result object
             Result<RequestAlbumIndexTable.ContentDataSet> result = new Result<RequestAlbumIndexTable.ContentDataSet>();
@@ -358,7 +424,7 @@ namespace nxgmci.Protocol.WADM
                     return result;
 
                 // Parse the response
-                parseResult = WADM.RequestAlbumIndexTable.Parse(shadowResponse, ValidateInput, LazySyntax);
+                parseResult = WADM.RequestAlbumIndexTable.Parse(shadowResponse, this.validateInput, this.looseSyntax);
 
                 // Sanity check the result
                 if (parseResult == null)
@@ -370,7 +436,7 @@ namespace nxgmci.Protocol.WADM
                 if (parseResult.Success)
                 {
                     // Also, store the update ID
-                    if (parseResult.Product.UpdateID != this.updateID && parseResult.Product.UpdateID != 0)
+                    if (parseResult.Product.UpdateID != this.updateID && parseResult.Product.UpdateID != 0 && !freezeUpdateID)
                         this.updateID = parseResult.Product.UpdateID;
 
                     // Return the result
@@ -391,10 +457,8 @@ namespace nxgmci.Protocol.WADM
         /// This information can be used to map the artist IDs returned by RequestRawData to strings.
         /// Using this request will update the client's update ID.
         /// </summary>
-        /// <param name="ValidateInput">Indicates whether to validate the data values received.</param>
-        /// <param name="LazySyntax">Indicates whether to ignore minor syntax errors.</param>
         /// <returns>A result object that contains a serialized version of the response data.</returns>
-        public Result<RequestArtistIndexTable.ContentDataSet> RequestArtistIndexTable(bool ValidateInput = true, bool LazySyntax = false)
+        public Result<RequestArtistIndexTable.ContentDataSet> RequestArtistIndexTable()
         {
             // Create the result object
             Result<RequestArtistIndexTable.ContentDataSet> result = new Result<RequestArtistIndexTable.ContentDataSet>();
@@ -434,7 +498,7 @@ namespace nxgmci.Protocol.WADM
                     return result;
 
                 // Parse the response
-                parseResult = WADM.RequestArtistIndexTable.Parse(shadowResponse, ValidateInput, LazySyntax);
+                parseResult = WADM.RequestArtistIndexTable.Parse(shadowResponse, this.validateInput, this.looseSyntax);
 
                 // Sanity check the result
                 if (parseResult == null)
@@ -446,7 +510,7 @@ namespace nxgmci.Protocol.WADM
                 if (parseResult.Success)
                 {
                     // Also, store the update ID
-                    if (parseResult.Product.UpdateID != this.updateID && parseResult.Product.UpdateID != 0)
+                    if (parseResult.Product.UpdateID != this.updateID && parseResult.Product.UpdateID != 0 && !freezeUpdateID)
                         this.updateID = parseResult.Product.UpdateID;
 
                     // Return the result
@@ -467,10 +531,8 @@ namespace nxgmci.Protocol.WADM
         /// This information can be used to map the genre IDs returned by RequestRawData to strings.
         /// Using this request will update the client's update ID.
         /// </summary>
-        /// <param name="ValidateInput">Indicates whether to validate the data values received.</param>
-        /// <param name="LazySyntax">Indicates whether to ignore minor syntax errors.</param>
         /// <returns>A result object that contains a serialized version of the response data.</returns>
-        public Result<RequestGenreIndexTable.ContentDataSet> RequestGenreIndexTable(bool ValidateInput = true, bool LazySyntax = false)
+        public Result<RequestGenreIndexTable.ContentDataSet> RequestGenreIndexTable()
         {
             // Create the result object
             Result<RequestGenreIndexTable.ContentDataSet> result = new Result<RequestGenreIndexTable.ContentDataSet>();
@@ -510,7 +572,7 @@ namespace nxgmci.Protocol.WADM
                     return result;
 
                 // Parse the response
-                parseResult = WADM.RequestGenreIndexTable.Parse(shadowResponse, ValidateInput, LazySyntax);
+                parseResult = WADM.RequestGenreIndexTable.Parse(shadowResponse, this.validateInput, this.looseSyntax);
 
                 // Sanity check the result
                 if (parseResult == null)
@@ -522,7 +584,7 @@ namespace nxgmci.Protocol.WADM
                 if (parseResult.Success)
                 {
                     // Also, store the update ID
-                    if (parseResult.Product.UpdateID != this.updateID && parseResult.Product.UpdateID != 0)
+                    if (parseResult.Product.UpdateID != this.updateID && parseResult.Product.UpdateID != 0 && !freezeUpdateID)
                         this.updateID = parseResult.Product.UpdateID;
 
                     // Return the result
@@ -545,10 +607,8 @@ namespace nxgmci.Protocol.WADM
         /// Apart from that it presents a list of supported file formats along with their type-ID mapping.
         /// Using this request will update the client's update ID.
         /// </summary>
-        /// <param name="ValidateInput">Indicates whether to validate the data values received.</param>
-        /// <param name="LazySyntax">Indicates whether to ignore minor syntax errors.</param>
         /// <returns>A result object that contains a serialized version of the response data.</returns>
-        public Result<RequestUriMetaData.ResponseParameters> RequestUriMetaData(bool ValidateInput = true, bool LazySyntax = false)
+        public Result<RequestUriMetaData.ResponseParameters> RequestUriMetaData()
         {
             // Create the result object
             Result<RequestUriMetaData.ResponseParameters> result = new Result<RequestUriMetaData.ResponseParameters>();
@@ -588,7 +648,7 @@ namespace nxgmci.Protocol.WADM
                     return result;
 
                 // Parse the response
-                parseResult = WADM.RequestUriMetaData.Parse(shadowResponse, ValidateInput, LazySyntax);
+                parseResult = WADM.RequestUriMetaData.Parse(shadowResponse, this.validateInput, this.looseSyntax);
 
                 // Sanity check the result
                 if (parseResult == null)
@@ -600,7 +660,7 @@ namespace nxgmci.Protocol.WADM
                 if (parseResult.Success)
                 {
                     // Also, store the update ID
-                    if (parseResult.Product.UpdateID != this.updateID && parseResult.Product.UpdateID != 0)
+                    if (parseResult.Product.UpdateID != this.updateID && parseResult.Product.UpdateID != 0 && !freezeUpdateID)
                         this.updateID = parseResult.Product.UpdateID;
 
                     // Return the result
@@ -628,10 +688,8 @@ namespace nxgmci.Protocol.WADM
         /// </summary>
         /// <param name="FromIndex">First index to be included into the query.</param>
         /// <param name="NumElem">Number of elements to be queried. Use zero to query all elements.</param>
-        /// <param name="ValidateInput">Indicates whether to validate the data values received.</param>
-        /// <param name="LazySyntax">Indicates whether to ignore minor syntax errors.</param>
         /// <returns>A result object that contains a serialized version of the response data.</returns>
-        public Result<RequestRawData.ContentDataSet> RequestRawData(uint FromIndex, uint NumElem = 0, bool ValidateInput = true, bool LazySyntax = false)
+        public Result<RequestRawData.ContentDataSet> RequestRawData(uint FromIndex, uint NumElem = 0)
         {
             // Create the result object
             Result<RequestRawData.ContentDataSet> result = new Result<RequestRawData.ContentDataSet>();
@@ -671,7 +729,7 @@ namespace nxgmci.Protocol.WADM
                     return result;
 
                 // Parse the response
-                parseResult = WADM.RequestRawData.Parse(shadowResponse, ValidateInput, LazySyntax);
+                parseResult = WADM.RequestRawData.Parse(shadowResponse, this.validateInput, this.looseSyntax);
 
                 // Sanity check the result
                 if (parseResult == null)
@@ -683,7 +741,7 @@ namespace nxgmci.Protocol.WADM
                 if (parseResult.Success)
                 {
                     // Also, store the update ID
-                    if (parseResult.Product.UpdateID != this.updateID && parseResult.Product.UpdateID != 0)
+                    if (parseResult.Product.UpdateID != this.updateID && parseResult.Product.UpdateID != 0 && !freezeUpdateID)
                         this.updateID = parseResult.Product.UpdateID;
 
                     // Return the result
