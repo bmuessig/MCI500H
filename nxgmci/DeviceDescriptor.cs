@@ -3,26 +3,51 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Net;
+using System.Drawing.Imaging;
+using nxgmci.Device;
 
 namespace nxgmci
 {
     public class DeviceDescriptor
     {
-        public const ushort DEFAULT_PORT_WADM = 8081, DEFAULT_PORT_NVRAMD = 6481,
-            DEFAULT_PORT_DLNA_CLIENT = 8100, DEFAULT_PORT_DLNA_SERVER = 8084, // Client can also be 8080
-            DEFAULT_SCREEN_WIDTH = 0, DEFAULT_SCREEN_HEIGHT = 0,
-            DEFAULT_THUMB_WIDTH = 0, DEFAULT_THUMB_HEIGHT = 0;
+        public DeviceDescriptor(string DeviceName)
+        {
 
-        public IPAddress IPAddress;
+        }
 
-        public ushort PortWADM;
-        public ushort PortNVRAMD;
-        public ushort PortDLNAClient;
-        public ushort PortDLNAServer;
+        public readonly EndpointDescriptor Network;
+        public readonly ScreenDescriptor Screen;
+        public readonly DeviceModel Model;
 
-        public ushort ScreenWidth;
-        public ushort ScreenHeight;
-        public ushort ThumbWidth;
-        public ushort ThumbHeight;
+        // These might be moved into a higher wrapper class
+        // For instance they might be integrated into the MCI500H class
+        public DeviceLanguage Language;
+        public Version Version;
+        public byte Volume;
+        public uint UpdateID;
+
+        /// <summary>
+        /// Indicates the model of the device.
+        /// </summary>
+        public enum DeviceModel : byte
+        {
+            /// <summary>
+            /// The model of the device is unknown.
+            /// </summary>
+            Unknown,
+
+            /// <summary>
+            /// Philips MCI500H.
+            /// </summary>
+            MCI500H
+        }
+
+        /// <summary>
+        /// Indicates the device language.
+        /// </summary>
+        public enum DeviceLanguage : byte
+        {
+
+        }
     }
 }

@@ -2,24 +2,25 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using nxgmci.Device;
 
 namespace nxgmci.Protocol.NVRAM
 {
     public class NVRAM
     {
-        public readonly DeviceDescriptor Device;
+        public readonly EndpointDescriptor Endpoint;
 
-        public NVRAM(DeviceDescriptor Device)
+        public NVRAM(EndpointDescriptor Endpoint)
         {
             // Input sanity checks
             // The actual port number is not yet validated since it could still change
-            if (Device == null)
-                throw new ArgumentNullException("Device");
-            if (Device.IPAddress == null)
-                throw new NullReferenceException("Device.IPAddress may not be null!");
+            if (Endpoint == null)
+                throw new ArgumentNullException("Endpoint");
+            if (Endpoint.IPAddress == null)
+                throw new NullReferenceException("Endpoint.IPAddress may not be null!");
 
             // Store the descriptor locally
-            this.Device = Device;
+            this.Endpoint = Endpoint;
         }
 
         public Result<Dictionary<string, string>> GetAll()
