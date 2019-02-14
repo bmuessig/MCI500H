@@ -347,12 +347,9 @@ namespace nxgmci.Protocol.WADM
                 // Trim the key
                 string key = match.Groups[1].Value.Trim(), value = match.Groups[2].Value.Trim();
 
-                // Replace some escape sequences in the value
-                value = value.Replace("&apos;", "'");
-                value = value.Replace("&quot;", "\"");
-                value = value.Replace("&lt;", "<");
-                value = value.Replace("&gt;", ">");
-                value = value.Replace("&amp;", "&");
+                // Replace some escape sequences in the fields
+                key = DecodeValue(key);
+                value = DecodeValue(value);
 
                 // After that, determine if the entry already exists and add it
                 if (elements.ContainsKey(key))
@@ -370,6 +367,54 @@ namespace nxgmci.Protocol.WADM
             // Finally, return the elements
             Error = null;
             return elements;
+        }
+
+        /// <summary>
+        /// This function sanitizes and encodes all required special XML characters in a string.
+        /// </summary>
+        /// <param name="Value">The literal string.</param>
+        /// <returns>The XML escaped string.</returns>
+        public static string EncodeValue(string Value)
+        {
+            // Sanity check
+            if (Value == null)
+                return null;
+            
+            // Escape the ampersand first!
+            Value = Value.Replace("&", "&amp;");
+
+            // Replace the other literals with the escapes
+            Value = Value.Replace("'", "&apos;");
+            Value = Value.Replace("\"", "&quot;");
+            Value = Value.Replace("<", "&lt;");
+            Value = Value.Replace(">", "&gt;");
+
+            // Return the result
+            return Value;
+        }
+
+        /// <summary>
+        /// This function decodes an XML escaped string to it's literal form.
+        /// </summary>
+        /// <param name="Value">The XML escaped string to decode.</param>
+        /// <returns>The literal string.</returns>
+        public static string DecodeValue(string Value)
+        {
+            // Sanity check
+            if (Value == null)
+                return null;
+
+            // Replace the other escapes with the literals
+            Value = Value.Replace("&apos;", "'");
+            Value = Value.Replace("&quot;", "\"");
+            Value = Value.Replace("&lt;", "<");
+            Value = Value.Replace("&gt;", ">");
+
+            // Replace the ampersand last!
+            Value = Value.Replace("&amp;", "&");
+
+            // Return the result
+            return Value;
         }
     }
 }

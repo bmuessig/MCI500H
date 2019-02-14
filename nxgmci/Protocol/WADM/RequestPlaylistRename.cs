@@ -41,8 +41,8 @@ namespace nxgmci.Protocol.WADM
                 "</requestparameters></requestplaylistrename>",
                 UpdateID,
                 Index,
-                OriginalName,
-                Name);
+                WADMParser.EncodeValue(OriginalName),
+                WADMParser.EncodeValue(Name));
         }
 
         /// <summary>
