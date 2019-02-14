@@ -170,6 +170,7 @@ namespace nxgmci.Protocol.WADM
 
         /// <summary>
         /// This request returns some library statistics along the current update ID.
+        /// Using this request will update the client's update ID.
         /// </summary>
         /// <param name="LazySyntax">Indicates whether to ignore minor syntax errors.</param>
         /// <returns>A result object that contains a serialized version of the response data.</returns>
@@ -312,6 +313,7 @@ namespace nxgmci.Protocol.WADM
         /// <summary>
         /// This request returns a dictionary of all album IDs and their cleartext names.
         /// This information can be used to map the album IDs returned by RequestRawData to strings.
+        /// Using this request will update the client's update ID.
         /// </summary>
         /// <param name="ValidateInput">Indicates whether to validate the data values received.</param>
         /// <param name="LazySyntax">Indicates whether to ignore minor syntax errors.</param>
@@ -387,6 +389,7 @@ namespace nxgmci.Protocol.WADM
         /// <summary>
         /// This request returns a dictionary of all artist IDs and their cleartext names.
         /// This information can be used to map the artist IDs returned by RequestRawData to strings.
+        /// Using this request will update the client's update ID.
         /// </summary>
         /// <param name="ValidateInput">Indicates whether to validate the data values received.</param>
         /// <param name="LazySyntax">Indicates whether to ignore minor syntax errors.</param>
@@ -462,6 +465,7 @@ namespace nxgmci.Protocol.WADM
         /// <summary>
         /// This request returns a dictionary of all genre IDs and their cleartext names.
         /// This information can be used to map the genre IDs returned by RequestRawData to strings.
+        /// Using this request will update the client's update ID.
         /// </summary>
         /// <param name="ValidateInput">Indicates whether to validate the data values received.</param>
         /// <param name="LazySyntax">Indicates whether to ignore minor syntax errors.</param>
@@ -539,6 +543,7 @@ namespace nxgmci.Protocol.WADM
         /// For instance, this will provide the public directory of the media files.
         /// It will also provide the bitmask mask that needs to be applied to work with the node IDs.
         /// Apart from that it presents a list of supported file formats along with their type-ID mapping.
+        /// Using this request will update the client's update ID.
         /// </summary>
         /// <param name="ValidateInput">Indicates whether to validate the data values received.</param>
         /// <param name="LazySyntax">Indicates whether to ignore minor syntax errors.</param>
@@ -619,6 +624,7 @@ namespace nxgmci.Protocol.WADM
         /// It is recommended to fetch 100 titles at a time. The first request will return a total number of titles.
         /// This number can be used to generate the correct number of requests to fetch all titles successfully.
         /// The 0,0 method is not used by the official application, whereas the 100 element method is used.
+        /// Using this request will update the client's update ID.
         /// </summary>
         /// <param name="FromIndex">First index to be included into the query.</param>
         /// <param name="NumElem">Number of elements to be queried. Use zero to query all elements.</param>
