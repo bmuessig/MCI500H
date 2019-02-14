@@ -26,6 +26,8 @@ namespace ADM
         string lastResponse = "";
         bool lastSuccess = false;
 
+        WADMClient client = new WADMClient(new nxgmci.Device.EndpointDescriptor(new IPAddress(new byte[] { 10, 0, 0, 10 })));
+
         public MainForm()
         {
             InitializeComponent();
@@ -233,31 +235,19 @@ namespace ADM
 
         private void queryDiskSpaceButton_Click(object sender, EventArgs e)
         {
-            DateTime internalStart = DateTime.Now;
+            Result<QueryDiskSpace.ResponseParameters> result = client.QueryDiskSpace();
 
-            Postmaster.QueryResponse response = Postmaster.PostXML(new Uri(baseurl + ":8081/"),
-                (transmitTextBox.Text = QueryDiskSpace.Build()), true);
-
-            if (!response.Success)
+            if (!result.Success)
             {
-                MessageBox.Show("An error occured: " + response.Message);
+                MessageBox.Show(result.ToString());
                 return;
             }
-
-            Result<QueryDiskSpace.ResponseParameters> parserResp = QueryDiskSpace.Parse(response.TextualResponse);
-            if (!parserResp.Success)
-            {
-                MessageBox.Show(parserResp.ToString());
-                return;
-            }
-
-            DateTime internalStop = DateTime.Now;
 
             MessageBox.Show(string.Format("Free disk space: {0} GB / {1} GB ({2}%)\n\nTook {3}ms for request, response and parsing.",
-                parserResp.Product.Size / 1024 / 1024 / 1024,
-                parserResp.Product.TotalSize / 1024 / 1024 / 1024,
-                (parserResp.Product.Size * 100) / parserResp.Product.TotalSize,
-                (internalStop - internalStart).TotalMilliseconds));
+                result.Product.Size / 1024 / 1024 / 1024,
+                result.Product.TotalSize / 1024 / 1024 / 1024,
+                (result.Product.Size * 100) / result.Product.TotalSize,
+                result.TimeDelta.TotalMilliseconds));
         }
 
         private void mediaPauseButton_Click(object sender, EventArgs e)
