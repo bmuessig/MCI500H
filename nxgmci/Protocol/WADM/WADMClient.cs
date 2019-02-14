@@ -31,7 +31,7 @@ namespace nxgmci.Protocol.WADM
         {
             get
             {
-                lock (eventLock)
+                lock (updateIDLock)
                     return updateID;
             }
 
@@ -50,8 +50,7 @@ namespace nxgmci.Protocol.WADM
         {
             get
             {
-                lock (eventLock)
-                    return freezeUpdateID;
+                return freezeUpdateID;
             }
 
             set
@@ -69,8 +68,7 @@ namespace nxgmci.Protocol.WADM
         {
             get
             {
-                lock (eventLock)
-                    return validateInput;
+                return validateInput;
             }
 
             set
@@ -88,8 +86,7 @@ namespace nxgmci.Protocol.WADM
         {
             get
             {
-                lock (eventLock)
-                    return looseSyntax;
+                return looseSyntax;
             }
 
             set
@@ -105,9 +102,14 @@ namespace nxgmci.Protocol.WADM
         public event EventHandler<ResultEventArgs<Postmaster.QueryResponse>> ResponseReceived;
 
         /// <summary>
-        /// The internal lock object used to prevent parallel execution and ensure thread safety.
+        /// The internal event lock object used to prevent parallel execution and ensure thread safety.
         /// </summary>
         private volatile object eventLock = new object();
+
+        /// <summary>
+        /// The internal update ID lock object used to prevent parallel execution and ensure thread safety.
+        /// </summary>
+        private volatile object updateIDLock = new object();
 
         /// <summary>
         /// The internal IP endpoint of the WADM API.
@@ -224,7 +226,8 @@ namespace nxgmci.Protocol.WADM
                 {
                     // Also, store the update ID (note that this function is intentionally less strict on the auto-updating)
                     if (parseResult.Product.UpdateID != this.updateID && !freezeUpdateID)
-                        this.updateID = parseResult.Product.UpdateID;
+                        lock (updateIDLock)
+                            this.updateID = parseResult.Product.UpdateID;
 
                     // Return the result
                     return result.Succeed(parseResult.Product, parseResult.Message);
@@ -297,7 +300,8 @@ namespace nxgmci.Protocol.WADM
                 {
                     // Also, store the update ID
                     if (parseResult.Product.UpdateID > this.updateID && parseResult.Product.UpdateID != 0 && !freezeUpdateID)
-                        this.updateID = parseResult.Product.UpdateID;
+                        lock (updateIDLock)
+                            this.updateID = parseResult.Product.UpdateID;
 
                     // Return the result
                     return result.Succeed(parseResult.Product, parseResult.Message);
@@ -437,7 +441,8 @@ namespace nxgmci.Protocol.WADM
                 {
                     // Also, store the update ID
                     if (parseResult.Product.UpdateID > this.updateID && parseResult.Product.UpdateID != 0 && !freezeUpdateID)
-                        this.updateID = parseResult.Product.UpdateID;
+                        lock (updateIDLock)
+                            this.updateID = parseResult.Product.UpdateID;
 
                     // Return the result
                     return result.Succeed(parseResult.Product, parseResult.Message);
@@ -511,7 +516,8 @@ namespace nxgmci.Protocol.WADM
                 {
                     // Also, store the update ID
                     if (parseResult.Product.UpdateID > this.updateID && parseResult.Product.UpdateID != 0 && !freezeUpdateID)
-                        this.updateID = parseResult.Product.UpdateID;
+                        lock (updateIDLock)
+                            this.updateID = parseResult.Product.UpdateID;
 
                     // Return the result
                     return result.Succeed(parseResult.Product, parseResult.Message);
@@ -585,7 +591,8 @@ namespace nxgmci.Protocol.WADM
                 {
                     // Also, store the update ID
                     if (parseResult.Product.UpdateID > this.updateID && parseResult.Product.UpdateID != 0 && !freezeUpdateID)
-                        this.updateID = parseResult.Product.UpdateID;
+                        lock (updateIDLock)
+                            this.updateID = parseResult.Product.UpdateID;
 
                     // Return the result
                     return result.Succeed(parseResult.Product, parseResult.Message);
@@ -661,7 +668,8 @@ namespace nxgmci.Protocol.WADM
                 {
                     // Also, store the update ID
                     if (parseResult.Product.UpdateID > this.updateID && parseResult.Product.UpdateID != 0 && !freezeUpdateID)
-                        this.updateID = parseResult.Product.UpdateID;
+                        lock (updateIDLock)
+                            this.updateID = parseResult.Product.UpdateID;
 
                     // Return the result
                     return result.Succeed(parseResult.Product, parseResult.Message);
@@ -742,7 +750,8 @@ namespace nxgmci.Protocol.WADM
                 {
                     // Also, store the update ID
                     if (parseResult.Product.UpdateID > this.updateID && parseResult.Product.UpdateID != 0 && !freezeUpdateID)
-                        this.updateID = parseResult.Product.UpdateID;
+                        lock (updateIDLock)
+                            this.updateID = parseResult.Product.UpdateID;
 
                     // Return the result
                     return result.Succeed(parseResult.Product, parseResult.Message);
