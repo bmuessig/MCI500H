@@ -38,6 +38,7 @@
             this.queryDiskSpaceButton = new System.Windows.Forms.Button();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.mediaTabPage = new System.Windows.Forms.TabPage();
+            this.viewIDButton = new System.Windows.Forms.Button();
             this.mediaInfoButton = new System.Windows.Forms.Button();
             this.mediaSkipAheadButton = new System.Windows.Forms.Button();
             this.mediaSkipBackButton = new System.Windows.Forms.Button();
@@ -47,6 +48,20 @@
             this.columnHeader1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader2 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader3 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.browserTabPage = new System.Windows.Forms.TabPage();
+            this.treeInfoTextBox = new System.Windows.Forms.TextBox();
+            this.panel1 = new System.Windows.Forms.Panel();
+            this.treeItemsListBox = new System.Windows.Forms.ListBox();
+            this.label1 = new System.Windows.Forms.Label();
+            this.treeStackListBox = new System.Windows.Forms.ListBox();
+            this.treePlayButton = new System.Windows.Forms.Button();
+            this.treeGotoSelectionButton = new System.Windows.Forms.Button();
+            this.treeResetButton = new System.Windows.Forms.Button();
+            this.treeUpButton = new System.Windows.Forms.Button();
+            this.extrasTabPage = new System.Windows.Forms.TabPage();
+            this.transmitTryParseButton = new System.Windows.Forms.Button();
+            this.extraSplitContainer = new System.Windows.Forms.SplitContainer();
+            this.receiveTextBox = new System.Windows.Forms.TextBox();
             this.trackInfoTabPage = new System.Windows.Forms.TabPage();
             this.getUrlButton = new System.Windows.Forms.Button();
             this.fetchButton = new System.Windows.Forms.Button();
@@ -61,34 +76,20 @@
             this.label5 = new System.Windows.Forms.Label();
             this.albumLabel = new System.Windows.Forms.Label();
             this.coverPictureBox = new System.Windows.Forms.PictureBox();
-            this.extrasTabPage = new System.Windows.Forms.TabPage();
-            this.transmitTryParseButton = new System.Windows.Forms.Button();
-            this.extraSplitContainer = new System.Windows.Forms.SplitContainer();
-            this.receiveTextBox = new System.Windows.Forms.TextBox();
-            this.browserTabPage = new System.Windows.Forms.TabPage();
-            this.treeResetButton = new System.Windows.Forms.Button();
-            this.treeInfoTextBox = new System.Windows.Forms.TextBox();
-            this.treeItemsListBox = new System.Windows.Forms.ListBox();
-            this.treeUpButton = new System.Windows.Forms.Button();
-            this.treeGotoSelectionButton = new System.Windows.Forms.Button();
-            this.treeStackListBox = new System.Windows.Forms.ListBox();
             this.playUriTextBox = new System.Windows.Forms.TextBox();
             this.playUriButton = new System.Windows.Forms.Button();
-            this.treePlayButton = new System.Windows.Forms.Button();
-            this.label1 = new System.Windows.Forms.Label();
-            this.panel1 = new System.Windows.Forms.Panel();
             this.tabControl1.SuspendLayout();
             this.mediaTabPage.SuspendLayout();
-            this.trackInfoTabPage.SuspendLayout();
-            this.metaLayoutTable.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.coverPictureBox)).BeginInit();
+            this.browserTabPage.SuspendLayout();
+            this.panel1.SuspendLayout();
             this.extrasTabPage.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.extraSplitContainer)).BeginInit();
             this.extraSplitContainer.Panel1.SuspendLayout();
             this.extraSplitContainer.Panel2.SuspendLayout();
             this.extraSplitContainer.SuspendLayout();
-            this.browserTabPage.SuspendLayout();
-            this.panel1.SuspendLayout();
+            this.trackInfoTabPage.SuspendLayout();
+            this.metaLayoutTable.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.coverPictureBox)).BeginInit();
             this.SuspendLayout();
             // 
             // speedTestButton
@@ -197,6 +198,7 @@
             // 
             // mediaTabPage
             // 
+            this.mediaTabPage.Controls.Add(this.viewIDButton);
             this.mediaTabPage.Controls.Add(this.mediaInfoButton);
             this.mediaTabPage.Controls.Add(this.mediaSkipAheadButton);
             this.mediaTabPage.Controls.Add(this.mediaSkipBackButton);
@@ -212,6 +214,17 @@
             this.mediaTabPage.TabIndex = 1;
             this.mediaTabPage.Text = "Media";
             this.mediaTabPage.UseVisualStyleBackColor = true;
+            // 
+            // viewIDButton
+            // 
+            this.viewIDButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.viewIDButton.Location = new System.Drawing.Point(407, 293);
+            this.viewIDButton.Name = "viewIDButton";
+            this.viewIDButton.Size = new System.Drawing.Size(34, 23);
+            this.viewIDButton.TabIndex = 13;
+            this.viewIDButton.Text = "ID?";
+            this.viewIDButton.UseVisualStyleBackColor = true;
+            this.viewIDButton.Click += new System.EventHandler(this.viewIDButton_Click);
             // 
             // mediaInfoButton
             // 
@@ -297,6 +310,177 @@
             // 
             this.columnHeader3.Text = "Album";
             this.columnHeader3.Width = 115;
+            // 
+            // browserTabPage
+            // 
+            this.browserTabPage.Controls.Add(this.treeInfoTextBox);
+            this.browserTabPage.Controls.Add(this.panel1);
+            this.browserTabPage.Location = new System.Drawing.Point(4, 22);
+            this.browserTabPage.Name = "browserTabPage";
+            this.browserTabPage.Padding = new System.Windows.Forms.Padding(3);
+            this.browserTabPage.Size = new System.Drawing.Size(526, 322);
+            this.browserTabPage.TabIndex = 3;
+            this.browserTabPage.Text = "Browser";
+            this.browserTabPage.UseVisualStyleBackColor = true;
+            // 
+            // treeInfoTextBox
+            // 
+            this.treeInfoTextBox.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.treeInfoTextBox.Location = new System.Drawing.Point(296, 3);
+            this.treeInfoTextBox.Multiline = true;
+            this.treeInfoTextBox.Name = "treeInfoTextBox";
+            this.treeInfoTextBox.ReadOnly = true;
+            this.treeInfoTextBox.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+            this.treeInfoTextBox.Size = new System.Drawing.Size(227, 316);
+            this.treeInfoTextBox.TabIndex = 5;
+            this.treeInfoTextBox.Text = "Click \'Reset\' followed by an item to begin!";
+            // 
+            // panel1
+            // 
+            this.panel1.Controls.Add(this.treeItemsListBox);
+            this.panel1.Controls.Add(this.label1);
+            this.panel1.Controls.Add(this.treeStackListBox);
+            this.panel1.Controls.Add(this.treePlayButton);
+            this.panel1.Controls.Add(this.treeGotoSelectionButton);
+            this.panel1.Controls.Add(this.treeResetButton);
+            this.panel1.Controls.Add(this.treeUpButton);
+            this.panel1.Dock = System.Windows.Forms.DockStyle.Left;
+            this.panel1.Location = new System.Drawing.Point(3, 3);
+            this.panel1.Name = "panel1";
+            this.panel1.Size = new System.Drawing.Size(293, 316);
+            this.panel1.TabIndex = 9;
+            // 
+            // treeItemsListBox
+            // 
+            this.treeItemsListBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+                        | System.Windows.Forms.AnchorStyles.Left)));
+            this.treeItemsListBox.FormattingEnabled = true;
+            this.treeItemsListBox.Location = new System.Drawing.Point(0, 0);
+            this.treeItemsListBox.Name = "treeItemsListBox";
+            this.treeItemsListBox.ScrollAlwaysVisible = true;
+            this.treeItemsListBox.Size = new System.Drawing.Size(287, 212);
+            this.treeItemsListBox.TabIndex = 3;
+            // 
+            // label1
+            // 
+            this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(3, 232);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(38, 13);
+            this.label1.TabIndex = 8;
+            this.label1.Text = "Stack:";
+            // 
+            // treeStackListBox
+            // 
+            this.treeStackListBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.treeStackListBox.FormattingEnabled = true;
+            this.treeStackListBox.Location = new System.Drawing.Point(101, 218);
+            this.treeStackListBox.Name = "treeStackListBox";
+            this.treeStackListBox.ScrollAlwaysVisible = true;
+            this.treeStackListBox.Size = new System.Drawing.Size(186, 69);
+            this.treeStackListBox.TabIndex = 0;
+            // 
+            // treePlayButton
+            // 
+            this.treePlayButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.treePlayButton.Location = new System.Drawing.Point(81, 293);
+            this.treePlayButton.Name = "treePlayButton";
+            this.treePlayButton.Size = new System.Drawing.Size(75, 23);
+            this.treePlayButton.TabIndex = 7;
+            this.treePlayButton.Text = "Play";
+            this.treePlayButton.UseVisualStyleBackColor = true;
+            // 
+            // treeGotoSelectionButton
+            // 
+            this.treeGotoSelectionButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.treeGotoSelectionButton.Location = new System.Drawing.Point(6, 256);
+            this.treeGotoSelectionButton.Name = "treeGotoSelectionButton";
+            this.treeGotoSelectionButton.Size = new System.Drawing.Size(89, 23);
+            this.treeGotoSelectionButton.TabIndex = 1;
+            this.treeGotoSelectionButton.Text = "Goto selection";
+            this.treeGotoSelectionButton.UseVisualStyleBackColor = true;
+            // 
+            // treeResetButton
+            // 
+            this.treeResetButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.treeResetButton.Location = new System.Drawing.Point(6, 293);
+            this.treeResetButton.Name = "treeResetButton";
+            this.treeResetButton.Size = new System.Drawing.Size(69, 23);
+            this.treeResetButton.TabIndex = 6;
+            this.treeResetButton.Text = "Reset";
+            this.treeResetButton.UseVisualStyleBackColor = true;
+            this.treeResetButton.Click += new System.EventHandler(this.treeResetButton_Click);
+            // 
+            // treeUpButton
+            // 
+            this.treeUpButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.treeUpButton.Location = new System.Drawing.Point(45, 227);
+            this.treeUpButton.Name = "treeUpButton";
+            this.treeUpButton.Size = new System.Drawing.Size(50, 23);
+            this.treeUpButton.TabIndex = 2;
+            this.treeUpButton.Text = "Go Up";
+            this.treeUpButton.UseVisualStyleBackColor = true;
+            this.treeUpButton.Click += new System.EventHandler(this.treeUpButton_Click);
+            // 
+            // extrasTabPage
+            // 
+            this.extrasTabPage.Controls.Add(this.transmitTryParseButton);
+            this.extrasTabPage.Controls.Add(this.transmitButton);
+            this.extrasTabPage.Controls.Add(this.transmitClearButton);
+            this.extrasTabPage.Controls.Add(this.topMostCheckBox);
+            this.extrasTabPage.Controls.Add(this.queryDiskSpaceButton);
+            this.extrasTabPage.Controls.Add(this.speedTestButton);
+            this.extrasTabPage.Controls.Add(this.extraSplitContainer);
+            this.extrasTabPage.Location = new System.Drawing.Point(4, 22);
+            this.extrasTabPage.Name = "extrasTabPage";
+            this.extrasTabPage.Padding = new System.Windows.Forms.Padding(3);
+            this.extrasTabPage.Size = new System.Drawing.Size(526, 322);
+            this.extrasTabPage.TabIndex = 0;
+            this.extrasTabPage.Text = "Extras";
+            this.extrasTabPage.UseVisualStyleBackColor = true;
+            // 
+            // transmitTryParseButton
+            // 
+            this.transmitTryParseButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.transmitTryParseButton.Location = new System.Drawing.Point(84, 293);
+            this.transmitTryParseButton.Name = "transmitTryParseButton";
+            this.transmitTryParseButton.Size = new System.Drawing.Size(75, 23);
+            this.transmitTryParseButton.TabIndex = 9;
+            this.transmitTryParseButton.Text = "Try Parse";
+            this.transmitTryParseButton.UseVisualStyleBackColor = true;
+            this.transmitTryParseButton.Click += new System.EventHandler(this.transmitTryParseButton_Click);
+            // 
+            // extraSplitContainer
+            // 
+            this.extraSplitContainer.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+                        | System.Windows.Forms.AnchorStyles.Left)
+                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.extraSplitContainer.Location = new System.Drawing.Point(3, 3);
+            this.extraSplitContainer.Name = "extraSplitContainer";
+            // 
+            // extraSplitContainer.Panel1
+            // 
+            this.extraSplitContainer.Panel1.Controls.Add(this.transmitTextBox);
+            // 
+            // extraSplitContainer.Panel2
+            // 
+            this.extraSplitContainer.Panel2.Controls.Add(this.receiveTextBox);
+            this.extraSplitContainer.Size = new System.Drawing.Size(517, 284);
+            this.extraSplitContainer.SplitterDistance = 277;
+            this.extraSplitContainer.TabIndex = 10;
+            // 
+            // receiveTextBox
+            // 
+            this.receiveTextBox.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.receiveTextBox.Location = new System.Drawing.Point(0, 0);
+            this.receiveTextBox.Multiline = true;
+            this.receiveTextBox.Name = "receiveTextBox";
+            this.receiveTextBox.ReadOnly = true;
+            this.receiveTextBox.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+            this.receiveTextBox.Size = new System.Drawing.Size(236, 284);
+            this.receiveTextBox.TabIndex = 4;
+            this.receiveTextBox.Text = "Click send to get a reply!";
             // 
             // trackInfoTabPage
             // 
@@ -471,142 +655,6 @@
             this.coverPictureBox.TabIndex = 0;
             this.coverPictureBox.TabStop = false;
             // 
-            // extrasTabPage
-            // 
-            this.extrasTabPage.Controls.Add(this.transmitTryParseButton);
-            this.extrasTabPage.Controls.Add(this.transmitButton);
-            this.extrasTabPage.Controls.Add(this.transmitClearButton);
-            this.extrasTabPage.Controls.Add(this.topMostCheckBox);
-            this.extrasTabPage.Controls.Add(this.queryDiskSpaceButton);
-            this.extrasTabPage.Controls.Add(this.speedTestButton);
-            this.extrasTabPage.Controls.Add(this.extraSplitContainer);
-            this.extrasTabPage.Location = new System.Drawing.Point(4, 22);
-            this.extrasTabPage.Name = "extrasTabPage";
-            this.extrasTabPage.Padding = new System.Windows.Forms.Padding(3);
-            this.extrasTabPage.Size = new System.Drawing.Size(526, 322);
-            this.extrasTabPage.TabIndex = 0;
-            this.extrasTabPage.Text = "Extras";
-            this.extrasTabPage.UseVisualStyleBackColor = true;
-            // 
-            // transmitTryParseButton
-            // 
-            this.transmitTryParseButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.transmitTryParseButton.Location = new System.Drawing.Point(84, 293);
-            this.transmitTryParseButton.Name = "transmitTryParseButton";
-            this.transmitTryParseButton.Size = new System.Drawing.Size(75, 23);
-            this.transmitTryParseButton.TabIndex = 9;
-            this.transmitTryParseButton.Text = "Try Parse";
-            this.transmitTryParseButton.UseVisualStyleBackColor = true;
-            this.transmitTryParseButton.Click += new System.EventHandler(this.transmitTryParseButton_Click);
-            // 
-            // extraSplitContainer
-            // 
-            this.extraSplitContainer.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-                        | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
-            this.extraSplitContainer.Location = new System.Drawing.Point(3, 3);
-            this.extraSplitContainer.Name = "extraSplitContainer";
-            // 
-            // extraSplitContainer.Panel1
-            // 
-            this.extraSplitContainer.Panel1.Controls.Add(this.transmitTextBox);
-            // 
-            // extraSplitContainer.Panel2
-            // 
-            this.extraSplitContainer.Panel2.Controls.Add(this.receiveTextBox);
-            this.extraSplitContainer.Size = new System.Drawing.Size(517, 284);
-            this.extraSplitContainer.SplitterDistance = 277;
-            this.extraSplitContainer.TabIndex = 10;
-            // 
-            // receiveTextBox
-            // 
-            this.receiveTextBox.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.receiveTextBox.Location = new System.Drawing.Point(0, 0);
-            this.receiveTextBox.Multiline = true;
-            this.receiveTextBox.Name = "receiveTextBox";
-            this.receiveTextBox.ReadOnly = true;
-            this.receiveTextBox.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.receiveTextBox.Size = new System.Drawing.Size(236, 284);
-            this.receiveTextBox.TabIndex = 4;
-            this.receiveTextBox.Text = "Click send to get a reply!";
-            // 
-            // browserTabPage
-            // 
-            this.browserTabPage.Controls.Add(this.treeInfoTextBox);
-            this.browserTabPage.Controls.Add(this.panel1);
-            this.browserTabPage.Location = new System.Drawing.Point(4, 22);
-            this.browserTabPage.Name = "browserTabPage";
-            this.browserTabPage.Padding = new System.Windows.Forms.Padding(3);
-            this.browserTabPage.Size = new System.Drawing.Size(526, 322);
-            this.browserTabPage.TabIndex = 3;
-            this.browserTabPage.Text = "Browser";
-            this.browserTabPage.UseVisualStyleBackColor = true;
-            // 
-            // treeResetButton
-            // 
-            this.treeResetButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.treeResetButton.Location = new System.Drawing.Point(6, 293);
-            this.treeResetButton.Name = "treeResetButton";
-            this.treeResetButton.Size = new System.Drawing.Size(69, 23);
-            this.treeResetButton.TabIndex = 6;
-            this.treeResetButton.Text = "Reset";
-            this.treeResetButton.UseVisualStyleBackColor = true;
-            this.treeResetButton.Click += new System.EventHandler(this.treeResetButton_Click);
-            // 
-            // treeInfoTextBox
-            // 
-            this.treeInfoTextBox.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.treeInfoTextBox.Location = new System.Drawing.Point(296, 3);
-            this.treeInfoTextBox.Multiline = true;
-            this.treeInfoTextBox.Name = "treeInfoTextBox";
-            this.treeInfoTextBox.ReadOnly = true;
-            this.treeInfoTextBox.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.treeInfoTextBox.Size = new System.Drawing.Size(227, 316);
-            this.treeInfoTextBox.TabIndex = 5;
-            this.treeInfoTextBox.Text = "Click \'Reset\' followed by an item to begin!";
-            // 
-            // treeItemsListBox
-            // 
-            this.treeItemsListBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-                        | System.Windows.Forms.AnchorStyles.Left)));
-            this.treeItemsListBox.FormattingEnabled = true;
-            this.treeItemsListBox.Location = new System.Drawing.Point(0, 0);
-            this.treeItemsListBox.Name = "treeItemsListBox";
-            this.treeItemsListBox.ScrollAlwaysVisible = true;
-            this.treeItemsListBox.Size = new System.Drawing.Size(287, 212);
-            this.treeItemsListBox.TabIndex = 3;
-            // 
-            // treeUpButton
-            // 
-            this.treeUpButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.treeUpButton.Location = new System.Drawing.Point(45, 227);
-            this.treeUpButton.Name = "treeUpButton";
-            this.treeUpButton.Size = new System.Drawing.Size(50, 23);
-            this.treeUpButton.TabIndex = 2;
-            this.treeUpButton.Text = "Go Up";
-            this.treeUpButton.UseVisualStyleBackColor = true;
-            this.treeUpButton.Click += new System.EventHandler(this.treeUpButton_Click);
-            // 
-            // treeGotoSelectionButton
-            // 
-            this.treeGotoSelectionButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.treeGotoSelectionButton.Location = new System.Drawing.Point(6, 256);
-            this.treeGotoSelectionButton.Name = "treeGotoSelectionButton";
-            this.treeGotoSelectionButton.Size = new System.Drawing.Size(89, 23);
-            this.treeGotoSelectionButton.TabIndex = 1;
-            this.treeGotoSelectionButton.Text = "Goto selection";
-            this.treeGotoSelectionButton.UseVisualStyleBackColor = true;
-            // 
-            // treeStackListBox
-            // 
-            this.treeStackListBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.treeStackListBox.FormattingEnabled = true;
-            this.treeStackListBox.Location = new System.Drawing.Point(101, 218);
-            this.treeStackListBox.Name = "treeStackListBox";
-            this.treeStackListBox.ScrollAlwaysVisible = true;
-            this.treeStackListBox.Size = new System.Drawing.Size(186, 69);
-            this.treeStackListBox.TabIndex = 0;
-            // 
             // playUriTextBox
             // 
             this.playUriTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)
@@ -628,41 +676,6 @@
             this.playUriButton.UseVisualStyleBackColor = true;
             this.playUriButton.Click += new System.EventHandler(this.playUriButton_Click);
             // 
-            // treePlayButton
-            // 
-            this.treePlayButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.treePlayButton.Location = new System.Drawing.Point(81, 293);
-            this.treePlayButton.Name = "treePlayButton";
-            this.treePlayButton.Size = new System.Drawing.Size(75, 23);
-            this.treePlayButton.TabIndex = 7;
-            this.treePlayButton.Text = "Play";
-            this.treePlayButton.UseVisualStyleBackColor = true;
-            // 
-            // label1
-            // 
-            this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(3, 232);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(38, 13);
-            this.label1.TabIndex = 8;
-            this.label1.Text = "Stack:";
-            // 
-            // panel1
-            // 
-            this.panel1.Controls.Add(this.treeItemsListBox);
-            this.panel1.Controls.Add(this.label1);
-            this.panel1.Controls.Add(this.treeStackListBox);
-            this.panel1.Controls.Add(this.treePlayButton);
-            this.panel1.Controls.Add(this.treeGotoSelectionButton);
-            this.panel1.Controls.Add(this.treeResetButton);
-            this.panel1.Controls.Add(this.treeUpButton);
-            this.panel1.Dock = System.Windows.Forms.DockStyle.Left;
-            this.panel1.Location = new System.Drawing.Point(3, 3);
-            this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(293, 316);
-            this.panel1.TabIndex = 9;
-            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -675,9 +688,10 @@
             this.Text = "MCI500H - nxgmci - ADM Test";
             this.tabControl1.ResumeLayout(false);
             this.mediaTabPage.ResumeLayout(false);
-            this.trackInfoTabPage.ResumeLayout(false);
-            this.metaLayoutTable.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.coverPictureBox)).EndInit();
+            this.browserTabPage.ResumeLayout(false);
+            this.browserTabPage.PerformLayout();
+            this.panel1.ResumeLayout(false);
+            this.panel1.PerformLayout();
             this.extrasTabPage.ResumeLayout(false);
             this.extrasTabPage.PerformLayout();
             this.extraSplitContainer.Panel1.ResumeLayout(false);
@@ -686,10 +700,9 @@
             this.extraSplitContainer.Panel2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.extraSplitContainer)).EndInit();
             this.extraSplitContainer.ResumeLayout(false);
-            this.browserTabPage.ResumeLayout(false);
-            this.browserTabPage.PerformLayout();
-            this.panel1.ResumeLayout(false);
-            this.panel1.PerformLayout();
+            this.trackInfoTabPage.ResumeLayout(false);
+            this.metaLayoutTable.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.coverPictureBox)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -746,6 +759,7 @@
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Button treePlayButton;
         private System.Windows.Forms.Panel panel1;
+        private System.Windows.Forms.Button viewIDButton;
     }
 }
 

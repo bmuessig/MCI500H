@@ -345,6 +345,11 @@ namespace ADM
                 MessageBox.Show("Fail!");
         }
 
+        private void viewIDButton_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show(string.Format("Current Update ID: {0}", client.UpdateID));
+        }
+
         private void transmitTryParseButton_Click(object sender, EventArgs e)
         {
             if(!lastSuccess)

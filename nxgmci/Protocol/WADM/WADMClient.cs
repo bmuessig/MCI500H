@@ -60,7 +60,7 @@ namespace nxgmci.Protocol.WADM
         /// <summary>
         /// The internal update ID.
         /// </summary>
-        private uint updateID;
+        private uint updateID = 0;
 
         /// <summary>
         /// The default path of the WADM API endpoint relative to the server root.
