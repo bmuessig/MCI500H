@@ -18,10 +18,10 @@ namespace nxgmci.Protocol.WADM
         /// </summary>
         /// <param name="UpdateID">The update ID.</param>
         /// <param name="Index">The index of the playlist.</param>
-        /// <param name="OriginalName">The original name of the new playlist.</param>
         /// <param name="Name">The new name of the new playlist.</param>
+        /// <param name="OriginalName">The original name of the new playlist.</param>
         /// <returns>A request string that can be passed to the stereo.</returns>
-        public static string Build(uint UpdateID, uint Index, string OriginalName, string Name)
+        public static string Build(uint UpdateID, uint Index, string Name, string OriginalName = null)
         {
             // Normalize the names
             if (OriginalName == null)
