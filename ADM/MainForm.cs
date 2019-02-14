@@ -14,19 +14,21 @@ using nxgmci.Protocol;
 using nxgmci.Cover;
 using nxgmci.Metadata;
 using nxgmci.Protocol.WADM;
+using nxgmci.Device;
 
 namespace ADM
 {
     public partial class MainForm : Form
     {
-        private static string baseurl = "http://10.0.0.10";
-        //private static string baseurl = "http://192.168.10.3";
-        private MCI500H stereo = new MCI500H(IPAddress.Parse(baseurl.Substring(baseurl.LastIndexOf('/') + 1)));
+        private static IPAddress ip = new IPAddress(new byte[] { 10, 0, 0, 10 });
+        //private static IPAddress ip = new IPAddress(new byte[] { 192, 168, 10, 3 });
+
+        private MCI500H stereo = new MCI500H(ip);
         int lastid = -1;
         string lastResponse = "";
         bool lastSuccess = false;
 
-        WADMClient client = new WADMClient(new nxgmci.Device.EndpointDescriptor(new IPAddress(new byte[] { 10, 0, 0, 10 })));
+        WADMClient client = new WADMClient(new EndpointDescriptor(ip));
 
         public MainForm()
         {
@@ -36,7 +38,7 @@ namespace ADM
 
         private void speedTestButton_Click(object sender, EventArgs e)
         {
-            string url = baseurl + ":8081/";
+            string url = string.Format("http://{0}:8081/", ip.ToString());
             string query = "<requesturimetadata></requesturimetadata>";
             string internalResponse, externalResponse;
 
@@ -99,7 +101,7 @@ namespace ADM
         {
             receiveTextBox.Clear();
             transmitTextBox.ReadOnly = true;
-            Postmaster.QueryResponse response = Postmaster.PostXML(new Uri(baseurl + ":8081/"), transmitTextBox.Text);
+            Postmaster.QueryResponse response = Postmaster.PostXML(new Uri(string.Format("http://{0}:8081/", ip.ToString())), transmitTextBox.Text);
             receiveTextBox.Text = response.Success ? string.Format("HTTP {0} {1}:\n\n{2}", response.StatusCode, response.Message, response.TextualResponse).Replace("\n", "\r\n")
                 : "An error occured: " + response.Message;
             lastSuccess = response.Success;
