@@ -6,7 +6,7 @@ using System.Text;
 namespace nxgmci.Protocol.WADM
 {
     /// <summary>
-    /// Appeareantly synchronizes all pending database changes to disk.
+    /// This request synchronizes all pending database changes to disk.
     /// </summary>
     public class SvcDbDump
     {

@@ -383,6 +383,71 @@ namespace nxgmci.Protocol.WADM
         }
 
         /// <summary>
+        /// This request synchronizes all pending database changes to disk.
+        /// </summary>
+        /// <returns>A result object that contains a serialized version of the response data.</returns>
+        public Result<SvcDbDump.ResponseParameters> SvcDbDump()
+        {
+            // Create the result object
+            Result<SvcDbDump.ResponseParameters> result = new Result<SvcDbDump.ResponseParameters>();
+
+            // Lock the class to ensure thread safety
+            lock (eventLock)
+            {
+                // Allocate the response objects
+                Postmaster.QueryResponse queryResponse;
+                Result<SvcDbDump.ResponseParameters> parseResult;
+
+                // Create the event result object
+                Result<Postmaster.QueryResponse> queryResult = new Result<Postmaster.QueryResponse>();
+
+                // Allocate the shadow response text
+                string shadowResponse = string.Empty;
+
+                // Execute the request
+                queryResponse = Postmaster.PostXML(ipEndpoint, Path, WADM.SvcDbDump.Build(), true);
+
+                // Check the result
+                if (queryResponse == null)
+                    result.FailMessage("The query response was null!");
+                else if (!queryResponse.Success)
+                    result.Fail("The query failed!", new Exception(queryResponse.Message));
+                else if (!queryResponse.IsTextualReponse || string.IsNullOrWhiteSpace(queryResponse.TextualResponse))
+                    result.FailMessage("The query response was invalid!");
+                else // Store a shadow copy of the response, as the query response is passed to the callee via an event and might later be compromized
+                    shadowResponse = string.Copy(queryResponse.TextualResponse.Trim());
+
+                // Raise the event
+                OnResponseReceived(new ResultEventArgs<Postmaster.QueryResponse>(
+                    queryResult.Succeed(queryResponse, "SvcDbDump")));
+
+                // Check, if the process failed
+                if (result.Finalized)
+                    return result;
+
+                // Parse the response
+                parseResult = WADM.SvcDbDump.Parse(shadowResponse, this.looseSyntax);
+
+                // Sanity check the result
+                if (parseResult == null)
+                    return result.FailMessage("The parsed result was null!");
+                if (parseResult.Success && (!parseResult.HasProduct || parseResult.Product == null))
+                    return result.FailMessage("The parsed product was invalid!");
+
+                // Check, if the result is a success and return it
+                if (parseResult.Success)
+                    return result.Succeed(parseResult.Product, parseResult.Message);
+
+                // Try to return a detailed error
+                if (parseResult.Error != null)
+                    return result.FailMessage("The parsing failed!", parseResult.Error);
+            }
+
+            // If not possible, return simple failure
+            return result.FailMessage("The parsing failed due to an unknown reason!");
+        }
+
+        /// <summary>
         /// This request returns a dictionary of all album IDs and their cleartext names.
         /// This information can be used to map the album IDs returned by RequestRawData to strings.
         /// Using this request will update the client's update ID.

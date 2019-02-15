@@ -72,7 +72,7 @@
     <Compile Include="Protocol\WADM\QueryDatabase.cs" />
     <Compile Include="Protocol\WADM\RequestPlaylistCreate.cs" />
     <Compile Include="Protocol\WADM\RequestPlaylistRename.cs" />
-    <Compile Include="Protocol\WADM\RequestStatus.cs" />
+    <Compile Include="Protocol\WADM\WADMStatus.cs" />
     <Compile Include="Protocol\WADM\RequestSubscribe.cs" />
     <Compile Include="Protocol\WADM\SvcDbDump.cs" />
     <Compile Include="Protocol\WADM\WADMClient.cs" />
@@ -91,7 +91,6 @@
     <Compile Include="Protocol\WADM\WADMParser.cs" />
     <Compile Include="Protocol\WADM\RequestRawData.cs" />
     <Compile Include="Protocol\WADM\QueryDiskSpace.cs" />
-    <Compile Include="Protocol\WADM\WADMStatus.cs" />
     <Compile Include="Query\Query.cs" />
     <Compile Include="Query\QueryInstruction.cs" />
     <Compile Include="Query\QueryToken.cs" />
