@@ -58,6 +58,39 @@ namespace nxgmci.Protocol.WADM
             this.RawReason = RawReason;
         }
 
+        /// <summary>
+        /// Returns a string representation of the object.
+        /// </summary>
+        /// <returns>A string representation of the object.</returns>
+        public override string ToString()
+        {
+            // Allocate some temporary storage strings
+            string statusText = string.Empty, reasonText = string.Empty;
+
+            // Check for the best status descriminator
+            if (Status == StatusCode.None)
+            {
+                if (!string.IsNullOrWhiteSpace(RawStatus))
+                    statusText = RawStatus.Trim();
+                else
+                    statusText = Status.ToString();
+            }
+            else
+                statusText = Status.ToString();
+
+            // Check for the best reason descriminator
+            if (Reason == ErrorReason.None)
+            {
+                if (!string.IsNullOrWhiteSpace(RawReason))
+                    reasonText = RawReason.Trim();
+            }
+            else
+                reasonText = Reason.ToString();
+
+            // Format the output differently depending on the existence of a reason
+            return string.Format(string.IsNullOrWhiteSpace(reasonText) ? "{0}" : "{0}: {1}", statusText, reasonText);
+        }
+
         // This should attempt to parse the status first (before all other code in the requests runs)
         // By checking the status field first, it can be determined if a reason could be expected
         // If a reason is found, it is added to this class
