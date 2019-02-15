@@ -10,14 +10,28 @@ namespace nxgmci.Protocol.WADM
     /// </summary>
     public class WADMStatus
     {
+        /// <summary>
+        /// Stores the status code returned for an operation.
+        /// </summary>
         public readonly StatusCode Status;
+        
+        /// <summary>
+        /// Stores the raw status code returned for the operation. This is primarily used for debugging purposes.
+        /// </summary>
         public readonly string RawStatus;
 
+        /// <summary>
+        /// Stores the error reason code returned for an operation.
+        /// </summary>
         public readonly ErrorReason Reason;
+        
+        /// <summary>
+        /// Stores the raw error reason code returned for the operation. This is primarily used for debugging purposes.
+        /// </summary>
         public readonly string RawReason;
 
         /// <summary>
-        /// Partial internal constructor. Used for success.
+        /// Partial internal constructor. Used for status codes without reason.
         /// </summary>
         /// <param name="Status">The status code returned.</param>
         /// <param name="RawStatus">The raw, unprocessed status string returned.</param>
@@ -30,7 +44,7 @@ namespace nxgmci.Protocol.WADM
         }
 
         /// <summary>
-        /// Full internal constructor. Used for failure.
+        /// Full internal constructor. Used for status codes with reason.
         /// </summary>
         /// <param name="Status">The status code returned.</param>
         /// <param name="RawStatus">The raw, unprocessed status string returned.</param>
@@ -51,7 +65,7 @@ namespace nxgmci.Protocol.WADM
         // Classes that use this should use this class first to parse the status
         // Then they check if the parsing succeeded
         // If not, exit. If it suceeded, check the status code and proceed from there.
-        public static Result<WADMStatus> Parse(Dictionary<string, string> NodeElements, bool FailOnUnknown)
+        public static Result<WADMStatus> Parse(Dictionary<string, string> NodeElements, bool FailOnUnknown = true)
         {
             // Allocate the result object
             Result<WADMStatus> result = new Result<WADMStatus>();
@@ -63,7 +77,8 @@ namespace nxgmci.Protocol.WADM
                 return result.FailMessage("The dictionary of node elements is empty!");
                 
             // Allocate storage variables
-            string status, reason;
+            string rawStatus, rawReason;
+            bool hasReason;
 
             // Check, if the status field can be found
             if (!NodeElements.ContainsKey("status"))
@@ -74,53 +89,56 @@ namespace nxgmci.Protocol.WADM
                 return result.FailMessage("Could not detect parameter '{0}' as string!", "status");
 
             // Copy the status string
-            status = NodeElements["status"].Trim().ToLower();
+            rawStatus = NodeElements["status"].Trim();
 
             // Check, if there is a reason field
-            if (NodeElements.ContainsKey("reason"))
+            if ((hasReason = NodeElements.ContainsKey("reason")))
             {
                 // Check, if the reason field is valid
                 if (string.IsNullOrWhiteSpace(NodeElements["reason"]))
                     return result.FailMessage("Could not detect parameter '{0}' as string!", "reason");
 
                 // Copy the status string
-                reason = NodeElements["reason"].Trim().ToLower();
+                rawReason = NodeElements["reason"].Trim();
             }
             else
-                reason = string.Empty;
+                rawReason = string.Empty;
 
             // Parse the status field
-            switch (status)
+            StatusCode status = ParseStatus(rawStatus);
+
+            // Check, if the status code is unknown
+            if (status == StatusCode.None)
             {
-                case "success":
-                    return result.Succeed(new WADMStatus(StatusCode.Success, status));
-                case "fail":
-                    return result.Succeed(new WADMStatus(StatusCode.Failure, status, ParseReason(reason), reason));
+                // If the status code might not be unknown, fail
+                if (FailOnUnknown)
+                    return result.FailMessage("The status code could not be parsed!");
+                else if (hasReason) // Otherwise return partial success (with reason)
+                    return result.Succeed(new WADMStatus(StatusCode.None, rawStatus, ParseReason(rawReason), rawReason),
+                        "The status code is unknown, but the syntax is valid!");
+                else // Otherwise return partial success (without reason)
+                    return result.Succeed(new WADMStatus(StatusCode.None, rawStatus),
+                        "The status code is unknown, but the syntax is valid!");
             }
 
-            // If the status code might not be unknown, fail
+            // If there is no reason, return early
+            if (!hasReason)
+                return result.Succeed(new WADMStatus(status, rawStatus));
+
+            // Parse the reason
+            ErrorReason reason = ParseReason(rawReason);
+            
+            // Check, if the reason is known, return success
+            if (reason != ErrorReason.None)
+                return result.Succeed(new WADMStatus(status, rawStatus, reason, rawReason));
+
+            // Otherwise, check if an error needs to be thrown
             if (FailOnUnknown)
-                return result.FailMessage("The status code could not be parsed!");
+                return result.FailMessage("The reason code could not be parsed!");
 
-            // Otherwise return partial success
-            return result.Succeed(new WADMStatus(StatusCode.Unknown, status), "The status code is unknown, but the syntax is valid!");
-        }
-
-        private static ErrorReason ParseReason(string Reason)
-        {
-            // Normalize and verify the input
-            if (string.IsNullOrWhiteSpace(Reason))
-                return ErrorReason.None;
-            Reason = Reason.Trim().ToLower();
-
-            // Parse the status field
-            switch (Reason)
-            {
-                case "invalidmediatype":
-                    return ErrorReason.InvalidMediaType;
-            }
-
-            return ErrorReason.None;
+            // If not, return partial success
+            return result.Succeed(new WADMStatus(StatusCode.None, rawStatus, ErrorReason.None, rawReason),
+                "The reason code is unknown, but the syntax is valid!");
         }
 
         /// <summary>
@@ -128,7 +146,7 @@ namespace nxgmci.Protocol.WADM
         /// </summary>
         /// <param name="Code">String to parse</param>
         /// <returns>The matching status code or None if no one was found.</returns>
-        public static StatusCode Parse(string Code)
+        public static StatusCode ParseStatus(string Code)
         {
             if (string.IsNullOrWhiteSpace(Code))
                 return StatusCode.None;
@@ -139,29 +157,19 @@ namespace nxgmci.Protocol.WADM
             // Find the matching code
             switch (Code)
             {
+                // Verified
                 case "success":
                     return StatusCode.Success;
 
                 case "fail":
                     return StatusCode.Failure;
 
-                case "unknown":
-                    return StatusCode.Unknown;
-
                 case "busy":
                     return StatusCode.Busy;
 
-                case "parametererror":
-                    return StatusCode.ParameterError;
-
-                case "updateidmismatch": // CAUTON, TODO, BUG: These are actually "reasons", returned in a different field...
-                    return StatusCode.UpdateIDMismatch;
-
-                case "invalidindex":
-                    return StatusCode.InvalidIndex;
-
-                case "databasefull":
-                    return StatusCode.DatabaseFull;
+                // Unknown
+                case "unknown":
+                    return StatusCode.Unknown;
 
                 case "idle":
                     return StatusCode.Idle;
@@ -176,37 +184,101 @@ namespace nxgmci.Protocol.WADM
         /// </summary>
         /// <param name="Code">Status code input</param>
         /// <returns>String representation of the status code input. Returns am empty string on error.</returns>
-        public static string Stringify(StatusCode Code)
+        public static string StringifyStatus(StatusCode Code)
         {
             // Find the matching string
             switch (Code)
             {
+                // Verified
                 case StatusCode.Success:
                     return "success";
 
                 case StatusCode.Failure:
                     return "fail";
 
-                case StatusCode.Unknown:
-                    return "unknown";
-
                 case StatusCode.Busy:
                     return "busy";
 
-                case StatusCode.ParameterError:
-                    return "parametererror";
-
-                case StatusCode.UpdateIDMismatch:
-                    return "updateidmismatch";
-
-                case StatusCode.InvalidIndex:
-                    return "invalidindex";
-
-                case StatusCode.DatabaseFull:
-                    return "databasefull";
+                // Unknown
+                case StatusCode.Unknown:
+                    return "unknown";
 
                 case StatusCode.Idle:
                     return "idle";
+
+                default:
+                    return string.Empty;
+            }
+        }
+
+        /// <summary>
+        /// Parses the reason and returns the detected enum.
+        /// </summary>
+        /// <param name="Reason">Raw reason string to parse.</param>
+        /// <returns>Reason enum value. Returns ErrorReason.None on error.</returns>
+        private static ErrorReason ParseReason(string Reason)
+        {
+            // Normalize and verify the input
+            if (string.IsNullOrWhiteSpace(Reason))
+                return ErrorReason.None;
+            Reason = Reason.Trim().ToLower();
+
+            // Parse the status field
+            switch (Reason)
+            {
+                // Verified
+                case "updateidmismatch":
+                    return ErrorReason.UpdateIDMismatch;
+
+                case "invalidindex":
+                    return ErrorReason.InvalidIndex;
+
+                case "invalidmediatype":
+                    return ErrorReason.InvalidMediaType;
+
+                case "fieldtagmissing":
+                    return ErrorReason.FieldTagMissing;
+
+                // Unknown
+                case "databasefull":
+                    return ErrorReason.DatabaseFull;
+
+                case "parametererror":
+                    return ErrorReason.ParameterError;
+            }
+
+            return ErrorReason.None;
+        }
+
+        /// <summary>
+        /// Returns the official string representation of the reason.
+        /// </summary>
+        /// <param name="Code">Status code input</param>
+        /// <returns>String representation of the status code input. Returns an empty string on error.</returns>
+        public static string StringifyReason(ErrorReason Code)
+        {
+            // Find the matching string
+            switch (Code)
+            {
+                // Verified
+                case ErrorReason.UpdateIDMismatch:
+                    return "updateidmismatch";
+
+                case ErrorReason.InvalidIndex:
+                    return "invalidindex";
+
+                case ErrorReason.InvalidMediaType:
+                    return "invalidmediatype";
+
+                case ErrorReason.FieldTagMissing:
+                    return "fieldtagmissing";
+
+                // Unknown
+                case ErrorReason.DatabaseFull:
+                    return "databasefull";
+
+                case ErrorReason.ParameterError:
+                    return "parametererror";
 
                 default:
                     return string.Empty;
@@ -234,34 +306,16 @@ namespace nxgmci.Protocol.WADM
             Failure,
 
             /// <summary>
-            /// The operation failed due to an unknown error.
-            /// </summary>
-            Unknown,
-
-            /// <summary>
             /// The device is busy.
             /// </summary>
             Busy,
 
-            /// <summary>
-            /// The operation failed, as one or more parameters is invalid.
-            /// </summary>
-            ParameterError,
+            // Unknown
 
             /// <summary>
-            /// The operation failed, as the supplied ID did not match.
+            /// The operation failed due to an unknown error.
             /// </summary>
-            UpdateIDMismatch,
-
-            /// <summary>
-            /// The operation failed, as the supplied index was invalid.
-            /// </summary>
-            InvalidIndex,
-
-            /// <summary>
-            /// The operation failed, as the database was full.
-            /// </summary>
-            DatabaseFull,
+            Unknown,
 
             /// <summary>
             /// The device is idle.
@@ -274,42 +328,17 @@ namespace nxgmci.Protocol.WADM
         /// </summary>
         public enum ErrorReason
         {
-            // Verified
-            /// <summary>
-            /// The supplied media type was invalid.
-            /// </summary>
-            InvalidMediaType,
-
-            // Obsolete
             /// <summary>
             /// No status code was returned.
             /// </summary>
             None,
 
+            // Verified
+            
             /// <summary>
-            /// The operation succeeded.
+            /// The supplied media type was invalid.
             /// </summary>
-            Success,
-
-            /// <summary>
-            /// The operation failed.
-            /// </summary>
-            Failure,
-
-            /// <summary>
-            /// The operation failed due to an unknown error.
-            /// </summary>
-            Unknown,
-
-            /// <summary>
-            /// The device is busy.
-            /// </summary>
-            Busy,
-
-            /// <summary>
-            /// The operation failed, as one or more parameters is invalid.
-            /// </summary>
-            ParameterError,
+            InvalidMediaType,
 
             /// <summary>
             /// The operation failed, as the supplied ID did not match.
@@ -325,6 +354,23 @@ namespace nxgmci.Protocol.WADM
             /// The operation failed, as the database was full.
             /// </summary>
             DatabaseFull,
+
+            /// <summary>
+            /// The field tag of an RequestObjectUpdate is unset.
+            /// </summary>
+            FieldTagMissing,
+
+            // Unknown
+
+            /// <summary>
+            /// The operation failed, as one or more parameters is invalid.
+            /// </summary>
+            ParameterError,
+
+            /// <summary>
+            /// The operation failed due to an unknown error.
+            /// </summary>
+            Unknown,
 
             /// <summary>
             /// The device is idle.

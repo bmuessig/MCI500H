@@ -86,8 +86,6 @@
     <Compile Include="Network\Postmaster.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Protocol\DLNA\DLNA.cs" />
-    <Compile Include="Protocol\WADM\StatusCode.cs" />
-    <Compile Include="Protocol\WADM\StatusCodeTranslator.cs" />
     <Compile Include="Protocol\WADM\WADMParser.cs" />
     <Compile Include="Protocol\WADM\RequestRawData.cs" />
     <Compile Include="Protocol\WADM\QueryDiskSpace.cs" />

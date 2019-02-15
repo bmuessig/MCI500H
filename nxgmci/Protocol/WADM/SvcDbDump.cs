@@ -43,7 +43,7 @@ namespace nxgmci.Protocol.WADM
 
             // Check if it failed
             if (!parserResult.Success)
-                if (!string.IsNullOrWhiteSpace(parserResult.Message))
+                if (parserResult.Error != null)
                     return result.Fail("The parsing failed!", parserResult.Error);
                 else
                     return result.FailMessage("The parsing failed for unknown reasons!");
@@ -55,26 +55,23 @@ namespace nxgmci.Protocol.WADM
             // And also make sure that the state is correct
             if (parserResult.Product.Elements == null)
                 return result.FailMessage("The list of parsed elements is null!");
-
-            // Now, make sure the mandatory argument exist
-            if (!parserResult.Product.Elements.ContainsKey("status"))
-                return result.FailMessage("Could not locate parameter '{0}'!", "status");
             
-            // Then, try to parse the parameter
-            string rawStatus;
-            StatusCode status;
+            // Try to parse the status
+            Result<WADMStatus> statusResult = WADMStatus.Parse(parserResult.Product.Elements, ValidateInput);
 
-            if (string.IsNullOrWhiteSpace(parserResult.Product.Elements["status"]))
-                return result.FailMessage("Could not detect parameter '{0}' as string!", "status");
-            rawStatus = parserResult.Product.Elements["status"].Trim();
-            status = StatusCodeTranslator.Parse(rawStatus);
+            // Check if it failed
+            if (!statusResult.Success)
+                if (statusResult.Error != null)
+                    return result.Fail("The status code parsing failed!", statusResult.Error);
+                else
+                    return result.FailMessage("The status code parsing failed for unknown reasons!");
 
-            // Next, if desired, perform a sanity check
-            if (ValidateInput && status == StatusCode.None)
-                return result.FailMessage("Status code invalid!");
+            // Make sure the product is there
+            if (statusResult.Product == null)
+                return result.FailMessage("The status code parsing product was null!");
 
             // Finally, return the response
-            return result.Succeed(new ResponseParameters(status, rawStatus));
+            return result.Succeed(new ResponseParameters(statusResult.Product));
         }
 
         /// <summary>
@@ -85,22 +82,15 @@ namespace nxgmci.Protocol.WADM
             /// <summary>
             /// Stores the status code returned for the operation.
             /// </summary>
-            public readonly StatusCode Status;
-            
-            /// <summary>
-            /// Stores the raw status code string for debugging purposes.
-            /// </summary>
-            public readonly string RawStatus;
+            public readonly WADMStatus Status;
 
             /// <summary>
             /// Default internal constructor.
             /// </summary>
             /// <param name="Status">Stores the status code returned for the operation.</param>
-            /// <param name="RawStatus">Stores the raw status code string for debugging purposes.</param>
-            internal ResponseParameters(StatusCode Status, string RawStatus)
+            internal ResponseParameters(WADMStatus Status)
             {
                 this.Status = Status;
-                this.RawStatus = RawStatus;
             }
         }
     }

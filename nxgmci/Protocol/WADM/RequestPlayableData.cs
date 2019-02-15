@@ -62,7 +62,7 @@ namespace nxgmci.Protocol.WADM
 
             // Check if it failed
             if (!parserResult.Success)
-                if (!string.IsNullOrWhiteSpace(parserResult.Message))
+                if (parserResult.Error != null)
                     return result.FailMessage("The parsing failed:\n{0}", parserResult.ToString());
                 else
                     return result.FailMessage("The parsing failed for unknown reasons!");

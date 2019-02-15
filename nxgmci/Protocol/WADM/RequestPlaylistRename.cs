@@ -66,7 +66,7 @@ namespace nxgmci.Protocol.WADM
 
             // Check if it failed
             if (!parserResult.Success)
-                if (!string.IsNullOrWhiteSpace(parserResult.Message))
+                if (parserResult.Error != null)
                     return result.Fail("The parsing failed!", parserResult.Error);
                 else
                     return result.FailMessage("The parsing failed for unknown reasons!");
@@ -79,9 +79,21 @@ namespace nxgmci.Protocol.WADM
             if (parserResult.Product.Elements == null)
                 return result.FailMessage("The list of parsed elements is null!");
 
+            // Try to parse the status
+            Result<WADMStatus> statusResult = WADMStatus.Parse(parserResult.Product.Elements, ValidateInput);
+
+            // Check if it failed
+            if (!statusResult.Success)
+                if (statusResult.Error != null)
+                    return result.Fail("The status code parsing failed!", statusResult.Error);
+                else
+                    return result.FailMessage("The status code parsing failed for unknown reasons!");
+
+            // Make sure the product is there
+            if (statusResult.Product == null)
+                return result.FailMessage("The status code parsing product was null!");
+
             // Now, make sure our mandatory arguments exist
-            if (!parserResult.Product.Elements.ContainsKey("status"))
-                return result.FailMessage("Could not locate parameter '{0}'!", "status");
             if (!parserResult.Product.Elements.ContainsKey("index"))
                 return result.FailMessage("Could not locate parameter '{0}'!", "index");
             if (!parserResult.Product.Elements.ContainsKey("name"))
@@ -92,15 +104,10 @@ namespace nxgmci.Protocol.WADM
                 return result.FailMessage("Could not locate parameter '{0}'!", "updateid");
 
             // Then, try to parse the parameters
-            StatusCode status;
-            string rawStatus, name;
+            string name;
             uint index, updateID;
             int offset;
 
-            if (string.IsNullOrWhiteSpace(parserResult.Product.Elements["status"]))
-                return result.FailMessage("Could not detect parameter '{0}' as string!", "status");
-            rawStatus = parserResult.Product.Elements["status"].Trim();
-            status = StatusCodeTranslator.Parse(rawStatus);
             if (!uint.TryParse(parserResult.Product.Elements["index"], out index))
                 return result.FailMessage("Could not parse parameter '{0}' as uint!", "index");
             if (parserResult.Product.Elements["name"] != null)
@@ -112,12 +119,8 @@ namespace nxgmci.Protocol.WADM
             if (!uint.TryParse(parserResult.Product.Elements["updateid"], out updateID))
                 return result.FailMessage("Could not parse parameter '{0}' as uint!", "updateid");
 
-            // Next, if desired, perform a sanity check
-            if (ValidateInput && status == StatusCode.None)
-                return result.FailMessage("Status code invalid!");
-
             // Finally, return the response
-            return result.Succeed(new ResponseParameters(status, rawStatus, index, name, offset, updateID));
+            return result.Succeed(new ResponseParameters(statusResult.Product, index, name, offset, updateID));
         }
 
         /// <summary>
@@ -128,12 +131,7 @@ namespace nxgmci.Protocol.WADM
             /// <summary>
             /// The status code returned for the query.
             /// </summary>
-            public readonly StatusCode Status;
-
-            /// <summary>
-            /// Stores the raw status code string for debugging purposes.
-            /// </summary>
-            public readonly string RawStatus;
+            public readonly WADMStatus Status;
 
             /// <summary>
             /// The index of the playlist renamed. Contained inside the default playlist item namespace.
@@ -159,15 +157,13 @@ namespace nxgmci.Protocol.WADM
             /// Default internal constructor.
             /// </summary>
             /// <param name="Status">The status code returned for the query.</param>
-            /// <param name="RawStatus">Stores the raw status code string for debugging purposes.</param>
             /// <param name="Index">The index of the playlist created. Contained inside the default playlist item namespace.</param>
             /// <param name="Name">The name of the playlist created.</param>
             /// <param name="Offset">Unknown offset. May be negative.</param>
             /// <param name="UpdateID">The update ID passed as a token. Equal to the originally supplied update ID + 1.</param>
-            internal ResponseParameters(StatusCode Status, string RawStatus, uint Index, string Name, int Offset, uint UpdateID)
+            internal ResponseParameters(WADMStatus Status, uint Index, string Name, int Offset, uint UpdateID)
             {
                 this.Status = Status;
-                this.RawStatus = RawStatus;
                 this.Index = Index;
                 this.Name = Name;
                 this.Offset = Offset;
