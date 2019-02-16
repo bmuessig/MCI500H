@@ -37,7 +37,7 @@ namespace nxgmci.Protocol.WADM
 
             set
             {
-                lock (eventLock)
+                lock (updateIDLock)
                     updateID = value;
             }
         }
@@ -50,12 +50,13 @@ namespace nxgmci.Protocol.WADM
         {
             get
             {
-                return freezeUpdateID;
+                lock (settingsLock)
+                    return freezeUpdateID;
             }
 
             set
             {
-                lock (eventLock)
+                lock (settingsLock)
                     freezeUpdateID = value;
             }
         }
@@ -68,12 +69,13 @@ namespace nxgmci.Protocol.WADM
         {
             get
             {
-                return validateInput;
+                lock (settingsLock)
+                    return validateInput;
             }
 
             set
             {
-                lock (eventLock)
+                lock (settingsLock)
                     validateInput = value;
             }
         }
@@ -86,12 +88,13 @@ namespace nxgmci.Protocol.WADM
         {
             get
             {
-                return looseSyntax;
+                lock (settingsLock)
+                    return looseSyntax;
             }
 
             set
             {
-                lock (eventLock)
+                lock (settingsLock)
                     looseSyntax = value;
             }
         }
@@ -102,14 +105,19 @@ namespace nxgmci.Protocol.WADM
         public event EventHandler<ResultEventArgs<Postmaster.QueryResponse>> ResponseReceived;
 
         /// <summary>
-        /// The internal event lock object used to prevent parallel execution and ensure thread safety.
+        /// This event is triggered whenever the update ID changes.
         /// </summary>
-        private volatile object eventLock = new object();
+        public event EventHandler<UpdateIDEventArgs> UpdateIDChanged;
 
         /// <summary>
         /// The internal update ID lock object used to prevent parallel execution and ensure thread safety.
         /// </summary>
-        private volatile object updateIDLock = new object();
+        private readonly object updateIDLock = new object();
+
+        /// <summary>
+        /// The internal settings lock object used to prevent parallel execution and ensure thread safety.
+        /// </summary>
+        private readonly object settingsLock = new object();
 
         /// <summary>
         /// The internal IP endpoint of the WADM API.
@@ -119,22 +127,22 @@ namespace nxgmci.Protocol.WADM
         /// <summary>
         /// The internal update ID.
         /// </summary>
-        private uint updateID = 0;
+        private volatile uint updateID = 0;
 
         /// <summary>
         /// An internal flag that indicates whether the update ID is frozen and will not be updated automatically.
         /// </summary>
-        private bool freezeUpdateID = false;
+        private volatile bool freezeUpdateID = false;
 
         /// <summary>
         /// An internal flag that indicates whether to validate the data values received.
         /// </summary>
-        private bool validateInput = true;
+        private volatile bool validateInput = true;
 
         /// <summary>
         /// An internal flag that indicates whether to ignore minor syntax errors.
         /// </summary>
-        private bool looseSyntax = false;
+        private volatile bool looseSyntax = false;
 
         /// <summary>
         /// The default path of the WADM API endpoint relative to the server root.
@@ -178,65 +186,90 @@ namespace nxgmci.Protocol.WADM
             // Create the result object
             Result<GetUpdateID.ResponseParameters> result = new Result<GetUpdateID.ResponseParameters>();
 
-            // Lock the class to ensure thread safety
-            lock (eventLock)
+            // Allocate the temporary settings variables
+            bool validateInput, looseSyntax, freezeUpdateID;
+
+            // Fetch the settings thread-safe and ahead of time
+            lock (settingsLock)
             {
-                // Allocate the response objects
-                Postmaster.QueryResponse queryResponse;
-                Result<GetUpdateID.ResponseParameters> parseResult;
+                validateInput = this.validateInput;
+                looseSyntax = this.looseSyntax;
+                freezeUpdateID = this.freezeUpdateID;
+            }
 
-                // Create the event result object
-                Result<Postmaster.QueryResponse> queryResult = new Result<Postmaster.QueryResponse>();
+            // Allocate the response objects
+            Postmaster.QueryResponse queryResponse;
+            Result<GetUpdateID.ResponseParameters> parseResult;
 
-                // Allocate the shadow response text
-                string shadowResponse = string.Empty;
+            // Create the event result object
+            Result<Postmaster.QueryResponse> queryResult = new Result<Postmaster.QueryResponse>();
 
-                // Execute the request
-                queryResponse = Postmaster.PostXML(ipEndpoint, Path, WADM.GetUpdateID.Build(), true);
+            // Allocate the shadow response text
+            string shadowResponse = string.Empty;
 
-                // Check the result
-                if (queryResponse == null)
-                    result.FailMessage("The query response was null!");
-                else if (!queryResponse.Success)
-                    result.Fail("The query failed!", new Exception(queryResponse.Message));
-                else if (!queryResponse.IsTextualReponse || string.IsNullOrWhiteSpace(queryResponse.TextualResponse))
-                    result.FailMessage("The query response was invalid!");
-                else // Store a shadow copy of the response, as the query response is passed to the callee via an event and might later be compromized
-                    shadowResponse = string.Copy(queryResponse.TextualResponse.Trim());
+            // Execute the request
+            queryResponse = Postmaster.PostXML(ipEndpoint, Path, WADM.GetUpdateID.Build(), true);
 
-                // Raise the event
-                OnResponseReceived(new ResultEventArgs<Postmaster.QueryResponse>(
-                    queryResult.Succeed(queryResponse, "GetUpdateID")));
+            // Check the result
+            if (queryResponse == null)
+                result.FailMessage("The query response was null!");
+            else if (!queryResponse.Success)
+                result.Fail("The query failed!", new Exception(queryResponse.Message));
+            else if (!queryResponse.IsTextualReponse || string.IsNullOrWhiteSpace(queryResponse.TextualResponse))
+                result.FailMessage("The query response was invalid!");
+            else // Store a shadow copy of the response, as the query response is passed to the callee via an event and might later be compromized
+                shadowResponse = string.Copy(queryResponse.TextualResponse.Trim());
 
-                // Check, if the process failed
-                if (result.Finalized)
-                    return result;
+            // Raise the event
+            OnResponseReceived(new ResultEventArgs<Postmaster.QueryResponse>(
+                queryResult.Succeed(queryResponse, "GetUpdateID")));
 
-                // Parse the response
-                parseResult = WADM.GetUpdateID.Parse(shadowResponse, this.looseSyntax);
+            // Check, if the process failed
+            if (result.Finalized)
+                return result;
 
-                // Sanity check the result
-                if (parseResult == null)
-                    return result.FailMessage("The parsed result was null!");
-                if (parseResult.Success && (!parseResult.HasProduct || parseResult.Product == null))
-                    return result.FailMessage("The parsed product was invalid!");
+            // Parse the response
+            parseResult = WADM.GetUpdateID.Parse(shadowResponse, looseSyntax);
 
-                // Check, if the result is a success
-                if (parseResult.Success)
+            // Sanity check the result
+            if (parseResult == null)
+                return result.FailMessage("The parsed result was null!");
+            if (parseResult.Success && (!parseResult.HasProduct || parseResult.Product == null))
+                return result.FailMessage("The parsed product was invalid!");
+
+            // Check, if the result is a success
+            if (parseResult.Success)
+            {
+                // Store the current and previous update ID, as well as allocate an flag that stores whether the field was updated
+                uint newUpdateID = parseResult.Product.UpdateID, oldUpdateID = 0;
+                bool wasUpdated = false;
+
+                // Check, if the update ID may be updated automatically
+                if (!freezeUpdateID)
                 {
-                    // Also, store the update ID (note that this function is intentionally less strict on the auto-updating)
-                    if (parseResult.Product.UpdateID != this.updateID && !freezeUpdateID)
-                        lock (updateIDLock)
-                            this.updateID = parseResult.Product.UpdateID;
+                    // Lock the updating for thread-safety
+                    lock (updateIDLock)
+                    {
+                        // Store the previous update ID
+                        oldUpdateID = this.updateID;
 
-                    // Return the result
-                    return result.Succeed(parseResult.Product, parseResult.Message);
+                        // If the two update IDs differ, update the old one
+                        if ((wasUpdated = (oldUpdateID != newUpdateID)))
+                            this.updateID = newUpdateID;
+                    }
                 }
 
-                // Try to return a detailed error
-                if (parseResult.Error != null)
-                    return result.FailMessage("The parsing failed!", parseResult.Error);
+                // Check, if anything was updated and raise the update event if true
+                if (wasUpdated)
+                    OnUpdateIDChanged(new UpdateIDEventArgs(newUpdateID, true, oldUpdateID));
+
+                // Return the result
+                return result.Succeed(parseResult.Product, parseResult.Message);
             }
+
+            // Try to return a detailed error
+            if (parseResult.Error != null)
+                return result.FailMessage("The parsing failed!", parseResult.Error);
 
             // If not possible, return simple failure
             return result.FailMessage("The parsing failed due to an unknown reason!");
@@ -252,65 +285,90 @@ namespace nxgmci.Protocol.WADM
             // Create the result object
             Result<QueryDatabase.ResponseParameters> result = new Result<QueryDatabase.ResponseParameters>();
 
-            // Lock the class to ensure thread safety
-            lock (eventLock)
+            // Allocate the temporary settings variables
+            bool validateInput, looseSyntax, freezeUpdateID;
+
+            // Fetch the settings thread-safe and ahead of time
+            lock (settingsLock)
             {
-                // Allocate the response objects
-                Postmaster.QueryResponse queryResponse;
-                Result<QueryDatabase.ResponseParameters> parseResult;
+                validateInput = this.validateInput;
+                looseSyntax = this.looseSyntax;
+                freezeUpdateID = this.freezeUpdateID;
+            }
 
-                // Create the event result object
-                Result<Postmaster.QueryResponse> queryResult = new Result<Postmaster.QueryResponse>();
+            // Allocate the response objects
+            Postmaster.QueryResponse queryResponse;
+            Result<QueryDatabase.ResponseParameters> parseResult;
 
-                // Allocate the shadow response text
-                string shadowResponse = string.Empty;
+            // Create the event result object
+            Result<Postmaster.QueryResponse> queryResult = new Result<Postmaster.QueryResponse>();
 
-                // Execute the request
-                queryResponse = Postmaster.PostXML(ipEndpoint, Path, WADM.QueryDatabase.Build(), true);
+            // Allocate the shadow response text
+            string shadowResponse = string.Empty;
 
-                // Check the result
-                if (queryResponse == null)
-                    result.FailMessage("The query response was null!");
-                else if (!queryResponse.Success)
-                    result.Fail("The query failed!", new Exception(queryResponse.Message));
-                else if (!queryResponse.IsTextualReponse || string.IsNullOrWhiteSpace(queryResponse.TextualResponse))
-                    result.FailMessage("The query response was invalid!");
-                else // Store a shadow copy of the response, as the query response is passed to the callee via an event and might later be compromized
-                    shadowResponse = string.Copy(queryResponse.TextualResponse.Trim());
+            // Execute the request
+            queryResponse = Postmaster.PostXML(ipEndpoint, Path, WADM.QueryDatabase.Build(), true);
 
-                // Raise the event
-                OnResponseReceived(new ResultEventArgs<Postmaster.QueryResponse>(
-                    queryResult.Succeed(queryResponse, "QueryDatabase")));
+            // Check the result
+            if (queryResponse == null)
+                result.FailMessage("The query response was null!");
+            else if (!queryResponse.Success)
+                result.Fail("The query failed!", new Exception(queryResponse.Message));
+            else if (!queryResponse.IsTextualReponse || string.IsNullOrWhiteSpace(queryResponse.TextualResponse))
+                result.FailMessage("The query response was invalid!");
+            else // Store a shadow copy of the response, as the query response is passed to the callee via an event and might later be compromized
+                shadowResponse = string.Copy(queryResponse.TextualResponse.Trim());
 
-                // Check, if the process failed
-                if (result.Finalized)
-                    return result;
+            // Raise the event
+            OnResponseReceived(new ResultEventArgs<Postmaster.QueryResponse>(
+                queryResult.Succeed(queryResponse, "QueryDatabase")));
 
-                // Parse the response
-                parseResult = WADM.QueryDatabase.Parse(shadowResponse, this.looseSyntax);
+            // Check, if the process failed
+            if (result.Finalized)
+                return result;
 
-                // Sanity check the result
-                if (parseResult == null)
-                    return result.FailMessage("The parsed result was null!");
-                if (parseResult.Success && (!parseResult.HasProduct || parseResult.Product == null))
-                    return result.FailMessage("The parsed product was invalid!");
+            // Parse the response
+            parseResult = WADM.QueryDatabase.Parse(shadowResponse, looseSyntax);
 
-                // Check, if the result is a success
-                if (parseResult.Success)
+            // Sanity check the result
+            if (parseResult == null)
+                return result.FailMessage("The parsed result was null!");
+            if (parseResult.Success && (!parseResult.HasProduct || parseResult.Product == null))
+                return result.FailMessage("The parsed product was invalid!");
+
+            // Check, if the result is a success
+            if (parseResult.Success)
+            {
+                // Store the current and previous update ID, as well as allocate an flag that stores whether the field was updated
+                uint newUpdateID = parseResult.Product.UpdateID, oldUpdateID = 0;
+                bool wasUpdated = false;
+
+                // Check, if the update ID may be updated automatically
+                if (!freezeUpdateID && newUpdateID != 0)
                 {
-                    // Also, store the update ID
-                    if (parseResult.Product.UpdateID > this.updateID && parseResult.Product.UpdateID != 0 && !freezeUpdateID)
-                        lock (updateIDLock)
-                            this.updateID = parseResult.Product.UpdateID;
+                    // Lock the updating for thread-safety
+                    lock (updateIDLock)
+                    {
+                        // Store the previous update ID
+                        oldUpdateID = this.updateID;
 
-                    // Return the result
-                    return result.Succeed(parseResult.Product, parseResult.Message);
+                        // If the two update IDs differ, update the old one
+                        if ((wasUpdated = (oldUpdateID != newUpdateID)))
+                            this.updateID = newUpdateID;
+                    }
                 }
 
-                // Try to return a detailed error
-                if (parseResult.Error != null)
-                    return result.FailMessage("The parsing failed!", parseResult.Error);
+                // Check, if anything was updated and raise the update event if true
+                if (wasUpdated)
+                    OnUpdateIDChanged(new UpdateIDEventArgs(newUpdateID, true, oldUpdateID));
+
+                // Return the result
+                return result.Succeed(parseResult.Product, parseResult.Message);
             }
+
+            // Try to return a detailed error
+            if (parseResult.Error != null)
+                return result.FailMessage("The parsing failed!", parseResult.Error);
 
             // If not possible, return simple failure
             return result.FailMessage("The parsing failed due to an unknown reason!");
@@ -326,57 +384,63 @@ namespace nxgmci.Protocol.WADM
             // Create the result object
             Result<QueryDiskSpace.ResponseParameters> result = new Result<QueryDiskSpace.ResponseParameters>();
 
-            // Lock the class to ensure thread safety
-            lock (eventLock)
+            // Allocate the temporary settings variables
+            bool validateInput, looseSyntax;
+
+            // Fetch the settings thread-safe and ahead of time
+            lock (settingsLock)
             {
-                // Allocate the response objects
-                Postmaster.QueryResponse queryResponse;
-                Result<QueryDiskSpace.ResponseParameters> parseResult;
-
-                // Create the event result object
-                Result<Postmaster.QueryResponse> queryResult = new Result<Postmaster.QueryResponse>();
-
-                // Allocate the shadow response text
-                string shadowResponse = string.Empty;
-
-                // Execute the request
-                queryResponse = Postmaster.PostXML(ipEndpoint, Path, WADM.QueryDiskSpace.Build(), true);
-
-                // Check the result
-                if (queryResponse == null)
-                    result.FailMessage("The query response was null!");
-                else if (!queryResponse.Success)
-                    result.Fail("The query failed!", new Exception(queryResponse.Message));
-                else if (!queryResponse.IsTextualReponse || string.IsNullOrWhiteSpace(queryResponse.TextualResponse))
-                    result.FailMessage("The query response was invalid!");
-                else // Store a shadow copy of the response, as the query response is passed to the callee via an event and might later be compromized
-                    shadowResponse = string.Copy(queryResponse.TextualResponse.Trim());
-
-                // Raise the event
-                OnResponseReceived(new ResultEventArgs<Postmaster.QueryResponse>(
-                    queryResult.Succeed(queryResponse, "QueryDiskSpace")));
-
-                // Check, if the process failed
-                if (result.Finalized)
-                    return result;
-
-                // Parse the response
-                parseResult = WADM.QueryDiskSpace.Parse(shadowResponse, this.validateInput, this.looseSyntax);
-
-                // Sanity check the result
-                if (parseResult == null)
-                    return result.FailMessage("The parsed result was null!");
-                if (parseResult.Success && (!parseResult.HasProduct || parseResult.Product == null))
-                    return result.FailMessage("The parsed product was invalid!");
-
-                // Check, if the result is a success and return it
-                if (parseResult.Success)
-                    return result.Succeed(parseResult.Product, parseResult.Message);
-
-                // Try to return a detailed error
-                if (parseResult.Error != null)
-                    return result.FailMessage("The parsing failed!", parseResult.Error);
+                validateInput = this.validateInput;
+                looseSyntax = this.looseSyntax;
             }
+
+            // Allocate the response objects
+            Postmaster.QueryResponse queryResponse;
+            Result<QueryDiskSpace.ResponseParameters> parseResult;
+
+            // Create the event result object
+            Result<Postmaster.QueryResponse> queryResult = new Result<Postmaster.QueryResponse>();
+
+            // Allocate the shadow response text
+            string shadowResponse = string.Empty;
+
+            // Execute the request
+            queryResponse = Postmaster.PostXML(ipEndpoint, Path, WADM.QueryDiskSpace.Build(), true);
+
+            // Check the result
+            if (queryResponse == null)
+                result.FailMessage("The query response was null!");
+            else if (!queryResponse.Success)
+                result.Fail("The query failed!", new Exception(queryResponse.Message));
+            else if (!queryResponse.IsTextualReponse || string.IsNullOrWhiteSpace(queryResponse.TextualResponse))
+                result.FailMessage("The query response was invalid!");
+            else // Store a shadow copy of the response, as the query response is passed to the callee via an event and might later be compromized
+                shadowResponse = string.Copy(queryResponse.TextualResponse.Trim());
+
+            // Raise the event
+            OnResponseReceived(new ResultEventArgs<Postmaster.QueryResponse>(
+                queryResult.Succeed(queryResponse, "QueryDiskSpace")));
+
+            // Check, if the process failed
+            if (result.Finalized)
+                return result;
+
+            // Parse the response
+            parseResult = WADM.QueryDiskSpace.Parse(shadowResponse, validateInput, looseSyntax);
+
+            // Sanity check the result
+            if (parseResult == null)
+                return result.FailMessage("The parsed result was null!");
+            if (parseResult.Success && (!parseResult.HasProduct || parseResult.Product == null))
+                return result.FailMessage("The parsed product was invalid!");
+
+            // Check, if the result is a success and return it
+            if (parseResult.Success)
+                return result.Succeed(parseResult.Product, parseResult.Message);
+
+            // Try to return a detailed error
+            if (parseResult.Error != null)
+                return result.FailMessage("The parsing failed!", parseResult.Error);
 
             // If not possible, return simple failure
             return result.FailMessage("The parsing failed due to an unknown reason!");
@@ -391,57 +455,63 @@ namespace nxgmci.Protocol.WADM
             // Create the result object
             Result<SvcDbDump.ResponseParameters> result = new Result<SvcDbDump.ResponseParameters>();
 
-            // Lock the class to ensure thread safety
-            lock (eventLock)
+            // Allocate the temporary settings variables
+            bool validateInput, looseSyntax;
+
+            // Fetch the settings thread-safe and ahead of time
+            lock (settingsLock)
             {
-                // Allocate the response objects
-                Postmaster.QueryResponse queryResponse;
-                Result<SvcDbDump.ResponseParameters> parseResult;
-
-                // Create the event result object
-                Result<Postmaster.QueryResponse> queryResult = new Result<Postmaster.QueryResponse>();
-
-                // Allocate the shadow response text
-                string shadowResponse = string.Empty;
-
-                // Execute the request
-                queryResponse = Postmaster.PostXML(ipEndpoint, Path, WADM.SvcDbDump.Build(), true);
-
-                // Check the result
-                if (queryResponse == null)
-                    result.FailMessage("The query response was null!");
-                else if (!queryResponse.Success)
-                    result.Fail("The query failed!", new Exception(queryResponse.Message));
-                else if (!queryResponse.IsTextualReponse || string.IsNullOrWhiteSpace(queryResponse.TextualResponse))
-                    result.FailMessage("The query response was invalid!");
-                else // Store a shadow copy of the response, as the query response is passed to the callee via an event and might later be compromized
-                    shadowResponse = string.Copy(queryResponse.TextualResponse.Trim());
-
-                // Raise the event
-                OnResponseReceived(new ResultEventArgs<Postmaster.QueryResponse>(
-                    queryResult.Succeed(queryResponse, "SvcDbDump")));
-
-                // Check, if the process failed
-                if (result.Finalized)
-                    return result;
-
-                // Parse the response
-                parseResult = WADM.SvcDbDump.Parse(shadowResponse, this.looseSyntax);
-
-                // Sanity check the result
-                if (parseResult == null)
-                    return result.FailMessage("The parsed result was null!");
-                if (parseResult.Success && (!parseResult.HasProduct || parseResult.Product == null))
-                    return result.FailMessage("The parsed product was invalid!");
-
-                // Check, if the result is a success and return it
-                if (parseResult.Success)
-                    return result.Succeed(parseResult.Product, parseResult.Message);
-
-                // Try to return a detailed error
-                if (parseResult.Error != null)
-                    return result.FailMessage("The parsing failed!", parseResult.Error);
+                validateInput = this.validateInput;
+                looseSyntax = this.looseSyntax;
             }
+
+            // Allocate the response objects
+            Postmaster.QueryResponse queryResponse;
+            Result<SvcDbDump.ResponseParameters> parseResult;
+
+            // Create the event result object
+            Result<Postmaster.QueryResponse> queryResult = new Result<Postmaster.QueryResponse>();
+
+            // Allocate the shadow response text
+            string shadowResponse = string.Empty;
+
+            // Execute the request
+            queryResponse = Postmaster.PostXML(ipEndpoint, Path, WADM.SvcDbDump.Build(), true);
+
+            // Check the result
+            if (queryResponse == null)
+                result.FailMessage("The query response was null!");
+            else if (!queryResponse.Success)
+                result.Fail("The query failed!", new Exception(queryResponse.Message));
+            else if (!queryResponse.IsTextualReponse || string.IsNullOrWhiteSpace(queryResponse.TextualResponse))
+                result.FailMessage("The query response was invalid!");
+            else // Store a shadow copy of the response, as the query response is passed to the callee via an event and might later be compromized
+                shadowResponse = string.Copy(queryResponse.TextualResponse.Trim());
+
+            // Raise the event
+            OnResponseReceived(new ResultEventArgs<Postmaster.QueryResponse>(
+                queryResult.Succeed(queryResponse, "SvcDbDump")));
+
+            // Check, if the process failed
+            if (result.Finalized)
+                return result;
+
+            // Parse the response
+            parseResult = WADM.SvcDbDump.Parse(shadowResponse, looseSyntax);
+
+            // Sanity check the result
+            if (parseResult == null)
+                return result.FailMessage("The parsed result was null!");
+            if (parseResult.Success && (!parseResult.HasProduct || parseResult.Product == null))
+                return result.FailMessage("The parsed product was invalid!");
+
+            // Check, if the result is a success and return it
+            if (parseResult.Success)
+                return result.Succeed(parseResult.Product, parseResult.Message);
+
+            // Try to return a detailed error
+            if (parseResult.Error != null)
+                return result.FailMessage("The parsing failed!", parseResult.Error);
 
             // If not possible, return simple failure
             return result.FailMessage("The parsing failed due to an unknown reason!");
@@ -458,65 +528,90 @@ namespace nxgmci.Protocol.WADM
             // Create the result object
             Result<RequestAlbumIndexTable.ContentDataSet> result = new Result<RequestAlbumIndexTable.ContentDataSet>();
 
-            // Lock the class to ensure thread safety
-            lock (eventLock)
+            // Allocate the temporary settings variables
+            bool validateInput, looseSyntax, freezeUpdateID;
+
+            // Fetch the settings thread-safe and ahead of time
+            lock (settingsLock)
             {
-                // Allocate the response objects
-                Postmaster.QueryResponse queryResponse;
-                Result<RequestAlbumIndexTable.ContentDataSet> parseResult;
+                validateInput = this.validateInput;
+                looseSyntax = this.looseSyntax;
+                freezeUpdateID = this.freezeUpdateID;
+            }
 
-                // Create the event result object
-                Result<Postmaster.QueryResponse> queryResult = new Result<Postmaster.QueryResponse>();
+            // Allocate the response objects
+            Postmaster.QueryResponse queryResponse;
+            Result<RequestAlbumIndexTable.ContentDataSet> parseResult;
 
-                // Allocate the shadow response text
-                string shadowResponse = string.Empty;
+            // Create the event result object
+            Result<Postmaster.QueryResponse> queryResult = new Result<Postmaster.QueryResponse>();
 
-                // Execute the request
-                queryResponse = Postmaster.PostXML(ipEndpoint, Path, WADM.RequestAlbumIndexTable.Build(), true);
+            // Allocate the shadow response text
+            string shadowResponse = string.Empty;
 
-                // Check the result
-                if (queryResponse == null)
-                    result.FailMessage("The query response was null!");
-                else if (!queryResponse.Success)
-                    result.Fail("The query failed!", new Exception(queryResponse.Message));
-                else if (!queryResponse.IsTextualReponse || string.IsNullOrWhiteSpace(queryResponse.TextualResponse))
-                    result.FailMessage("The query response was invalid!");
-                else // Store a shadow copy of the response, as the query response is passed to the callee via an event and might later be compromized
-                    shadowResponse = string.Copy(queryResponse.TextualResponse.Trim());
+            // Execute the request
+            queryResponse = Postmaster.PostXML(ipEndpoint, Path, WADM.RequestAlbumIndexTable.Build(), true);
 
-                // Raise the event
-                OnResponseReceived(new ResultEventArgs<Postmaster.QueryResponse>(
-                    queryResult.Succeed(queryResponse, "RequestAlbumIndexTable")));
+            // Check the result
+            if (queryResponse == null)
+                result.FailMessage("The query response was null!");
+            else if (!queryResponse.Success)
+                result.Fail("The query failed!", new Exception(queryResponse.Message));
+            else if (!queryResponse.IsTextualReponse || string.IsNullOrWhiteSpace(queryResponse.TextualResponse))
+                result.FailMessage("The query response was invalid!");
+            else // Store a shadow copy of the response, as the query response is passed to the callee via an event and might later be compromized
+                shadowResponse = string.Copy(queryResponse.TextualResponse.Trim());
 
-                // Check, if the process failed
-                if (result.Finalized)
-                    return result;
+            // Raise the event
+            OnResponseReceived(new ResultEventArgs<Postmaster.QueryResponse>(
+                queryResult.Succeed(queryResponse, "RequestAlbumIndexTable")));
 
-                // Parse the response
-                parseResult = WADM.RequestAlbumIndexTable.Parse(shadowResponse, this.validateInput, this.looseSyntax);
+            // Check, if the process failed
+            if (result.Finalized)
+                return result;
 
-                // Sanity check the result
-                if (parseResult == null)
-                    return result.FailMessage("The parsed result was null!");
-                if (parseResult.Success && (!parseResult.HasProduct || parseResult.Product == null))
-                    return result.FailMessage("The parsed product was invalid!");
+            // Parse the response
+            parseResult = WADM.RequestAlbumIndexTable.Parse(shadowResponse, validateInput, looseSyntax);
 
-                // Check, if the result is a success
-                if (parseResult.Success)
+            // Sanity check the result
+            if (parseResult == null)
+                return result.FailMessage("The parsed result was null!");
+            if (parseResult.Success && (!parseResult.HasProduct || parseResult.Product == null))
+                return result.FailMessage("The parsed product was invalid!");
+
+            // Check, if the result is a success
+            if (parseResult.Success)
+            {
+                // Store the current and previous update ID, as well as allocate an flag that stores whether the field was updated
+                uint newUpdateID = parseResult.Product.UpdateID, oldUpdateID = 0;
+                bool wasUpdated = false;
+
+                // Check, if the update ID may be updated automatically
+                if (!freezeUpdateID && newUpdateID != 0)
                 {
-                    // Also, store the update ID
-                    if (parseResult.Product.UpdateID > this.updateID && parseResult.Product.UpdateID != 0 && !freezeUpdateID)
-                        lock (updateIDLock)
-                            this.updateID = parseResult.Product.UpdateID;
+                    // Lock the updating for thread-safety
+                    lock (updateIDLock)
+                    {
+                        // Store the previous update ID
+                        oldUpdateID = this.updateID;
 
-                    // Return the result
-                    return result.Succeed(parseResult.Product, parseResult.Message);
+                        // If the two update IDs differ, update the old one
+                        if ((wasUpdated = (oldUpdateID != newUpdateID)))
+                            this.updateID = newUpdateID;
+                    }
                 }
 
-                // Try to return a detailed error
-                if (parseResult.Error != null)
-                    return result.FailMessage("The parsing failed!", parseResult.Error);
+                // Check, if anything was updated and raise the update event if true
+                if (wasUpdated)
+                    OnUpdateIDChanged(new UpdateIDEventArgs(newUpdateID, true, oldUpdateID));
+
+                // Return the result
+                return result.Succeed(parseResult.Product, parseResult.Message);
             }
+
+            // Try to return a detailed error
+            if (parseResult.Error != null)
+                return result.FailMessage("The parsing failed!", parseResult.Error);
 
             // If not possible, return simple failure
             return result.FailMessage("The parsing failed due to an unknown reason!");
@@ -533,65 +628,90 @@ namespace nxgmci.Protocol.WADM
             // Create the result object
             Result<RequestArtistIndexTable.ContentDataSet> result = new Result<RequestArtistIndexTable.ContentDataSet>();
 
-            // Lock the class to ensure thread safety
-            lock (eventLock)
+            // Allocate the temporary settings variables
+            bool validateInput, looseSyntax, freezeUpdateID;
+
+            // Fetch the settings thread-safe and ahead of time
+            lock (settingsLock)
             {
-                // Allocate the response objects
-                Postmaster.QueryResponse queryResponse;
-                Result<RequestArtistIndexTable.ContentDataSet> parseResult;
+                validateInput = this.validateInput;
+                looseSyntax = this.looseSyntax;
+                freezeUpdateID = this.freezeUpdateID;
+            }
 
-                // Create the event result object
-                Result<Postmaster.QueryResponse> queryResult = new Result<Postmaster.QueryResponse>();
+            // Allocate the response objects
+            Postmaster.QueryResponse queryResponse;
+            Result<RequestArtistIndexTable.ContentDataSet> parseResult;
 
-                // Allocate the shadow response text
-                string shadowResponse = string.Empty;
+            // Create the event result object
+            Result<Postmaster.QueryResponse> queryResult = new Result<Postmaster.QueryResponse>();
 
-                // Execute the request
-                queryResponse = Postmaster.PostXML(ipEndpoint, Path, WADM.RequestArtistIndexTable.Build(), true);
+            // Allocate the shadow response text
+            string shadowResponse = string.Empty;
 
-                // Check the result
-                if (queryResponse == null)
-                    result.FailMessage("The query response was null!");
-                else if (!queryResponse.Success)
-                    result.Fail("The query failed!", new Exception(queryResponse.Message));
-                else if (!queryResponse.IsTextualReponse || string.IsNullOrWhiteSpace(queryResponse.TextualResponse))
-                    result.FailMessage("The query response was invalid!");
-                else // Store a shadow copy of the response, as the query response is passed to the callee via an event and might later be compromized
-                    shadowResponse = string.Copy(queryResponse.TextualResponse.Trim());
+            // Execute the request
+            queryResponse = Postmaster.PostXML(ipEndpoint, Path, WADM.RequestArtistIndexTable.Build(), true);
 
-                // Raise the event
-                OnResponseReceived(new ResultEventArgs<Postmaster.QueryResponse>(
-                    queryResult.Succeed(queryResponse, "RequestArtistIndexTable")));
+            // Check the result
+            if (queryResponse == null)
+                result.FailMessage("The query response was null!");
+            else if (!queryResponse.Success)
+                result.Fail("The query failed!", new Exception(queryResponse.Message));
+            else if (!queryResponse.IsTextualReponse || string.IsNullOrWhiteSpace(queryResponse.TextualResponse))
+                result.FailMessage("The query response was invalid!");
+            else // Store a shadow copy of the response, as the query response is passed to the callee via an event and might later be compromized
+                shadowResponse = string.Copy(queryResponse.TextualResponse.Trim());
 
-                // Check, if the process failed
-                if (result.Finalized)
-                    return result;
+            // Raise the event
+            OnResponseReceived(new ResultEventArgs<Postmaster.QueryResponse>(
+                queryResult.Succeed(queryResponse, "RequestArtistIndexTable")));
 
-                // Parse the response
-                parseResult = WADM.RequestArtistIndexTable.Parse(shadowResponse, this.validateInput, this.looseSyntax);
+            // Check, if the process failed
+            if (result.Finalized)
+                return result;
 
-                // Sanity check the result
-                if (parseResult == null)
-                    return result.FailMessage("The parsed result was null!");
-                if (parseResult.Success && (!parseResult.HasProduct || parseResult.Product == null))
-                    return result.FailMessage("The parsed product was invalid!");
+            // Parse the response
+            parseResult = WADM.RequestArtistIndexTable.Parse(shadowResponse, validateInput, looseSyntax);
 
-                // Check, if the result is a success
-                if (parseResult.Success)
+            // Sanity check the result
+            if (parseResult == null)
+                return result.FailMessage("The parsed result was null!");
+            if (parseResult.Success && (!parseResult.HasProduct || parseResult.Product == null))
+                return result.FailMessage("The parsed product was invalid!");
+
+            // Check, if the result is a success
+            if (parseResult.Success)
+            {
+                // Store the current and previous update ID, as well as allocate an flag that stores whether the field was updated
+                uint newUpdateID = parseResult.Product.UpdateID, oldUpdateID = 0;
+                bool wasUpdated = false;
+
+                // Check, if the update ID may be updated automatically
+                if (!freezeUpdateID && newUpdateID != 0)
                 {
-                    // Also, store the update ID
-                    if (parseResult.Product.UpdateID > this.updateID && parseResult.Product.UpdateID != 0 && !freezeUpdateID)
-                        lock (updateIDLock)
-                            this.updateID = parseResult.Product.UpdateID;
+                    // Lock the updating for thread-safety
+                    lock (updateIDLock)
+                    {
+                        // Store the previous update ID
+                        oldUpdateID = this.updateID;
 
-                    // Return the result
-                    return result.Succeed(parseResult.Product, parseResult.Message);
+                        // If the two update IDs differ, update the old one
+                        if ((wasUpdated = (oldUpdateID != newUpdateID)))
+                            this.updateID = newUpdateID;
+                    }
                 }
 
-                // Try to return a detailed error
-                if (parseResult.Error != null)
-                    return result.FailMessage("The parsing failed!", parseResult.Error);
+                // Check, if anything was updated and raise the update event if true
+                if (wasUpdated)
+                    OnUpdateIDChanged(new UpdateIDEventArgs(newUpdateID, true, oldUpdateID));
+
+                // Return the result
+                return result.Succeed(parseResult.Product, parseResult.Message);
             }
+
+            // Try to return a detailed error
+            if (parseResult.Error != null)
+                return result.FailMessage("The parsing failed!", parseResult.Error);
 
             // If not possible, return simple failure
             return result.FailMessage("The parsing failed due to an unknown reason!");
@@ -608,65 +728,90 @@ namespace nxgmci.Protocol.WADM
             // Create the result object
             Result<RequestGenreIndexTable.ContentDataSet> result = new Result<RequestGenreIndexTable.ContentDataSet>();
 
-            // Lock the class to ensure thread safety
-            lock (eventLock)
+            // Allocate the temporary settings variables
+            bool validateInput, looseSyntax, freezeUpdateID;
+
+            // Fetch the settings thread-safe and ahead of time
+            lock (settingsLock)
             {
-                // Allocate the response objects
-                Postmaster.QueryResponse queryResponse;
-                Result<RequestGenreIndexTable.ContentDataSet> parseResult;
+                validateInput = this.validateInput;
+                looseSyntax = this.looseSyntax;
+                freezeUpdateID = this.freezeUpdateID;
+            }
 
-                // Create the event result object
-                Result<Postmaster.QueryResponse> queryResult = new Result<Postmaster.QueryResponse>();
+            // Allocate the response objects
+            Postmaster.QueryResponse queryResponse;
+            Result<RequestGenreIndexTable.ContentDataSet> parseResult;
 
-                // Allocate the shadow response text
-                string shadowResponse = string.Empty;
+            // Create the event result object
+            Result<Postmaster.QueryResponse> queryResult = new Result<Postmaster.QueryResponse>();
 
-                // Execute the request
-                queryResponse = Postmaster.PostXML(ipEndpoint, Path, WADM.RequestGenreIndexTable.Build(), true);
+            // Allocate the shadow response text
+            string shadowResponse = string.Empty;
 
-                // Check the result
-                if (queryResponse == null)
-                    result.FailMessage("The query response was null!");
-                else if (!queryResponse.Success)
-                    result.Fail("The query failed!", new Exception(queryResponse.Message));
-                else if (!queryResponse.IsTextualReponse || string.IsNullOrWhiteSpace(queryResponse.TextualResponse))
-                    result.FailMessage("The query response was invalid!");
-                else // Store a shadow copy of the response, as the query response is passed to the callee via an event and might later be compromized
-                    shadowResponse = string.Copy(queryResponse.TextualResponse.Trim());
+            // Execute the request
+            queryResponse = Postmaster.PostXML(ipEndpoint, Path, WADM.RequestGenreIndexTable.Build(), true);
 
-                // Raise the event
-                OnResponseReceived(new ResultEventArgs<Postmaster.QueryResponse>(
-                    queryResult.Succeed(queryResponse, "RequestGenreIndexTable")));
+            // Check the result
+            if (queryResponse == null)
+                result.FailMessage("The query response was null!");
+            else if (!queryResponse.Success)
+                result.Fail("The query failed!", new Exception(queryResponse.Message));
+            else if (!queryResponse.IsTextualReponse || string.IsNullOrWhiteSpace(queryResponse.TextualResponse))
+                result.FailMessage("The query response was invalid!");
+            else // Store a shadow copy of the response, as the query response is passed to the callee via an event and might later be compromized
+                shadowResponse = string.Copy(queryResponse.TextualResponse.Trim());
 
-                // Check, if the process failed
-                if (result.Finalized)
-                    return result;
+            // Raise the event
+            OnResponseReceived(new ResultEventArgs<Postmaster.QueryResponse>(
+                queryResult.Succeed(queryResponse, "RequestGenreIndexTable")));
 
-                // Parse the response
-                parseResult = WADM.RequestGenreIndexTable.Parse(shadowResponse, this.validateInput, this.looseSyntax);
+            // Check, if the process failed
+            if (result.Finalized)
+                return result;
 
-                // Sanity check the result
-                if (parseResult == null)
-                    return result.FailMessage("The parsed result was null!");
-                if (parseResult.Success && (!parseResult.HasProduct || parseResult.Product == null))
-                    return result.FailMessage("The parsed product was invalid!");
+            // Parse the response
+            parseResult = WADM.RequestGenreIndexTable.Parse(shadowResponse, validateInput, looseSyntax);
 
-                // Check, if the result is a success
-                if (parseResult.Success)
+            // Sanity check the result
+            if (parseResult == null)
+                return result.FailMessage("The parsed result was null!");
+            if (parseResult.Success && (!parseResult.HasProduct || parseResult.Product == null))
+                return result.FailMessage("The parsed product was invalid!");
+
+            // Check, if the result is a success
+            if (parseResult.Success)
+            {
+                // Store the current and previous update ID, as well as allocate an flag that stores whether the field was updated
+                uint newUpdateID = parseResult.Product.UpdateID, oldUpdateID = 0;
+                bool wasUpdated = false;
+
+                // Check, if the update ID may be updated automatically
+                if (!freezeUpdateID && newUpdateID != 0)
                 {
-                    // Also, store the update ID
-                    if (parseResult.Product.UpdateID > this.updateID && parseResult.Product.UpdateID != 0 && !freezeUpdateID)
-                        lock (updateIDLock)
-                            this.updateID = parseResult.Product.UpdateID;
+                    // Lock the updating for thread-safety
+                    lock (updateIDLock)
+                    {
+                        // Store the previous update ID
+                        oldUpdateID = this.updateID;
 
-                    // Return the result
-                    return result.Succeed(parseResult.Product, parseResult.Message);
+                        // If the two update IDs differ, update the old one
+                        if ((wasUpdated = (oldUpdateID != newUpdateID)))
+                            this.updateID = newUpdateID;
+                    }
                 }
 
-                // Try to return a detailed error
-                if (parseResult.Error != null)
-                    return result.FailMessage("The parsing failed!", parseResult.Error);
+                // Check, if anything was updated and raise the update event if true
+                if (wasUpdated)
+                    OnUpdateIDChanged(new UpdateIDEventArgs(newUpdateID, true, oldUpdateID));
+
+                // Return the result
+                return result.Succeed(parseResult.Product, parseResult.Message);
             }
+
+            // Try to return a detailed error
+            if (parseResult.Error != null)
+                return result.FailMessage("The parsing failed!", parseResult.Error);
 
             // If not possible, return simple failure
             return result.FailMessage("The parsing failed due to an unknown reason!");
@@ -685,65 +830,90 @@ namespace nxgmci.Protocol.WADM
             // Create the result object
             Result<RequestUriMetaData.ResponseParameters> result = new Result<RequestUriMetaData.ResponseParameters>();
 
-            // Lock the class to ensure thread safety
-            lock (eventLock)
+            // Allocate the temporary settings variables
+            bool validateInput, looseSyntax, freezeUpdateID;
+
+            // Fetch the settings thread-safe and ahead of time
+            lock (settingsLock)
             {
-                // Allocate the response objects
-                Postmaster.QueryResponse queryResponse;
-                Result<RequestUriMetaData.ResponseParameters> parseResult;
+                validateInput = this.validateInput;
+                looseSyntax = this.looseSyntax;
+                freezeUpdateID = this.freezeUpdateID;
+            }
 
-                // Create the event result object
-                Result<Postmaster.QueryResponse> queryResult = new Result<Postmaster.QueryResponse>();
+            // Allocate the response objects
+            Postmaster.QueryResponse queryResponse;
+            Result<RequestUriMetaData.ResponseParameters> parseResult;
 
-                // Allocate the shadow response text
-                string shadowResponse = string.Empty;
+            // Create the event result object
+            Result<Postmaster.QueryResponse> queryResult = new Result<Postmaster.QueryResponse>();
 
-                // Execute the request
-                queryResponse = Postmaster.PostXML(ipEndpoint, Path, WADM.RequestUriMetaData.Build(), true);
+            // Allocate the shadow response text
+            string shadowResponse = string.Empty;
 
-                // Check the result
-                if (queryResponse == null)
-                    result.FailMessage("The query response was null!");
-                else if (!queryResponse.Success)
-                    result.Fail("The query failed!", new Exception(queryResponse.Message));
-                else if (!queryResponse.IsTextualReponse || string.IsNullOrWhiteSpace(queryResponse.TextualResponse))
-                    result.FailMessage("The query response was invalid!");
-                else // Store a shadow copy of the response, as the query response is passed to the callee via an event and might later be compromized
-                    shadowResponse = string.Copy(queryResponse.TextualResponse.Trim());
+            // Execute the request
+            queryResponse = Postmaster.PostXML(ipEndpoint, Path, WADM.RequestUriMetaData.Build(), true);
 
-                // Raise the event
-                OnResponseReceived(new ResultEventArgs<Postmaster.QueryResponse>(
-                    queryResult.Succeed(queryResponse, "RequestUriMetaData")));
+            // Check the result
+            if (queryResponse == null)
+                result.FailMessage("The query response was null!");
+            else if (!queryResponse.Success)
+                result.Fail("The query failed!", new Exception(queryResponse.Message));
+            else if (!queryResponse.IsTextualReponse || string.IsNullOrWhiteSpace(queryResponse.TextualResponse))
+                result.FailMessage("The query response was invalid!");
+            else // Store a shadow copy of the response, as the query response is passed to the callee via an event and might later be compromized
+                shadowResponse = string.Copy(queryResponse.TextualResponse.Trim());
 
-                // Check, if the process failed
-                if (result.Finalized)
-                    return result;
+            // Raise the event
+            OnResponseReceived(new ResultEventArgs<Postmaster.QueryResponse>(
+                queryResult.Succeed(queryResponse, "RequestUriMetaData")));
 
-                // Parse the response
-                parseResult = WADM.RequestUriMetaData.Parse(shadowResponse, this.validateInput, this.looseSyntax);
+            // Check, if the process failed
+            if (result.Finalized)
+                return result;
 
-                // Sanity check the result
-                if (parseResult == null)
-                    return result.FailMessage("The parsed result was null!");
-                if (parseResult.Success && (!parseResult.HasProduct || parseResult.Product == null))
-                    return result.FailMessage("The parsed product was invalid!");
+            // Parse the response
+            parseResult = WADM.RequestUriMetaData.Parse(shadowResponse, validateInput, looseSyntax);
 
-                // Check, if the result is a success
-                if (parseResult.Success)
+            // Sanity check the result
+            if (parseResult == null)
+                return result.FailMessage("The parsed result was null!");
+            if (parseResult.Success && (!parseResult.HasProduct || parseResult.Product == null))
+                return result.FailMessage("The parsed product was invalid!");
+
+            // Check, if the result is a success
+            if (parseResult.Success)
+            {
+                // Store the current and previous update ID, as well as allocate an flag that stores whether the field was updated
+                uint newUpdateID = parseResult.Product.UpdateID, oldUpdateID = 0;
+                bool wasUpdated = false;
+
+                // Check, if the update ID may be updated automatically
+                if (!freezeUpdateID && newUpdateID != 0)
                 {
-                    // Also, store the update ID
-                    if (parseResult.Product.UpdateID > this.updateID && parseResult.Product.UpdateID != 0 && !freezeUpdateID)
-                        lock (updateIDLock)
-                            this.updateID = parseResult.Product.UpdateID;
+                    // Lock the updating for thread-safety
+                    lock (updateIDLock)
+                    {
+                        // Store the previous update ID
+                        oldUpdateID = this.updateID;
 
-                    // Return the result
-                    return result.Succeed(parseResult.Product, parseResult.Message);
+                        // If the two update IDs differ, update the old one
+                        if ((wasUpdated = (oldUpdateID != newUpdateID)))
+                            this.updateID = newUpdateID;
+                    }
                 }
 
-                // Try to return a detailed error
-                if (parseResult.Error != null)
-                    return result.FailMessage("The parsing failed!", parseResult.Error);
+                // Check, if anything was updated and raise the update event if true
+                if (wasUpdated)
+                    OnUpdateIDChanged(new UpdateIDEventArgs(newUpdateID, true, oldUpdateID));
+
+                // Return the result
+                return result.Succeed(parseResult.Product, parseResult.Message);
             }
+
+            // Try to return a detailed error
+            if (parseResult.Error != null)
+                return result.FailMessage("The parsing failed!", parseResult.Error);
 
             // If not possible, return simple failure
             return result.FailMessage("The parsing failed due to an unknown reason!");
@@ -764,65 +934,90 @@ namespace nxgmci.Protocol.WADM
             if (Name == null)
                 return result.FailMessage("The argument '{0}' was null!", "Name");
 
-            // Lock the class to ensure thread safety
-            lock (eventLock)
+            // Allocate the temporary settings variables
+            bool validateInput, looseSyntax, freezeUpdateID;
+
+            // Fetch the settings thread-safe and ahead of time
+            lock (settingsLock)
             {
-                // Allocate the response objects
-                Postmaster.QueryResponse queryResponse;
-                Result<RequestPlaylistCreate.ResponseParameters> parseResult;
+                validateInput = this.validateInput;
+                looseSyntax = this.looseSyntax;
+                freezeUpdateID = this.freezeUpdateID;
+            }
 
-                // Create the event result object
-                Result<Postmaster.QueryResponse> queryResult = new Result<Postmaster.QueryResponse>();
+            // Allocate the response objects
+            Postmaster.QueryResponse queryResponse;
+            Result<RequestPlaylistCreate.ResponseParameters> parseResult;
 
-                // Allocate the shadow response text
-                string shadowResponse = string.Empty;
+            // Create the event result object
+            Result<Postmaster.QueryResponse> queryResult = new Result<Postmaster.QueryResponse>();
 
-                // Execute the request
-                queryResponse = Postmaster.PostXML(ipEndpoint, Path, WADM.RequestPlaylistCreate.Build(this.updateID, Name), true);
+            // Allocate the shadow response text
+            string shadowResponse = string.Empty;
 
-                // Check the result
-                if (queryResponse == null)
-                    result.FailMessage("The query response was null!");
-                else if (!queryResponse.Success)
-                    result.Fail("The query failed!", new Exception(queryResponse.Message));
-                else if (!queryResponse.IsTextualReponse || string.IsNullOrWhiteSpace(queryResponse.TextualResponse))
-                    result.FailMessage("The query response was invalid!");
-                else // Store a shadow copy of the response, as the query response is passed to the callee via an event and might later be compromized
-                    shadowResponse = string.Copy(queryResponse.TextualResponse.Trim());
+            // Execute the request
+            queryResponse = Postmaster.PostXML(ipEndpoint, Path, WADM.RequestPlaylistCreate.Build(this.UpdateID, Name), true);
 
-                // Raise the event
-                OnResponseReceived(new ResultEventArgs<Postmaster.QueryResponse>(
-                    queryResult.Succeed(queryResponse, "RequestPlaylistCreate")));
+            // Check the result
+            if (queryResponse == null)
+                result.FailMessage("The query response was null!");
+            else if (!queryResponse.Success)
+                result.Fail("The query failed!", new Exception(queryResponse.Message));
+            else if (!queryResponse.IsTextualReponse || string.IsNullOrWhiteSpace(queryResponse.TextualResponse))
+                result.FailMessage("The query response was invalid!");
+            else // Store a shadow copy of the response, as the query response is passed to the callee via an event and might later be compromized
+                shadowResponse = string.Copy(queryResponse.TextualResponse.Trim());
 
-                // Check, if the process failed
-                if (result.Finalized)
-                    return result;
+            // Raise the event
+            OnResponseReceived(new ResultEventArgs<Postmaster.QueryResponse>(
+                queryResult.Succeed(queryResponse, "RequestPlaylistCreate")));
 
-                // Parse the response
-                parseResult = WADM.RequestPlaylistCreate.Parse(shadowResponse, this.validateInput, this.looseSyntax);
+            // Check, if the process failed
+            if (result.Finalized)
+                return result;
 
-                // Sanity check the result
-                if (parseResult == null)
-                    return result.FailMessage("The parsed result was null!");
-                if (parseResult.Success && (!parseResult.HasProduct || parseResult.Product == null))
-                    return result.FailMessage("The parsed product was invalid!");
+            // Parse the response
+            parseResult = WADM.RequestPlaylistCreate.Parse(shadowResponse, validateInput, looseSyntax);
 
-                // Check, if the result is a success
-                if (parseResult.Success)
+            // Sanity check the result
+            if (parseResult == null)
+                return result.FailMessage("The parsed result was null!");
+            if (parseResult.Success && (!parseResult.HasProduct || parseResult.Product == null))
+                return result.FailMessage("The parsed product was invalid!");
+
+            // Check, if the result is a success
+            if (parseResult.Success)
+            {
+                // Store the current and previous update ID, as well as allocate an flag that stores whether the field was updated
+                uint newUpdateID = parseResult.Product.UpdateID, oldUpdateID = 0;
+                bool wasUpdated = false;
+
+                // Check, if the update ID may be updated automatically
+                if (!freezeUpdateID && newUpdateID != 0)
                 {
-                    // Also, store the update ID
-                    if (parseResult.Product.UpdateID > this.updateID && parseResult.Product.UpdateID != 0 && !freezeUpdateID)
-                        lock (updateIDLock)
-                            this.updateID = parseResult.Product.UpdateID;
+                    // Lock the updating for thread-safety
+                    lock (updateIDLock)
+                    {
+                        // Store the previous update ID
+                        oldUpdateID = this.updateID;
 
-                    // Return the result
-                    return result.Succeed(parseResult.Product, parseResult.Message);
+                        // If the two update IDs differ, update the old one
+                        if ((wasUpdated = (oldUpdateID != newUpdateID)))
+                            this.updateID = newUpdateID;
+                    }
                 }
 
-                // Try to return a detailed error
-                if (parseResult.Error != null)
-                    return result.FailMessage("The parsing failed!", parseResult.Error);
+                // Check, if anything was updated and raise the update event if true
+                if (wasUpdated)
+                    OnUpdateIDChanged(new UpdateIDEventArgs(newUpdateID, true, oldUpdateID));
+
+                // Return the result
+                return result.Succeed(parseResult.Product, parseResult.Message);
             }
+
+            // Try to return a detailed error
+            if (parseResult.Error != null)
+                return result.FailMessage("The parsing failed!", parseResult.Error);
 
             // If not possible, return simple failure
             return result.FailMessage("The parsing failed due to an unknown reason!");
@@ -847,65 +1042,90 @@ namespace nxgmci.Protocol.WADM
             if (OriginalName == null)
                 OriginalName = string.Empty;
 
-            // Lock the class to ensure thread safety
-            lock (eventLock)
+            // Allocate the temporary settings variables
+            bool validateInput, looseSyntax, freezeUpdateID;
+
+            // Fetch the settings thread-safe and ahead of time
+            lock (settingsLock)
             {
-                // Allocate the response objects
-                Postmaster.QueryResponse queryResponse;
-                Result<RequestPlaylistRename.ResponseParameters> parseResult;
+                validateInput = this.validateInput;
+                looseSyntax = this.looseSyntax;
+                freezeUpdateID = this.freezeUpdateID;
+            }
 
-                // Create the event result object
-                Result<Postmaster.QueryResponse> queryResult = new Result<Postmaster.QueryResponse>();
+            // Allocate the response objects
+            Postmaster.QueryResponse queryResponse;
+            Result<RequestPlaylistRename.ResponseParameters> parseResult;
 
-                // Allocate the shadow response text
-                string shadowResponse = string.Empty;
+            // Create the event result object
+            Result<Postmaster.QueryResponse> queryResult = new Result<Postmaster.QueryResponse>();
 
-                // Execute the request
-                queryResponse = Postmaster.PostXML(ipEndpoint, Path, WADM.RequestPlaylistRename.Build(this.updateID, Index, Name, OriginalName), true);
+            // Allocate the shadow response text
+            string shadowResponse = string.Empty;
 
-                // Check the result
-                if (queryResponse == null)
-                    result.FailMessage("The query response was null!");
-                else if (!queryResponse.Success)
-                    result.Fail("The query failed!", new Exception(queryResponse.Message));
-                else if (!queryResponse.IsTextualReponse || string.IsNullOrWhiteSpace(queryResponse.TextualResponse))
-                    result.FailMessage("The query response was invalid!");
-                else // Store a shadow copy of the response, as the query response is passed to the callee via an event and might later be compromized
-                    shadowResponse = string.Copy(queryResponse.TextualResponse.Trim());
+            // Execute the request
+            queryResponse = Postmaster.PostXML(ipEndpoint, Path, WADM.RequestPlaylistRename.Build(this.UpdateID, Index, Name, OriginalName), true);
 
-                // Raise the event
-                OnResponseReceived(new ResultEventArgs<Postmaster.QueryResponse>(
-                    queryResult.Succeed(queryResponse, "RequestPlaylistRename")));
+            // Check the result
+            if (queryResponse == null)
+                result.FailMessage("The query response was null!");
+            else if (!queryResponse.Success)
+                result.Fail("The query failed!", new Exception(queryResponse.Message));
+            else if (!queryResponse.IsTextualReponse || string.IsNullOrWhiteSpace(queryResponse.TextualResponse))
+                result.FailMessage("The query response was invalid!");
+            else // Store a shadow copy of the response, as the query response is passed to the callee via an event and might later be compromized
+                shadowResponse = string.Copy(queryResponse.TextualResponse.Trim());
 
-                // Check, if the process failed
-                if (result.Finalized)
-                    return result;
+            // Raise the event
+            OnResponseReceived(new ResultEventArgs<Postmaster.QueryResponse>(
+                queryResult.Succeed(queryResponse, "RequestPlaylistRename")));
 
-                // Parse the response
-                parseResult = WADM.RequestPlaylistRename.Parse(shadowResponse, this.validateInput, this.looseSyntax);
+            // Check, if the process failed
+            if (result.Finalized)
+                return result;
 
-                // Sanity check the result
-                if (parseResult == null)
-                    return result.FailMessage("The parsed result was null!");
-                if (parseResult.Success && (!parseResult.HasProduct || parseResult.Product == null))
-                    return result.FailMessage("The parsed product was invalid!");
+            // Parse the response
+            parseResult = WADM.RequestPlaylistRename.Parse(shadowResponse, validateInput, looseSyntax);
 
-                // Check, if the result is a success
-                if (parseResult.Success)
+            // Sanity check the result
+            if (parseResult == null)
+                return result.FailMessage("The parsed result was null!");
+            if (parseResult.Success && (!parseResult.HasProduct || parseResult.Product == null))
+                return result.FailMessage("The parsed product was invalid!");
+
+            // Check, if the result is a success
+            if (parseResult.Success)
+            {
+                // Store the current and previous update ID, as well as allocate an flag that stores whether the field was updated
+                uint newUpdateID = parseResult.Product.UpdateID, oldUpdateID = 0;
+                bool wasUpdated = false;
+
+                // Check, if the update ID may be updated automatically
+                if (!freezeUpdateID && newUpdateID != 0)
                 {
-                    // Also, store the update ID
-                    if (parseResult.Product.UpdateID > this.updateID && parseResult.Product.UpdateID != 0 && !freezeUpdateID)
-                        lock (updateIDLock)
-                            this.updateID = parseResult.Product.UpdateID;
+                    // Lock the updating for thread-safety
+                    lock (updateIDLock)
+                    {
+                        // Store the previous update ID
+                        oldUpdateID = this.updateID;
 
-                    // Return the result
-                    return result.Succeed(parseResult.Product, parseResult.Message);
+                        // If the two update IDs differ, update the old one
+                        if ((wasUpdated = (oldUpdateID != newUpdateID)))
+                            this.updateID = newUpdateID;
+                    }
                 }
 
-                // Try to return a detailed error
-                if (parseResult.Error != null)
-                    return result.FailMessage("The parsing failed!", parseResult.Error);
+                // Check, if anything was updated and raise the update event if true
+                if (wasUpdated)
+                    OnUpdateIDChanged(new UpdateIDEventArgs(newUpdateID, true, oldUpdateID));
+
+                // Return the result
+                return result.Succeed(parseResult.Product, parseResult.Message);
             }
+
+            // Try to return a detailed error
+            if (parseResult.Error != null)
+                return result.FailMessage("The parsing failed!", parseResult.Error);
 
             // If not possible, return simple failure
             return result.FailMessage("The parsing failed due to an unknown reason!");
@@ -927,65 +1147,90 @@ namespace nxgmci.Protocol.WADM
             if (OriginalName == null)
                 OriginalName = string.Empty;
 
-            // Lock the class to ensure thread safety
-            lock (eventLock)
+            // Allocate the temporary settings variables
+            bool validateInput, looseSyntax, freezeUpdateID;
+
+            // Fetch the settings thread-safe and ahead of time
+            lock (settingsLock)
             {
-                // Allocate the response objects
-                Postmaster.QueryResponse queryResponse;
-                Result<RequestPlaylistDelete.ResponseParameters> parseResult;
+                validateInput = this.validateInput;
+                looseSyntax = this.looseSyntax;
+                freezeUpdateID = this.freezeUpdateID;
+            }
 
-                // Create the event result object
-                Result<Postmaster.QueryResponse> queryResult = new Result<Postmaster.QueryResponse>();
+            // Allocate the response objects
+            Postmaster.QueryResponse queryResponse;
+            Result<RequestPlaylistDelete.ResponseParameters> parseResult;
 
-                // Allocate the shadow response text
-                string shadowResponse = string.Empty;
+            // Create the event result object
+            Result<Postmaster.QueryResponse> queryResult = new Result<Postmaster.QueryResponse>();
 
-                // Execute the request
-                queryResponse = Postmaster.PostXML(ipEndpoint, Path, WADM.RequestPlaylistDelete.Build(this.updateID, Index, OriginalName), true);
+            // Allocate the shadow response text
+            string shadowResponse = string.Empty;
 
-                // Check the result
-                if (queryResponse == null)
-                    result.FailMessage("The query response was null!");
-                else if (!queryResponse.Success)
-                    result.Fail("The query failed!", new Exception(queryResponse.Message));
-                else if (!queryResponse.IsTextualReponse || string.IsNullOrWhiteSpace(queryResponse.TextualResponse))
-                    result.FailMessage("The query response was invalid!");
-                else // Store a shadow copy of the response, as the query response is passed to the callee via an event and might later be compromized
-                    shadowResponse = string.Copy(queryResponse.TextualResponse.Trim());
+            // Execute the request
+            queryResponse = Postmaster.PostXML(ipEndpoint, Path, WADM.RequestPlaylistDelete.Build(this.UpdateID, Index, OriginalName), true);
 
-                // Raise the event
-                OnResponseReceived(new ResultEventArgs<Postmaster.QueryResponse>(
-                    queryResult.Succeed(queryResponse, "RequestPlaylistDelete")));
+            // Check the result
+            if (queryResponse == null)
+                result.FailMessage("The query response was null!");
+            else if (!queryResponse.Success)
+                result.Fail("The query failed!", new Exception(queryResponse.Message));
+            else if (!queryResponse.IsTextualReponse || string.IsNullOrWhiteSpace(queryResponse.TextualResponse))
+                result.FailMessage("The query response was invalid!");
+            else // Store a shadow copy of the response, as the query response is passed to the callee via an event and might later be compromized
+                shadowResponse = string.Copy(queryResponse.TextualResponse.Trim());
 
-                // Check, if the process failed
-                if (result.Finalized)
-                    return result;
+            // Raise the event
+            OnResponseReceived(new ResultEventArgs<Postmaster.QueryResponse>(
+                queryResult.Succeed(queryResponse, "RequestPlaylistDelete")));
 
-                // Parse the response
-                parseResult = WADM.RequestPlaylistDelete.Parse(shadowResponse, this.validateInput, this.looseSyntax);
+            // Check, if the process failed
+            if (result.Finalized)
+                return result;
 
-                // Sanity check the result
-                if (parseResult == null)
-                    return result.FailMessage("The parsed result was null!");
-                if (parseResult.Success && (!parseResult.HasProduct || parseResult.Product == null))
-                    return result.FailMessage("The parsed product was invalid!");
+            // Parse the response
+            parseResult = WADM.RequestPlaylistDelete.Parse(shadowResponse, validateInput, looseSyntax);
 
-                // Check, if the result is a success
-                if (parseResult.Success)
+            // Sanity check the result
+            if (parseResult == null)
+                return result.FailMessage("The parsed result was null!");
+            if (parseResult.Success && (!parseResult.HasProduct || parseResult.Product == null))
+                return result.FailMessage("The parsed product was invalid!");
+
+            // Check, if the result is a success
+            if (parseResult.Success)
+            {
+                // Store the current and previous update ID, as well as allocate an flag that stores whether the field was updated
+                uint newUpdateID = parseResult.Product.UpdateID, oldUpdateID = 0;
+                bool wasUpdated = false;
+
+                // Check, if the update ID may be updated automatically
+                if (!freezeUpdateID && newUpdateID != 0)
                 {
-                    // Also, store the update ID
-                    if (parseResult.Product.UpdateID > this.updateID && parseResult.Product.UpdateID != 0 && !freezeUpdateID)
-                        lock (updateIDLock)
-                            this.updateID = parseResult.Product.UpdateID;
+                    // Lock the updating for thread-safety
+                    lock (updateIDLock)
+                    {
+                        // Store the previous update ID
+                        oldUpdateID = this.updateID;
 
-                    // Return the result
-                    return result.Succeed(parseResult.Product, parseResult.Message);
+                        // If the two update IDs differ, update the old one
+                        if ((wasUpdated = (oldUpdateID != newUpdateID)))
+                            this.updateID = newUpdateID;
+                    }
                 }
 
-                // Try to return a detailed error
-                if (parseResult.Error != null)
-                    return result.FailMessage("The parsing failed!", parseResult.Error);
+                // Check, if anything was updated and raise the update event if true
+                if (wasUpdated)
+                    OnUpdateIDChanged(new UpdateIDEventArgs(newUpdateID, true, oldUpdateID));
+
+                // Return the result
+                return result.Succeed(parseResult.Product, parseResult.Message);
             }
+
+            // Try to return a detailed error
+            if (parseResult.Error != null)
+                return result.FailMessage("The parsing failed!", parseResult.Error);
 
             // If not possible, return simple failure
             return result.FailMessage("The parsing failed due to an unknown reason!");
@@ -1009,65 +1254,90 @@ namespace nxgmci.Protocol.WADM
             // Create the result object
             Result<RequestRawData.ContentDataSet> result = new Result<RequestRawData.ContentDataSet>();
 
-            // Lock the class to ensure thread safety
-            lock (eventLock)
+            // Allocate the temporary settings variables
+            bool validateInput, looseSyntax, freezeUpdateID;
+
+            // Fetch the settings thread-safe and ahead of time
+            lock (settingsLock)
             {
-                // Allocate the response objects
-                Postmaster.QueryResponse queryResponse;
-                Result<RequestRawData.ContentDataSet> parseResult;
+                validateInput = this.validateInput;
+                looseSyntax = this.looseSyntax;
+                freezeUpdateID = this.freezeUpdateID;
+            }
 
-                // Create the event result object
-                Result<Postmaster.QueryResponse> queryResult = new Result<Postmaster.QueryResponse>();
+            // Allocate the response objects
+            Postmaster.QueryResponse queryResponse;
+            Result<RequestRawData.ContentDataSet> parseResult;
 
-                // Allocate the shadow response text
-                string shadowResponse = string.Empty;
+            // Create the event result object
+            Result<Postmaster.QueryResponse> queryResult = new Result<Postmaster.QueryResponse>();
 
-                // Execute the request
-                queryResponse = Postmaster.PostXML(ipEndpoint, Path, WADM.RequestRawData.Build(FromIndex, NumElem), true);
+            // Allocate the shadow response text
+            string shadowResponse = string.Empty;
 
-                // Check the result
-                if (queryResponse == null)
-                    result.FailMessage("The query response was null!");
-                else if (!queryResponse.Success)
-                    result.Fail("The query failed!", new Exception(queryResponse.Message));
-                else if (!queryResponse.IsTextualReponse || string.IsNullOrWhiteSpace(queryResponse.TextualResponse))
-                    result.FailMessage("The query response was invalid!");
-                else // Store a shadow copy of the response, as the query response is passed to the callee via an event and might later be compromized
-                    shadowResponse = string.Copy(queryResponse.TextualResponse.Trim());
+            // Execute the request
+            queryResponse = Postmaster.PostXML(ipEndpoint, Path, WADM.RequestRawData.Build(FromIndex, NumElem), true);
 
-                // Raise the event
-                OnResponseReceived(new ResultEventArgs<Postmaster.QueryResponse>(
-                    queryResult.Succeed(queryResponse, "RequestRawData")));
+            // Check the result
+            if (queryResponse == null)
+                result.FailMessage("The query response was null!");
+            else if (!queryResponse.Success)
+                result.Fail("The query failed!", new Exception(queryResponse.Message));
+            else if (!queryResponse.IsTextualReponse || string.IsNullOrWhiteSpace(queryResponse.TextualResponse))
+                result.FailMessage("The query response was invalid!");
+            else // Store a shadow copy of the response, as the query response is passed to the callee via an event and might later be compromized
+                shadowResponse = string.Copy(queryResponse.TextualResponse.Trim());
 
-                // Check, if the process failed
-                if (result.Finalized)
-                    return result;
+            // Raise the event
+            OnResponseReceived(new ResultEventArgs<Postmaster.QueryResponse>(
+                queryResult.Succeed(queryResponse, "RequestRawData")));
 
-                // Parse the response
-                parseResult = WADM.RequestRawData.Parse(shadowResponse, this.validateInput, this.looseSyntax);
+            // Check, if the process failed
+            if (result.Finalized)
+                return result;
 
-                // Sanity check the result
-                if (parseResult == null)
-                    return result.FailMessage("The parsed result was null!");
-                if (parseResult.Success && (!parseResult.HasProduct || parseResult.Product == null))
-                    return result.FailMessage("The parsed product was invalid!");
+            // Parse the response
+            parseResult = WADM.RequestRawData.Parse(shadowResponse, validateInput, looseSyntax);
 
-                // Check, if the result is a success
-                if (parseResult.Success)
+            // Sanity check the result
+            if (parseResult == null)
+                return result.FailMessage("The parsed result was null!");
+            if (parseResult.Success && (!parseResult.HasProduct || parseResult.Product == null))
+                return result.FailMessage("The parsed product was invalid!");
+
+            // Check, if the result is a success
+            if (parseResult.Success)
+            {
+                // Store the current and previous update ID, as well as allocate an flag that stores whether the field was updated
+                uint newUpdateID = parseResult.Product.UpdateID, oldUpdateID = 0;
+                bool wasUpdated = false;
+
+                // Check, if the update ID may be updated automatically
+                if (!freezeUpdateID && newUpdateID != 0)
                 {
-                    // Also, store the update ID
-                    if (parseResult.Product.UpdateID > this.updateID && parseResult.Product.UpdateID != 0 && !freezeUpdateID)
-                        lock (updateIDLock)
-                            this.updateID = parseResult.Product.UpdateID;
+                    // Lock the updating for thread-safety
+                    lock (updateIDLock)
+                    {
+                        // Store the previous update ID
+                        oldUpdateID = this.updateID;
 
-                    // Return the result
-                    return result.Succeed(parseResult.Product, parseResult.Message);
+                        // If the two update IDs differ, update the old one
+                        if ((wasUpdated = (oldUpdateID != newUpdateID)))
+                            this.updateID = newUpdateID;
+                    }
                 }
 
-                // Try to return a detailed error
-                if (parseResult.Error != null)
-                    return result.FailMessage("The parsing failed!", parseResult.Error);
+                // Check, if anything was updated and raise the update event if true
+                if (wasUpdated)
+                    OnUpdateIDChanged(new UpdateIDEventArgs(newUpdateID, true, oldUpdateID));
+
+                // Return the result
+                return result.Succeed(parseResult.Product, parseResult.Message);
             }
+
+            // Try to return a detailed error
+            if (parseResult.Error != null)
+                return result.FailMessage("The parsing failed!", parseResult.Error);
 
             // If not possible, return simple failure
             return result.FailMessage("The parsing failed due to an unknown reason!");
@@ -1085,6 +1355,54 @@ namespace nxgmci.Protocol.WADM
             // Sanity check and call it
             if (handler != null)
                 handler(this, e);
+        }
+
+        /// <summary>
+        /// The internal event handler of the OnUpdateIDChanged event.
+        /// </summary>
+        /// <param name="e">The EventArgs.</param>
+        protected virtual void OnUpdateIDChanged(UpdateIDEventArgs e)
+        {
+            // Get the event handler
+            EventHandler<UpdateIDEventArgs> handler = UpdateIDChanged;
+
+            // Sanity check and call it
+            if (handler != null)
+                handler(this, e);
+        }
+
+        /// <summary>
+        /// EventArgs for update ID changes.
+        /// </summary>
+        public class UpdateIDEventArgs : EventArgs
+        {
+            /// <summary>
+            /// Stores the new update ID.
+            /// </summary>
+            public readonly uint NewUpdateID;
+
+            /// <summary>
+            /// Stores the previous update ID.
+            /// </summary>
+            public readonly uint OldUpdateID;
+
+            /// <summary>
+            /// Indicates, whether the update ID had been updated automatically.
+            /// </summary>
+            public readonly bool AutomaticUpdate;
+
+            /// <summary>
+            /// Default internal constructor.
+            /// </summary>
+            /// <param name="NewUpdateID">The new update ID.</param>
+            /// <param name="AutomaticUpdate">Indicates, whether the update ID had been updated automatically.</param>
+            /// <param name="OldUpdateID">The previous update ID.</param>
+            internal UpdateIDEventArgs(uint NewUpdateID, bool AutomaticUpdate, uint OldUpdateID = 0)
+            {
+                this.NewUpdateID = NewUpdateID;
+                this.AutomaticUpdate = AutomaticUpdate;
+                this.OldUpdateID = OldUpdateID;
+            }
         }
     }
 }
