@@ -1,4 +1,4 @@
-# MCI500H
+# nxgmci - Next generation MCI500H API for C#
 Interface library and GUI for managing the Philips MCI500H hifi system.
 
 ## Intent
