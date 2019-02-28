@@ -30,7 +30,7 @@
 
             // Make sure the response is not null
             if (string.IsNullOrWhiteSpace(Response))
-                return result.FailMessage("The response may not be null!");
+                return Result<ResponseParameters>.FailMessage(result, "The response may not be null!");
 
             // Then, parse the response
             Result<WADMProduct> parserResult = parser.Parse(Response, LazySyntax);
@@ -38,49 +38,49 @@
             // Check if it failed
             if (!parserResult.Success)
                 if (parserResult.Error != null)
-                    return result.Fail("The parsing failed!", parserResult.Error);
+                    return Result<ResponseParameters>.FailErrorMessage(result, parserResult.Error, "The parsing failed!");
                 else
-                    return result.FailMessage("The parsing failed for unknown reasons!");
+                    return Result<ResponseParameters>.FailMessage(result, "The parsing failed for unknown reasons!");
 
             // Make sure the product is there
             if (parserResult.Product == null)
-                return result.FailMessage("The parsing product was null!");
+                return Result<ResponseParameters>.FailMessage(result, "The parsing product was null!");
 
             // And also make sure the state is correct
             if (parserResult.Product.Elements == null)
-                return result.FailMessage("The list of parsed elements is null!");
+                return Result<ResponseParameters>.FailMessage(result, "The list of parsed elements is null!");
 
             // Now, make sure the mandatory arguments exist
             if (!parserResult.Product.Elements.ContainsKey("noofplaylist"))
-                return result.FailMessage("Could not locate parameter '{0}'!", "noofplaylist");
+                return Result<ResponseParameters>.FailMessage(result, "Could not locate parameter '{0}'!", "noofplaylist");
             if (!parserResult.Product.Elements.ContainsKey("noofartist"))
-                return result.FailMessage("Could not locate parameter '{0}'!", "noofartist");
+                return Result<ResponseParameters>.FailMessage(result, "Could not locate parameter '{0}'!", "noofartist");
             if (!parserResult.Product.Elements.ContainsKey("noofalbum"))
-                return result.FailMessage("Could not locate parameter '{0}'!", "noofalbum");
+                return Result<ResponseParameters>.FailMessage(result, "Could not locate parameter '{0}'!", "noofalbum");
             if (!parserResult.Product.Elements.ContainsKey("noofgenre"))
-                return result.FailMessage("Could not locate parameter '{0}'!", "noofgenre");
+                return Result<ResponseParameters>.FailMessage(result, "Could not locate parameter '{0}'!", "noofgenre");
             if (!parserResult.Product.Elements.ContainsKey("nooftrack"))
-                return result.FailMessage("Could not locate parameter '{0}'!", "nooftrack");
+                return Result<ResponseParameters>.FailMessage(result, "Could not locate parameter '{0}'!", "nooftrack");
             if (!parserResult.Product.Elements.ContainsKey("updateid"))
-                return result.FailMessage("Could not locate parameter '{0}'!", "updateid");
+                return Result<ResponseParameters>.FailMessage(result, "Could not locate parameter '{0}'!", "updateid");
             
             // Then, try to parse the parameters
             uint noOfPlaylist, noOfArtist, noOfAlbum, noOfGenre, noOfTrack, updateID;
             if (!uint.TryParse(parserResult.Product.Elements["noofplaylist"], out noOfPlaylist))
-                return result.FailMessage("Could not parse parameter '{0}' as uint!", "noofplaylist");
+                return Result<ResponseParameters>.FailMessage(result, "Could not parse parameter '{0}' as uint!", "noofplaylist");
             if (!uint.TryParse(parserResult.Product.Elements["noofartist"], out noOfArtist))
-                return result.FailMessage("Could not parse parameter '{0}' as uint!", "noofartist");
+                return Result<ResponseParameters>.FailMessage(result, "Could not parse parameter '{0}' as uint!", "noofartist");
             if (!uint.TryParse(parserResult.Product.Elements["noofalbum"], out noOfAlbum))
-                return result.FailMessage("Could not parse parameter '{0}' as uint!", "noofalbum");
+                return Result<ResponseParameters>.FailMessage(result, "Could not parse parameter '{0}' as uint!", "noofalbum");
             if (!uint.TryParse(parserResult.Product.Elements["noofgenre"], out noOfGenre))
-                return result.FailMessage("Could not parse parameter '{0}' as uint!", "noofgenre");
+                return Result<ResponseParameters>.FailMessage(result, "Could not parse parameter '{0}' as uint!", "noofgenre");
             if (!uint.TryParse(parserResult.Product.Elements["nooftrack"], out noOfTrack))
-                return result.FailMessage("Could not parse parameter '{0}' as uint!", "nooftrack");
+                return Result<ResponseParameters>.FailMessage(result, "Could not parse parameter '{0}' as uint!", "nooftrack");
             if (!uint.TryParse(parserResult.Product.Elements["updateid"], out updateID))
-                return result.FailMessage("Could not parse parameter '{0}' as uint!", "updateid");
+                return Result<ResponseParameters>.FailMessage(result, "Could not parse parameter '{0}' as uint!", "updateid");
 
             // Finally, return the response
-            return result.Succeed(new ResponseParameters(noOfPlaylist, noOfArtist, noOfAlbum, noOfGenre, noOfTrack, updateID));
+            return Result<ResponseParameters>.SucceedProduct(result, new ResponseParameters(noOfPlaylist, noOfArtist, noOfAlbum, noOfGenre, noOfTrack, updateID));
         }
 
         /// <summary>
