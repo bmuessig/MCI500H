@@ -59,7 +59,7 @@ namespace nxgmci.Protocol.WADM
 
             // Make sure the response is not null
             if (string.IsNullOrWhiteSpace(Response))
-                return result.FailMessage("The response may not be null!");
+                return Result<ResponseParameters>.FailMessage(result, "The response may not be null!");
 
             // Then, parse the response
             Result<WADMProduct> parserResult = parser.Parse(Response, LazySyntax);
@@ -67,17 +67,17 @@ namespace nxgmci.Protocol.WADM
             // Check if it failed
             if (!parserResult.Success)
                 if (parserResult.Error != null)
-                    return result.Fail("The parsing failed!", parserResult.Error);
+                    return Result<ResponseParameters>.FailErrorMessage(result, parserResult.Error, "The parsing failed!");
                 else
-                    return result.FailMessage("The parsing failed for unknown reasons!");
+                    return Result<ResponseParameters>.FailMessage(result, "The parsing failed for unknown reasons!");
 
             // Make sure the product is there
             if (parserResult.Product == null)
-                return result.FailMessage("The parsing product was null!");
+                return Result<ResponseParameters>.FailMessage(result, "The parsing product was null!");
 
             // And also make sure our state is correct
             if (parserResult.Product.Elements == null)
-                return result.FailMessage("The list of parsed elements is null!");
+                return Result<ResponseParameters>.FailMessage(result, "The list of parsed elements is null!");
 
             // Try to parse the status
             Result<WADMStatus> statusResult = WADMStatus.Parse(parserResult.Product.Elements, ValidateInput);
@@ -85,23 +85,23 @@ namespace nxgmci.Protocol.WADM
             // Check if it failed
             if (!statusResult.Success)
                 if (statusResult.Error != null)
-                    return result.Fail("The status code parsing failed!", statusResult.Error);
+                    return Result<ResponseParameters>.FailErrorMessage(result, statusResult.Error, "The status code parsing failed!");
                 else
-                    return result.FailMessage("The status code parsing failed for unknown reasons!");
+                    return Result<ResponseParameters>.FailMessage(result, "The status code parsing failed for unknown reasons!");
 
             // Make sure the product is there
             if (statusResult.Product == null)
-                return result.FailMessage("The status code parsing product was null!");
+                return Result<ResponseParameters>.FailMessage(result, "The status code parsing product was null!");
 
             // Now, make sure our mandatory arguments exist
             if (!parserResult.Product.Elements.ContainsKey("index"))
-                return result.FailMessage("Could not locate parameter '{0}'!", "index");
+                return Result<ResponseParameters>.FailMessage(result, "Could not locate parameter '{0}'!", "index");
             if (!parserResult.Product.Elements.ContainsKey("name"))
-                return result.FailMessage("Could not locate parameter '{0}'!", "name");
+                return Result<ResponseParameters>.FailMessage(result, "Could not locate parameter '{0}'!", "name");
             if (!parserResult.Product.Elements.ContainsKey("offset"))
-                return result.FailMessage("Could not locate parameter '{0}'!", "offset");
+                return Result<ResponseParameters>.FailMessage(result, "Could not locate parameter '{0}'!", "offset");
             if (!parserResult.Product.Elements.ContainsKey("updateid"))
-                return result.FailMessage("Could not locate parameter '{0}'!", "updateid");
+                return Result<ResponseParameters>.FailMessage(result, "Could not locate parameter '{0}'!", "updateid");
 
             // Then, try to parse the parameters
             string name;
@@ -109,18 +109,18 @@ namespace nxgmci.Protocol.WADM
             int offset;
 
             if (!uint.TryParse(parserResult.Product.Elements["index"], out index))
-                return result.FailMessage("Could not parse parameter '{0}' as uint!", "index");
+                return Result<ResponseParameters>.FailMessage(result, "Could not parse parameter '{0}' as uint!", "index");
             if (parserResult.Product.Elements["name"] != null)
                 name = parserResult.Product.Elements["name"]; // NOTE: Trim is omitted here because whitespace might be part of the name
             else
-                return result.FailMessage("Could not detect parameter '{0}' as string!", "name");
+                return Result<ResponseParameters>.FailMessage(result, "Could not detect parameter '{0}' as string!", "name");
             if (!int.TryParse(parserResult.Product.Elements["offset"], out offset))
-                return result.FailMessage("Could not parse parameter '{0}' as int!", "offset");
+                return Result<ResponseParameters>.FailMessage(result, "Could not parse parameter '{0}' as int!", "offset");
             if (!uint.TryParse(parserResult.Product.Elements["updateid"], out updateID))
-                return result.FailMessage("Could not parse parameter '{0}' as uint!", "updateid");
+                return Result<ResponseParameters>.FailMessage(result, "Could not parse parameter '{0}' as uint!", "updateid");
 
             // Finally, return the response
-            return result.Succeed(new ResponseParameters(statusResult.Product, index, name, offset, updateID));
+            return Result<ResponseParameters>.SucceedProduct(result, new ResponseParameters(statusResult.Product, index, name, offset, updateID));
         }
 
         /// <summary>
