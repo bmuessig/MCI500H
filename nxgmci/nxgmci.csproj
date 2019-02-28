@@ -58,7 +58,6 @@
     <Compile Include="Metadata\PlaylistParser.cs" />
     <Compile Include="Metadata\TagInfo.cs" />
     <Compile Include="Metadata\TagParser.cs" />
-    <Compile Include="Network\MediaUploader.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
