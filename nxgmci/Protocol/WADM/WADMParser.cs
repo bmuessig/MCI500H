@@ -164,11 +164,11 @@ namespace nxgmci.Protocol.WADM
 
             // Input sanity check
             if (string.IsNullOrWhiteSpace(Input))
-                return result.FailMessage("The input may not be null, empty or white-space only!");
+                return Result<WADMProduct>.FailMessage(result, "The input may not be null, empty or white-space only!");
 
             // Check, if the input perhaps signals an error
             if (Input.ToLower().Trim() == "<pclinkinvalidcommand/>")
-                return result.FailMessage("The request failed with an invalid command message!");
+                return Result<WADMProduct>.FailMessage(result, "The request failed with an invalid command message!");
             
             // Match the input against our root level Regex
             // This is used to verify that the reply is correct and it will strip away the root wrapper
@@ -182,13 +182,13 @@ namespace nxgmci.Protocol.WADM
 
             // Make sure we've got success and the correct number of matching groups
             if (!rootMatch.Success)
-                return result.FailMessage("The root structure did not match!");
+                return Result<WADMProduct>.FailMessage(result, "The root structure did not match!");
             if (HasList && HasWrap && HasWrappedList)
             {
                 if (rootMatch.Groups.Count != 4)
-                    return result.FailMessage("The root group count was incorrect (should be 4)!");
+                    return Result<WADMProduct>.FailMessage(result, "The root group count was incorrect (should be 4)!");
                 if (!rootMatch.Groups[1].Success || !rootMatch.Groups[2].Success || !rootMatch.Groups[3].Success)
-                    return result.FailMessage("One of the root content groups did not succeed!");
+                    return Result<WADMProduct>.FailMessage(result, "One of the root content groups did not succeed!");
                 // Create the product
                 product = new WADMProduct(RootName, WrapName, ListWrapName, ListItemName);
 
@@ -199,9 +199,9 @@ namespace nxgmci.Protocol.WADM
             else
             {
                 if (rootMatch.Groups.Count != 2)
-                    return result.FailMessage("The root group count was incorrect (should be 2)!");
+                    return Result<WADMProduct>.FailMessage(result, "The root group count was incorrect (should be 2)!");
                 if (!rootMatch.Groups[1].Success)
-                    return result.FailMessage("The root content group did not succeed!");
+                    return Result<WADMProduct>.FailMessage(result, "The root content group did not succeed!");
                 if (HasList && !HasWrap && !HasWrappedList)
                 {
                     // Create the product
@@ -219,7 +219,7 @@ namespace nxgmci.Protocol.WADM
                     innerNodes = rootMatch.Groups[1].Value.Trim();
                 }
                 else
-                    return result.FailMessage("The type flags were invalid (not list, not wrap)!");
+                    return Result<WADMProduct>.FailMessage(result, "The type flags were invalid (not list, not wrap)!");
             }
 
             // Allocate a string for potentional parser error handling
@@ -242,25 +242,25 @@ namespace nxgmci.Protocol.WADM
                         if (LooseSyntax)
                             continue;
                         else
-                            return result.FailMessage("The list item did not match successfully in strict mode!");
+                            return Result<WADMProduct>.FailMessage(result, "The list item did not match successfully in strict mode!");
 
                     // Also make sure we've got the right number of groups
                     if (listMatch.Groups.Count != 2)
                         if (LooseSyntax)
                             continue;
                         else
-                            return result.FailMessage("The number of matched list item groups was incorrect in strict mode!");
+                            return Result<WADMProduct>.FailMessage(result, "The number of matched list item groups was incorrect in strict mode!");
 
                     if(listMatch.Groups[1].Value == null)
                         if (LooseSyntax)
                             continue;
                         else
-                            return result.FailMessage("The value of the matched list item group was null in strict mode!");
+                            return Result<WADMProduct>.FailMessage(result, "The value of the matched list item group was null in strict mode!");
 
                     // If everything's right, we will parse the inner elements
                     Dictionary<string, string> innerElements = ParseElements(listMatch.Groups[1].Value, out parserError, LooseSyntax);
                     if (innerElements == null)
-                        return result.FailMessage(parserError);
+                        return Result<WADMProduct>.FailMessage(result, parserError);
 
                     // Finally, we will add the element to our list
                     // Yes, we will even add empty elements, as they were potentionally intentionally left blank
@@ -278,13 +278,13 @@ namespace nxgmci.Protocol.WADM
             // Parse the root level key-value elements
             Dictionary<string, string> elements = ParseElements(innerNodes, out parserError, LooseSyntax);
             if (elements == null)
-                return result.FailMessage(parserError);
+                return Result<WADMProduct>.FailMessage(result, parserError);
 
             // And store them in the product
             product.Elements = elements;
 
             // Finally, successfully return the result
-            return result.Succeed(product);
+            return Result<WADMProduct>.SucceedProduct(result, product);
         }
 
         /// <summary>
