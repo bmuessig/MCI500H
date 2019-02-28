@@ -105,9 +105,9 @@ namespace nxgmci.Protocol.WADM
 
             // Perform input sanity checks
             if (NodeElements == null)
-                return result.FailMessage("The dictionary of node elements is null!");
+                return Result<WADMStatus>.FailMessage(result, "The dictionary of node elements is null!");
             if (NodeElements.Count == 0)
-                return result.FailMessage("The dictionary of node elements is empty!");
+                return Result<WADMStatus>.FailMessage(result, "The dictionary of node elements is empty!");
                 
             // Allocate storage variables
             string rawStatus, rawReason;
@@ -115,11 +115,11 @@ namespace nxgmci.Protocol.WADM
 
             // Check, if the status field can be found
             if (!NodeElements.ContainsKey("status"))
-                return result.FailMessage("Could not locate parameter '{0}'!", "status");
+                return Result<WADMStatus>.FailMessage(result, "Could not locate parameter '{0}'!", "status");
 
             // Check, if the status field is valid
             if (string.IsNullOrWhiteSpace(NodeElements["status"]))
-                return result.FailMessage("Could not detect parameter '{0}' as string!", "status");
+                return Result<WADMStatus>.FailMessage(result, "Could not detect parameter '{0}' as string!", "status");
 
             // Copy the status string
             rawStatus = NodeElements["status"].Trim();
@@ -129,7 +129,7 @@ namespace nxgmci.Protocol.WADM
             {
                 // Check, if the reason field is valid
                 if (string.IsNullOrWhiteSpace(NodeElements["reason"]))
-                    return result.FailMessage("Could not detect parameter '{0}' as string!", "reason");
+                    return Result<WADMStatus>.FailMessage(result, "Could not detect parameter '{0}' as string!", "reason");
 
                 // Copy the status string
                 rawReason = NodeElements["reason"].Trim();
@@ -145,32 +145,32 @@ namespace nxgmci.Protocol.WADM
             {
                 // If the status code might not be unknown, fail
                 if (FailOnUnknown)
-                    return result.FailMessage("The status code could not be parsed!");
+                    return Result<WADMStatus>.FailMessage(result, "The status code could not be parsed!");
                 else if (hasReason) // Otherwise return partial success (with reason)
-                    return result.Succeed(new WADMStatus(StatusCode.None, rawStatus, ParseReason(rawReason), rawReason),
+                    return Result<WADMStatus>.SucceedProduct(result, new WADMStatus(StatusCode.None, rawStatus, ParseReason(rawReason), rawReason),
                         "The status code is unknown, but the syntax is valid!");
                 else // Otherwise return partial success (without reason)
-                    return result.Succeed(new WADMStatus(StatusCode.None, rawStatus),
+                    return Result<WADMStatus>.SucceedProduct(result, new WADMStatus(StatusCode.None, rawStatus),
                         "The status code is unknown, but the syntax is valid!");
             }
 
             // If there is no reason, return early
             if (!hasReason)
-                return result.Succeed(new WADMStatus(status, rawStatus));
+                return Result<WADMStatus>.SucceedProduct(result, new WADMStatus(status, rawStatus));
 
             // Parse the reason
             ErrorReason reason = ParseReason(rawReason);
             
             // Check, if the reason is known, return success
             if (reason != ErrorReason.None)
-                return result.Succeed(new WADMStatus(status, rawStatus, reason, rawReason));
+                return Result<WADMStatus>.SucceedProduct(result, new WADMStatus(status, rawStatus, reason, rawReason));
 
             // Otherwise, check if an error needs to be thrown
             if (FailOnUnknown)
-                return result.FailMessage("The reason code could not be parsed!");
+                return Result<WADMStatus>.FailMessage(result, "The reason code could not be parsed!");
 
             // If not, return partial success
-            return result.Succeed(new WADMStatus(StatusCode.None, rawStatus, ErrorReason.None, rawReason),
+            return Result<WADMStatus>.SucceedProduct(result, new WADMStatus(StatusCode.None, rawStatus, ErrorReason.None, rawReason),
                 "The reason code is unknown, but the syntax is valid!");
         }
 
