@@ -31,7 +31,7 @@
 
             // Make sure the response is not null
             if (string.IsNullOrWhiteSpace(Response))
-                return result.FailMessage("The response may not be null!");
+                return Result<ResponseParameters>.FailMessage(result, "The response may not be null!");
 
             // Then, parse the response
             Result<WADMProduct> parserResult = parser.Parse(Response, LazySyntax);
@@ -39,29 +39,29 @@
             // Check if it failed
             if (!parserResult.Success)
                 if (parserResult.Error != null)
-                    return result.Fail("The parsing failed!", parserResult.Error);
+                    return Result<ResponseParameters>.FailErrorMessage(result, parserResult.Error, "The parsing failed!");
                 else
-                    return result.FailMessage("The parsing failed for unknown reasons!");
+                    return Result<ResponseParameters>.FailMessage(result, "The parsing failed for unknown reasons!");
 
             // Make sure the product is there
             if (parserResult.Product == null)
-                return result.FailMessage("The parsing product was null!");
+                return Result<ResponseParameters>.FailMessage(result, "The parsing product was null!");
 
             // And also make sure the state is correct
             if (parserResult.Product.Elements == null)
-                return result.FailMessage("The list of parsed elements is null!");
+                return Result<ResponseParameters>.FailMessage(result, "The list of parsed elements is null!");
 
             // Now, make sure the mandatory argument exist
             if (!parserResult.Product.Elements.ContainsKey("updateid"))
-                return result.FailMessage("Could not locate parameter '{0}'!", "updateid");
+                return Result<ResponseParameters>.FailMessage(result, "Could not locate parameter '{0}'!", "updateid");
             
             // Then, try to parse the parameter
             uint updateID;
             if (!uint.TryParse(parserResult.Product.Elements["updateid"], out updateID))
-                return result.FailMessage("Could not parse parameter '{0}' as uint!", "updateid");
+                return Result<ResponseParameters>.FailMessage(result, "Could not parse parameter '{0}' as uint!", "updateid");
 
             // Finally, return the response
-            return result.Succeed(new ResponseParameters(updateID));
+            return Result<ResponseParameters>.SucceedProduct(result, new ResponseParameters(updateID));
         }
 
         /// <summary>
