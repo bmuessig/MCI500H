@@ -36,7 +36,7 @@ namespace nxgmci.Protocol.WADM
 
             // Make sure the response is not null
             if (string.IsNullOrWhiteSpace(Response))
-                return result.FailMessage("The response may not be null!");
+                return Result<ResponseParameters>.FailMessage(result, "The response may not be null!");
 
             // Then, parse the response
             Result<WADMProduct> parserResult = parser.Parse(Response, LazySyntax);
@@ -44,17 +44,17 @@ namespace nxgmci.Protocol.WADM
             // Check if it failed
             if (!parserResult.Success)
                 if (parserResult.Error != null)
-                    return result.Fail("The parsing failed!", parserResult.Error);
+                    return Result<ResponseParameters>.FailErrorMessage(result, parserResult.Error, "The parsing failed!");
                 else
-                    return result.FailMessage("The parsing failed for unknown reasons!");
+                    return Result<ResponseParameters>.FailMessage(result, "The parsing failed for unknown reasons!");
 
             // Make sure the product is there
             if (parserResult.Product == null)
-                return result.FailMessage("The parsing product was null!");
+                return Result<ResponseParameters>.FailMessage(result, "The parsing product was null!");
 
             // And also make sure that the state is correct
             if (parserResult.Product.Elements == null)
-                return result.FailMessage("The list of parsed elements is null!");
+                return Result<ResponseParameters>.FailMessage(result, "The list of parsed elements is null!");
             
             // Try to parse the status
             Result<WADMStatus> statusResult = WADMStatus.Parse(parserResult.Product.Elements, ValidateInput);
@@ -62,16 +62,16 @@ namespace nxgmci.Protocol.WADM
             // Check if it failed
             if (!statusResult.Success)
                 if (statusResult.Error != null)
-                    return result.Fail("The status code parsing failed!", statusResult.Error);
+                    return Result<ResponseParameters>.FailErrorMessage(result, statusResult.Error, "The status code parsing failed!");
                 else
-                    return result.FailMessage("The status code parsing failed for unknown reasons!");
+                    return Result<ResponseParameters>.FailMessage(result, "The status code parsing failed for unknown reasons!");
 
             // Make sure the product is there
             if (statusResult.Product == null)
-                return result.FailMessage("The status code parsing product was null!");
+                return Result<ResponseParameters>.FailMessage(result, "The status code parsing product was null!");
 
             // Finally, return the response
-            return result.Succeed(new ResponseParameters(statusResult.Product));
+            return Result<ResponseParameters>.SucceedProduct(result, new ResponseParameters(statusResult.Product));
         }
 
         /// <summary>
