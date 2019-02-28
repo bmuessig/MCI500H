@@ -41,7 +41,7 @@ namespace nxgmci.Protocol.WADM
 
             // Make sure the response is not null
             if (string.IsNullOrWhiteSpace(Response))
-                return result.FailMessage("The response may not be null!");
+                return Result<ResponseParameters>.FailMessage(result, "The response may not be null!");
 
             // Then, parse the response
             Result<WADMProduct> parserResult = parser.Parse(Response, LazySyntax);
@@ -49,55 +49,55 @@ namespace nxgmci.Protocol.WADM
             // Check if it failed
             if (!parserResult.Success)
                 if (parserResult.Error != null)
-                    return result.Fail("The parsing failed!", parserResult.Error);
+                    return Result<ResponseParameters>.FailErrorMessage(result, parserResult.Error, "The parsing failed!");
                 else
-                    return result.FailMessage("The parsing failed for unknown reasons!");
+                    return Result<ResponseParameters>.FailMessage(result, "The parsing failed for unknown reasons!");
 
             // Make sure the product is there
             if (parserResult.Product == null)
-                return result.FailMessage("The parsing product was null!");
+                return Result<ResponseParameters>.FailMessage(result, "The parsing product was null!");
 
             // And also make sure our state is correct
             if (parserResult.Product.Elements == null)
-                return result.FailMessage("The list of parsed elements is null!");
+                return Result<ResponseParameters>.FailMessage(result, "The list of parsed elements is null!");
 
             // Now, make sure our mandatory arguments exist
             if (!parserResult.Product.Elements.ContainsKey("uripath"))
-                return result.FailMessage("Could not locate parameter '{0}'!", "uripath");
+                return Result<ResponseParameters>.FailMessage(result, "Could not locate parameter '{0}'!", "uripath");
             if (!parserResult.Product.Elements.ContainsKey("idmask"))
-                return result.FailMessage("Could not locate parameter '{0}'!", "idmask");
+                return Result<ResponseParameters>.FailMessage(result, "Could not locate parameter '{0}'!", "idmask");
             if (!parserResult.Product.Elements.ContainsKey("containersize"))
-                return result.FailMessage("Could not locate parameter '{0}'!", "containersize");
+                return Result<ResponseParameters>.FailMessage(result, "Could not locate parameter '{0}'!", "containersize");
             if (!parserResult.Product.Elements.ContainsKey("mediatypekey"))
-                return result.FailMessage("Could not locate parameter '{0}'!", "mediatypekey");
+                return Result<ResponseParameters>.FailMessage(result, "Could not locate parameter '{0}'!", "mediatypekey");
             if (!parserResult.Product.Elements.ContainsKey("updateid"))
-                return result.FailMessage("Could not locate parameter '{0}'!", "updateid");
+                return Result<ResponseParameters>.FailMessage(result, "Could not locate parameter '{0}'!", "updateid");
 
             // Then, try to parse the parameters
             string uriPath, mediaTypeKey;
             uint idMask, containerSize, updateID;
             if (string.IsNullOrWhiteSpace((uriPath = parserResult.Product.Elements["uripath"])))
-                return result.FailMessage("Could not parse parameter '{0}' as string!", "uripath");
+                return Result<ResponseParameters>.FailMessage(result, "Could not parse parameter '{0}' as string!", "uripath");
             if (!uint.TryParse(parserResult.Product.Elements["idmask"], out idMask))
-                return result.FailMessage("Could not parse parameter '{0}' as uint!", "idmask");
+                return Result<ResponseParameters>.FailMessage(result, "Could not parse parameter '{0}' as uint!", "idmask");
             if (!uint.TryParse(parserResult.Product.Elements["containersize"], out containerSize))
-                return result.FailMessage("Could not parse parameter '{0}' as uint!", "containersize");
+                return Result<ResponseParameters>.FailMessage(result, "Could not parse parameter '{0}' as uint!", "containersize");
             if (string.IsNullOrWhiteSpace((mediaTypeKey = parserResult.Product.Elements["mediatypekey"])))
-                return result.FailMessage("Could not parse parameter '{0}' as string!", "mediatypekey");
+                return Result<ResponseParameters>.FailMessage(result, "Could not parse parameter '{0}' as string!", "mediatypekey");
             if (!uint.TryParse(parserResult.Product.Elements["updateid"], out updateID))
-                return result.FailMessage("Could not parse parameter '{0}' as uint!", "updateid");
+                return Result<ResponseParameters>.FailMessage(result, "Could not parse parameter '{0}' as uint!", "updateid");
 
             // We may have to perform some sanity checks
             if (ValidateInput)
             {
                 if (string.IsNullOrWhiteSpace(uriPath))
-                    return result.FailMessage("uripath is null or white-space!");
+                    return Result<ResponseParameters>.FailMessage(result, "uripath is null or white-space!");
                 if (string.IsNullOrWhiteSpace(mediaTypeKey))
-                    return result.FailMessage("mediatypekey is null or white-space!");
+                    return Result<ResponseParameters>.FailMessage(result, "mediatypekey is null or white-space!");
                 if (idMask == 0)
-                    return result.FailMessage("idmask == 0");
+                    return Result<ResponseParameters>.FailMessage(result, "idmask == 0");
                 if (containerSize == 0)
-                    return result.FailMessage("containersize == 0");
+                    return Result<ResponseParameters>.FailMessage(result, "containersize == 0");
             }
 
             // Next, we will parse the mediaTypeKey - note that the designers were a bit lazy here
@@ -105,7 +105,7 @@ namespace nxgmci.Protocol.WADM
             // Like done here with the custom XML parser and HTTP client... (if they had cared more about the standards that might have been redundant)
             MatchCollection mediaTypeMatches = mediaTypeKeyRegex.Matches(mediaTypeKey);
             if (mediaTypeMatches == null)
-                return result.FailMessage("The mediatypekey match collection is null!");
+                return Result<ResponseParameters>.FailMessage(result, "The mediatypekey match collection is null!");
 
             // Allocate the results dictionary
             Dictionary<uint, string> mediaTypeDict = new Dictionary<uint, string>();
@@ -135,7 +135,7 @@ namespace nxgmci.Protocol.WADM
             }
 
             // Finally, return the response
-            return result.Succeed(new ResponseParameters(uriPath, idMask, containerSize, mediaTypeDict, updateID));
+            return Result<ResponseParameters>.SucceedProduct(result, new ResponseParameters(uriPath, idMask, containerSize, mediaTypeDict, updateID));
         }
 
         /// <summary>
