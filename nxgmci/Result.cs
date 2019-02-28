@@ -5,41 +5,30 @@ using System.Text;
 
 namespace nxgmci
 {
-    public class Result<T>
+    /// <summary>
+    /// Class for returning the result of an operation.
+    /// </summary>
+    public class Result
     {
         /// <summary>
         /// Indicates whether the result is final and cannot be changed.
         /// </summary>
-        public bool Finalized { get; private set; }
+        public bool Finalized { get; protected set; }
 
         /// <summary>
         /// Indicates a successful result or failure if not true.
         /// </summary>
-        public bool Success { get; private set; }
+        public bool Success { get; protected set; }
 
-        /// <summary>
-        /// Indicates whether the result contains an associated product.
-        /// </summary>
-        public bool HasProduct { get; private set; }
-
-        /// <summary>
-        /// Stores the product of a positive result.
-        /// </summary>
-        public T Product { get; private set; }
-        
         /// <summary>
         /// Stores the error that prevented a positive outcome.
         /// </summary>
-        public Exception Error
-        {
-            get;
-            private set;
-        }
+        public Exception Error { get; protected set; }
 
         /// <summary>
         /// Internal success message string.
         /// </summary>
-        private string successMessage;
+        protected string successMessage;
 
         /// <summary>
         /// Returns the success or error message associated with the result.
@@ -71,12 +60,12 @@ namespace nxgmci
         /// <summary>
         /// Stores the time that the result object was created.
         /// </summary>
-        public DateTime TimeCreated { get; private set; }
+        public DateTime TimeCreated { get; protected set; }
 
         /// <summary>
         /// Stores the time that the result object was finalized.
         /// </summary>
-        public DateTime TimeFinalized { get; private set; }
+        public DateTime TimeFinalized { get; protected set; }
 
         /// <summary>
         /// Returns the time that passed between the result object creation and finalization.
@@ -101,6 +90,298 @@ namespace nxgmci
         {
             this.TimeCreated = DateTime.Now;
             this.Finalized = false;
+            this.Success = false;
+        }
+
+        /// <summary>
+        /// Finalizes the result set to success.
+        /// </summary>
+        /// <returns>True, if the result could be finalized and false if not.</returns>
+        public bool Succeed()
+        {
+            // Make sure that the class is not already finalized
+            if (this.Finalized)
+                return false;
+
+            // Finalize itself
+            this.Finalized = true;
+
+            // Store the time of finalization
+            this.TimeFinalized = DateTime.Now;
+
+            // Assign the values
+            this.Success = true;
+            this.Error = null;
+
+            // Returning success
+            return true;
+        }
+
+        /// <summary>
+        /// Finalizes the result set to success with only a message.
+        /// </summary>
+        /// <param name="Message">A custom success message that could be shown to the user. This can optionally be string.Format formatted.</param>
+        /// <param name="Arguments">Optional string.Format arguments.</param>
+        /// <returns>True, if the result could be finalized and false if not.</returns>
+        public bool SucceedMessage(string Message, params object[] Arguments)
+        {
+            // Make sure that the class is not already finalized
+            if (this.Finalized)
+                return false;
+
+            // Finalize itself
+            this.Finalized = true;
+
+            // Store the time of finalization
+            this.TimeFinalized = DateTime.Now;
+
+            // Attempt to format the message (if possible)
+            if (!string.IsNullOrWhiteSpace(Message) && Arguments != null)
+            {
+                if (Arguments.Length > 0)
+                {
+                    try
+                    {
+                        Message = string.Format(Message, Arguments);
+                    }
+                    catch (Exception)
+                    { }
+                }
+            }
+            else if (string.IsNullOrWhiteSpace(Message))
+                Message = null;
+
+            // Assign the values
+            this.Success = true;
+            this.successMessage = Message;
+            this.Error = null;
+
+            // Returning success
+            return true;
+        }
+
+        /// <summary>
+        /// Finalizes the result set to an unknown error.
+        /// </summary>
+        /// <returns>True, if the result could be finalized and false if not.</returns>
+        public bool Fail()
+        {
+            return FailErrorMessage(new Exception("Unknown error!"), null);
+        }
+
+        /// <summary>
+        /// Finalizes the result set to an error.
+        /// </summary>
+        /// <param name="Error">An exception that was thrown preventing a successful result.</param>
+        /// <returns>True, if the result could be finalized and false if not.</returns>
+        public bool FailError(Exception Error)
+        {
+            return FailErrorMessage(Error, null);
+        }
+
+        /// <summary>
+        /// Finalizes the result set to an error with only a message.
+        /// </summary>
+        /// <param name="Message">A custom error message that could be shown to the user. This can optionally be string.Format formatted.</param>
+        /// <param name="Arguments">Optional string.Format arguments.</param>
+        /// <returns>True, if the result could be finalized and false if not.</returns>
+        public bool FailMessage(string Message, params object[] Arguments)
+        {
+            return FailErrorMessage(null, Message, Arguments);
+        }
+
+        /// <summary>
+        /// Finalizes the result set to an error.
+        /// </summary>
+        /// <param name="Error">An exception that was thrown preventing a successful result.</param>
+        /// <param name="Message">A custom error message that could be shown to the user.</param>
+        /// <param name="Arguments">Optional string.Format arguments.</param>
+        /// <returns>True, if the result could be finalized and false if not.</returns>
+        public bool FailErrorMessage(Exception Error, string Message, params object[] Arguments)
+        {
+            // Make sure that the class is not already finalized
+            if (this.Finalized)
+                return false;
+
+            // Finalize itself
+            this.Finalized = true;
+
+            // Store the time of finalization
+            this.TimeFinalized = DateTime.Now;
+
+            // Attempt to format the message (if possible)
+            if (!string.IsNullOrWhiteSpace(Message) && Arguments != null)
+            {
+                if (Arguments.Length > 0)
+                {
+                    try
+                    {
+                        Message = string.Format(Message, Arguments);
+                    }
+                    catch (Exception)
+                    { }
+                }
+            }
+            else if (string.IsNullOrWhiteSpace(Message))
+                Message = null;
+
+            // Assign the values
+            this.Success = false;
+
+            // Nest the exception if possible
+            if (!string.IsNullOrWhiteSpace(Message))
+                this.Error = new Exception(Message, Error);
+            else
+                this.Error = Error;
+
+            // Returning success
+            return true;
+        }
+
+        /// <summary>
+        /// Finalizes the result set to success and returns it.
+        /// </summary>
+        /// <param name="Result">The result object to finalize.</param>
+        /// <returns>The result to simplify return statements.</returns>
+        public static Result Succeed(Result Result)
+        {
+            // Sanity check the input
+            if (Result == null)
+                throw new ArgumentNullException("Result");
+
+            // Make sure that the result is not already finalized
+            if (Result.Finalized)
+                throw new InvalidOperationException("A finalized result cannot be edited!");
+
+            // Finalize the result and check the result
+            if (!Result.Succeed())
+                throw new Exception("The result could not be finalized!");
+
+            // Returning the result allows simple return statements
+            return Result;
+        }
+
+        /// <summary>
+        /// Finalizes the result set to success with only a message and returns it.
+        /// </summary>
+        /// <param name="Result">The result object to finalize.</param>
+        /// <param name="Message">A custom success message that could be shown to the user. This can optionally be string.Format formatted.</param>
+        /// <param name="Arguments">Optional string.Format arguments.</param>
+        /// <returns>The result to simplify return statements.</returns>
+        public static Result SucceedMessage(Result Result, string Message, params object[] Arguments)
+        {
+            // Make sure that the class is not already finalized
+            if (Result == null)
+                throw new ArgumentNullException("Result");
+
+            // Make sure that the result is not already finalized
+            if (Result.Finalized)
+                throw new InvalidOperationException("A finalized result cannot be edited!");
+
+            // Finalize the result and check the result
+            if (!Result.SucceedMessage(Message, Arguments))
+                throw new Exception("The result could not be finalized!");
+
+            // Returning the result allows simple return statements
+            return Result;
+        }
+
+        /// <summary>
+        /// Finalizes the result set to an unknown error and returns it.
+        /// </summary>
+        /// <param name="Result">The result object to finalize.</param>
+        /// <returns>The result to simplify return statements.</returns>
+        public static Result Fail(Result Result)
+        {
+            // Make sure that the class is not already finalized
+            if (Result == null)
+                throw new ArgumentNullException("Result");
+
+            // Make sure that the result is not already finalized
+            if (Result.Finalized)
+                throw new InvalidOperationException("A finalized result cannot be edited!");
+
+            // Finalize the result and check the result
+            if (!Result.Fail())
+                throw new Exception("The result could not be finalized!");
+
+            // Returning the result allows simple return statements
+            return Result;
+        }
+
+        /// <summary>
+        /// Finalizes the result set to an error and returns it.
+        /// </summary>
+        /// <param name="Result">The result object to finalize.</param>
+        /// <param name="Error">An exception that was thrown preventing a successful result.</param>
+        /// <returns>The result to simplify return statements.</returns>
+        public static Result FailError(Result Result, Exception Error)
+        {
+            // Make sure that the class is not already finalized
+            if (Result == null)
+                throw new ArgumentNullException("Result");
+
+            // Make sure that the result is not already finalized
+            if (Result.Finalized)
+                throw new InvalidOperationException("A finalized result cannot be edited!");
+
+            // Finalize the result and check the result
+            if (!Result.FailError(Error))
+                throw new Exception("The result could not be finalized!");
+
+            // Returning the result allows simple return statements
+            return Result;
+        }
+
+        /// <summary>
+        /// Finalizes the result set to an error with only a message and returns it.
+        /// </summary>
+        /// <param name="Result">The result object to finalize.</param>
+        /// <param name="Message">A custom error message that could be shown to the user. This can optionally be string.Format formatted.</param>
+        /// <param name="Arguments">Optional string.Format arguments.</param>
+        /// <returns>The result to simplify return statements.</returns>
+        public static Result FailMessage(Result Result, string Message, params object[] Arguments)
+        {
+            // Make sure that the class is not already finalized
+            if (Result == null)
+                throw new ArgumentNullException("Result");
+
+            // Make sure that the result is not already finalized
+            if (Result.Finalized)
+                throw new InvalidOperationException("A finalized result cannot be edited!");
+
+            // Finalize the result and check the result
+            if (!Result.FailMessage(Message, Arguments))
+                throw new Exception("The result could not be finalized!");
+
+            // Returning the result allows simple return statements
+            return Result;
+        }
+
+        /// <summary>
+        /// Finalizes the result set to an error and returns it.
+        /// </summary>
+        /// <param name="Result">The result object to finalize.</param>
+        /// <param name="Error">An exception that was thrown preventing a successful result.</param>
+        /// <param name="Message">A custom error message that could be shown to the user.</param>
+        /// <param name="Arguments">Optional string.Format arguments.</param>
+        /// <returns>The result to simplify return statements.</returns>
+        public static Result FailErrorMessage(Result Result, Exception Error, string Message, params object[] Arguments)
+        {
+            // Make sure that the class is not already finalized
+            if (Result == null)
+                throw new ArgumentNullException("Result");
+
+            // Make sure that the result is not already finalized
+            if (Result.Finalized)
+                throw new InvalidOperationException("A finalized result cannot be edited!");
+
+            // Finalize the result and check the result
+            if (!Result.FailErrorMessage(Error, Message, Arguments))
+                throw new Exception("The result could not be finalized!");
+
+            // Returning the result allows simple return statements
+            return Result;
         }
 
         /// <summary>
@@ -218,59 +499,45 @@ namespace nxgmci
             else // There is only a type
                 return string.Format(UseErrorPrefix ? "Error: {0}" : "{0}", Error.GetType().ToString());
         }
+    }
+
+    /// <summary>
+    /// Class for returning the result of an operation along it's product.
+    /// </summary>
+    /// <typeparam name="T">The type of the product.</typeparam>
+    public class Result<T> : Result
+    {
+        /// <summary>
+        /// Indicates whether the result contains an associated product.
+        /// </summary>
+        public bool HasProduct { get; private set; }
 
         /// <summary>
-        /// Finalizes the result set to success with only a message and returns itself.
+        /// Stores the product of a positive result.
         /// </summary>
-        /// <param name="Message">A custom success message that could be shown to the user. This can optionally be string.Format formatted.</param>
-        /// <param name="Arguments">Optional string.Format arguments.</param>
-        /// <returns>Itself to ease return statements.</returns>
-        public Result<T> SucceedMessage(string Message, params object[] Arguments)
+        public T Product { get; private set; }
+
+        /// <summary>
+        /// Default constructor. Stores the time of object creation.
+        /// </summary>
+        public Result()
+            : base()
         {
-            // Make sure that the class is not already finalized
-            if (this.Finalized)
-                throw new InvalidOperationException("A finalized result cannot be edited!");
-
-            // Finalize itself
-            this.Finalized = true;
-
-            // Store the time of finalization
-            this.TimeFinalized = DateTime.Now;
-
-            // Attempt to format the message (if possible)
-            if (!string.IsNullOrWhiteSpace(Message) && Arguments != null)
-            {
-                if (Arguments.Length > 0)
-                {
-                    try
-                    {
-                        Message = string.Format(Message, Arguments);
-                    }
-                    catch (Exception)
-                    { }
-                }
-            }
-
-            // Assign the values
-            this.Success = true;
-            this.successMessage = Message;
-            this.HasProduct = false;
-            this.Error = null;
-
-            // Returning itself allows simple return statements
-            return this;
+            HasProduct = false;
         }
 
         /// <summary>
-        /// Finalizes the result set to success, stores the product and returns itself.
+        /// Finalizes the result set to success, stores the product.
         /// </summary>
         /// <param name="Product">The product generated by the operation the result is emitted by.</param>
-        /// <returns>Itself to ease return statements.</returns>
-        public Result<T> Succeed(T Product, string Message = null)
+        /// <param name="Message">A custom success message that could be shown to the user. This can optionally be string.Format formatted.</param>
+        /// <param name="Arguments">Optional string.Format arguments.</param>
+        /// <returns>True, if the result could be finalized and false if not.</returns>
+        public bool SucceedProduct(T Product, string Message = null, params object[] Arguments)
         {
             // Make sure that the class is not already finalized
             if (this.Finalized)
-                throw new InvalidOperationException("A finalized result cannot be edited!");
+                return false;
 
             // Finalize itself
             this.Finalized = true;
@@ -287,75 +554,180 @@ namespace nxgmci
             this.HasProduct = true;
             this.Error = null;
 
-            // Returning itself allows simple return statements
-            return this;
+            // Return success
+            return true;
         }
 
         /// <summary>
-        /// Finalizes the result set to an error with only a message and returns itself.
+        /// Finalizes the result set to success and returns it.
         /// </summary>
-        /// <param name="Message">A custom error message that could be shown to the user. This can optionally be string.Format formatted.</param>
-        /// <param name="Arguments">Optional string.Format arguments.</param>
-        /// <returns>Itself to ease return statements.</returns>
-        public Result<T> FailMessage(string Message, params object[] Arguments)
+        /// <param name="Result">The result object to finalize.</param>
+        /// <returns>The result to simplify return statements.</returns>
+        public static Result<T> Succeed(Result<T> Result)
         {
-            // Attempt to format the message (if possible)
-            if (!string.IsNullOrWhiteSpace(Message) && Arguments != null)
-            {
-                if (Arguments.Length > 0)
-                {
-                    try
-                    {
-                        Message = string.Format(Message, Arguments);
-                    }
-                    catch (Exception)
-                    { }
-                }
-            }
+            // Sanity check the input
+            if (Result == null)
+                throw new ArgumentNullException("Result");
 
-            return Fail(Message, null);
-        }
-
-        /// <summary>
-        /// Finalizes the result set to an error and returns itself.
-        /// </summary>
-        /// <param name="Error">An exception that was thrown preventing a successful result.</param>
-        /// <returns>Itself to ease return statements.</returns>
-        public Result<T> Fail(Exception Error)
-        {
-            return Fail(null, Error);
-        }
-
-        /// <summary>
-        /// Finalizes the result set to an error and returns itself.
-        /// </summary>
-        /// <param name="Message">A custom error message that could be shown to the user.</param>
-        /// <param name="Error">An exception that was thrown preventing a successful result.</param>
-        /// <returns>Itself to ease return statements.</returns>
-        public Result<T> Fail(string Message, Exception Error)
-        {
-            // Make sure that the class is not already finalized
-            if (this.Finalized)
+            // Make sure that the result is not already finalized
+            if (Result.Finalized)
                 throw new InvalidOperationException("A finalized result cannot be edited!");
 
-            // Finalize itself
-            this.Finalized = true;
+            // Finalize the result and check the result
+            if (!Result.Succeed())
+                throw new Exception("The result could not be finalized!");
 
-            // Store the time of finalization
-            this.TimeFinalized = DateTime.Now;
+            // Returning the result allows simple return statements
+            return Result;
+        }
 
-            // Assign the values
-            this.Success = false;
-            this.HasProduct = false;
+        /// <summary>
+        /// Finalizes the result set to success, stores the product and returns it.
+        /// </summary>
+        /// <param name="Result">The result object to finalize.</param>
+        /// <param name="Product">The product generated by the operation the result is emitted by.</param>
+        /// <param name="Message">A custom success message that could be shown to the user. This can optionally be string.Format formatted.</param>
+        /// <param name="Arguments">Optional string.Format arguments.</param>
+        /// <returns>The result to simplify return statements.</returns>
+        public static Result<T> SucceedProduct(Result<T> Result, T Product, string Message = null, params object[] Arguments)
+        {
+            // Sanity check the input
+            if (Result == null)
+                throw new ArgumentNullException("Result");
 
-            // Nest the exception if possible
-            if (!string.IsNullOrWhiteSpace(Message))
-                this.Error = new Exception(Message, Error);
-            else
-                this.Error = Error;
+            // Make sure that the result is not already finalized
+            if (Result.Finalized)
+                throw new InvalidOperationException("A finalized result cannot be edited!");
 
-            // Returning itself allows simple return statements
-            return this;
+            // Finalize the result and check the result
+            if (!Result.SucceedProduct(Product, Message, Arguments))
+                throw new Exception("The result could not be finalized!");
+
+            // Returning the result allows simple return statements
+            return Result;
+        }
+
+        /// <summary>
+        /// Finalizes the result set to success with only a message and returns it.
+        /// </summary>
+        /// <param name="Result">The result object to finalize.</param>
+        /// <param name="Message">A custom success message that could be shown to the user. This can optionally be string.Format formatted.</param>
+        /// <param name="Arguments">Optional string.Format arguments.</param>
+        /// <returns>The result to simplify return statements.</returns>
+        public static Result<T> SucceedMessage(Result<T> Result, string Message, params object[] Arguments)
+        {
+            // Make sure that the class is not already finalized
+            if (Result == null)
+                throw new ArgumentNullException("Result");
+
+            // Make sure that the result is not already finalized
+            if (Result.Finalized)
+                throw new InvalidOperationException("A finalized result cannot be edited!");
+
+            // Finalize the result and check the result
+            if (!Result.SucceedMessage(Message, Arguments))
+                throw new Exception("The result could not be finalized!");
+
+            // Returning the result allows simple return statements
+            return Result;
+        }
+
+        /// <summary>
+        /// Finalizes the result set to an unknown error and returns it.
+        /// </summary>
+        /// <param name="Result">The result object to finalize.</param>
+        /// <returns>The result to simplify return statements.</returns>
+        public static Result<T> Fail(Result<T> Result)
+        {
+            // Make sure that the class is not already finalized
+            if (Result == null)
+                throw new ArgumentNullException("Result");
+
+            // Make sure that the result is not already finalized
+            if (Result.Finalized)
+                throw new InvalidOperationException("A finalized result cannot be edited!");
+
+            // Finalize the result and check the result
+            if (!Result.Fail())
+                throw new Exception("The result could not be finalized!");
+
+            // Returning the result allows simple return statements
+            return Result;
+        }
+
+        /// <summary>
+        /// Finalizes the result set to an error and returns it.
+        /// </summary>
+        /// <param name="Result">The result object to finalize.</param>
+        /// <param name="Error">An exception that was thrown preventing a successful result.</param>
+        /// <returns>The result to simplify return statements.</returns>
+        public static Result<T> FailError(Result<T> Result, Exception Error)
+        {
+            // Make sure that the class is not already finalized
+            if (Result == null)
+                throw new ArgumentNullException("Result");
+
+            // Make sure that the result is not already finalized
+            if (Result.Finalized)
+                throw new InvalidOperationException("A finalized result cannot be edited!");
+
+            // Finalize the result and check the result
+            if (!Result.FailError(Error))
+                throw new Exception("The result could not be finalized!");
+
+            // Returning the result allows simple return statements
+            return Result;
+        }
+
+        /// <summary>
+        /// Finalizes the result set to an error with only a message and returns it.
+        /// </summary>
+        /// <param name="Result">The result object to finalize.</param>
+        /// <param name="Message">A custom error message that could be shown to the user. This can optionally be string.Format formatted.</param>
+        /// <param name="Arguments">Optional string.Format arguments.</param>
+        /// <returns>The result to simplify return statements.</returns>
+        public static Result<T> FailMessage(Result<T> Result, string Message, params object[] Arguments)
+        {
+            // Make sure that the class is not already finalized
+            if (Result == null)
+                throw new ArgumentNullException("Result");
+
+            // Make sure that the result is not already finalized
+            if (Result.Finalized)
+                throw new InvalidOperationException("A finalized result cannot be edited!");
+
+            // Finalize the result and check the result
+            if (!Result.FailMessage(Message, Arguments))
+                throw new Exception("The result could not be finalized!");
+
+            // Returning the result allows simple return statements
+            return Result;
+        }
+
+        /// <summary>
+        /// Finalizes the result set to an error and returns it.
+        /// </summary>
+        /// <param name="Result">The result object to finalize.</param>
+        /// <param name="Error">An exception that was thrown preventing a successful result.</param>
+        /// <param name="Message">A custom error message that could be shown to the user.</param>
+        /// <param name="Arguments">Optional string.Format arguments.</param>
+        /// <returns>The result to simplify return statements.</returns>
+        public static Result<T> FailErrorMessage(Result<T> Result, Exception Error, string Message, params object[] Arguments)
+        {
+            // Make sure that the class is not already finalized
+            if (Result == null)
+                throw new ArgumentNullException("Result");
+
+            // Make sure that the result is not already finalized
+            if (Result.Finalized)
+                throw new InvalidOperationException("A finalized result cannot be edited!");
+
+            // Finalize the result and check the result
+            if (!Result.FailErrorMessage(Error, Message, Arguments))
+                throw new Exception("The result could not be finalized!");
+
+            // Returning the result allows simple return statements
+            return Result;
         }
     }
 }
