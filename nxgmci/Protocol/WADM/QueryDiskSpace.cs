@@ -32,7 +32,7 @@
 
             // Make sure the response is not null
             if (string.IsNullOrWhiteSpace(Response))
-                return result.FailMessage("The response may not be null!");
+                return Result<ResponseParameters>.FailMessage(result, "The response may not be null!");
 
             // Then, parse the response
             Result<WADMProduct> parserResult = parser.Parse(Response, LazySyntax);
@@ -40,42 +40,42 @@
             // Check if it failed
             if (!parserResult.Success)
                 if (parserResult.Error != null)
-                    return result.Fail("The parsing failed!", parserResult.Error);
+                    return Result<ResponseParameters>.FailErrorMessage(result, parserResult.Error, "The parsing failed!");
                 else
-                    return result.FailMessage("The parsing failed for unknown reasons!");
+                    return Result<ResponseParameters>.FailMessage(result, "The parsing failed for unknown reasons!");
 
             // Make sure the product is there
             if (parserResult.Product == null)
-                return result.FailMessage("The parsing product was null!");
+                return Result<ResponseParameters>.FailMessage(result, "The parsing product was null!");
 
             // And also make sure our state is correct
             if (parserResult.Product.Elements == null)
-                return result.FailMessage("The list of parsed elements is null!");
+                return Result<ResponseParameters>.FailMessage(result, "The list of parsed elements is null!");
 
             // Now, make sure our mandatory arguments exist
             if (!parserResult.Product.Elements.ContainsKey("size"))
-                return result.FailMessage("Could not locate parameter '{0}'!", "size");
+                return Result<ResponseParameters>.FailMessage(result, "Could not locate parameter '{0}'!", "size");
             if (!parserResult.Product.Elements.ContainsKey("totalsize"))
-                return result.FailMessage("Could not locate parameter '{0}'!", "totalsize");
+                return Result<ResponseParameters>.FailMessage(result, "Could not locate parameter '{0}'!", "totalsize");
             
             // Then, try to parse the parameters
             ulong size, totalSize;
             if (!ulong.TryParse(parserResult.Product.Elements["size"], out size))
-                return result.FailMessage("Could not parse parameter '{0}' as ulong!", "size");
+                return Result<ResponseParameters>.FailMessage(result, "Could not parse parameter '{0}' as ulong!", "size");
             if (!ulong.TryParse(parserResult.Product.Elements["totalsize"], out totalSize))
-                return result.FailMessage("Could not parse parameter '{0}' as ulong!", "totalsize");
+                return Result<ResponseParameters>.FailMessage(result, "Could not parse parameter '{0}' as ulong!", "totalsize");
 
             // Next, we will may have to perform some sanity checks
             if (ValidateInput)
             {
                 if (size > totalSize)
-                    return result.FailMessage("size < totalsize");
+                    return Result<ResponseParameters>.FailMessage(result, "size < totalsize");
                 if (totalSize == 0)
-                    return result.FailMessage("size == 0");
+                    return Result<ResponseParameters>.FailMessage(result, "size == 0");
             }
 
             // Finally, return the response
-            return result.Succeed(new ResponseParameters(size, totalSize));
+            return Result<ResponseParameters>.SucceedProduct(result, new ResponseParameters(size, totalSize));
         }
 
         /// <summary>
