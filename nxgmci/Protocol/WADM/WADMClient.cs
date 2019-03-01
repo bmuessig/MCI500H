@@ -214,7 +214,7 @@ namespace nxgmci.Protocol.WADM
             if (queryResponse == null)
                 result.FailMessage("The query response was null!");
             else if (!queryResponse.Success)
-                result.Fail("The query failed!", new Exception(queryResponse.Message));
+                result.FailErrorMessage(new Exception(queryResponse.Message), "The query failed!");
             else if (!queryResponse.IsTextualReponse || string.IsNullOrWhiteSpace(queryResponse.TextualResponse))
                 result.FailMessage("The query response was invalid!");
             else // Store a shadow copy of the response, as the query response is passed to the callee via an event and might later be compromized
@@ -222,7 +222,7 @@ namespace nxgmci.Protocol.WADM
 
             // Raise the event
             OnResponseReceived(new ResultEventArgs<Postmaster.QueryResponse>(
-                queryResult.Succeed(queryResponse, "GetUpdateID")));
+                Result<Postmaster.QueryResponse>.SucceedProduct(queryResult, queryResponse, "GetUpdateID")));
 
             // Check, if the process failed
             if (result.Finalized)
@@ -233,9 +233,9 @@ namespace nxgmci.Protocol.WADM
 
             // Sanity check the result
             if (parseResult == null)
-                return result.FailMessage("The parsed result was null!");
+                return Result<GetUpdateID.ResponseParameters>.FailMessage(result, "The parsed result was null!");
             if (parseResult.Success && (!parseResult.HasProduct || parseResult.Product == null))
-                return result.FailMessage("The parsed product was invalid!");
+                return Result<GetUpdateID.ResponseParameters>.FailMessage(result, "The parsed product was invalid!");
 
             // Check, if the result is a success
             if (parseResult.Success)
@@ -264,15 +264,15 @@ namespace nxgmci.Protocol.WADM
                     OnUpdateIDChanged(new UpdateIDEventArgs(newUpdateID, true, oldUpdateID));
 
                 // Return the result
-                return result.Succeed(parseResult.Product, parseResult.Message);
+                return Result<GetUpdateID.ResponseParameters>.SucceedProduct(result, parseResult.Product, parseResult.Message);
             }
 
             // Try to return a detailed error
             if (parseResult.Error != null)
-                return result.FailMessage("The parsing failed!", parseResult.Error);
+                return Result<GetUpdateID.ResponseParameters>.FailMessage(result, "The parsing failed!", parseResult.Error);
 
             // If not possible, return simple failure
-            return result.FailMessage("The parsing failed due to an unknown reason!");
+            return Result<GetUpdateID.ResponseParameters>.FailMessage(result, "The parsing failed due to an unknown reason!");
         }
 
         /// <summary>
@@ -313,7 +313,7 @@ namespace nxgmci.Protocol.WADM
             if (queryResponse == null)
                 result.FailMessage("The query response was null!");
             else if (!queryResponse.Success)
-                result.Fail("The query failed!", new Exception(queryResponse.Message));
+                result.FailErrorMessage(new Exception(queryResponse.Message), "The query failed!");
             else if (!queryResponse.IsTextualReponse || string.IsNullOrWhiteSpace(queryResponse.TextualResponse))
                 result.FailMessage("The query response was invalid!");
             else // Store a shadow copy of the response, as the query response is passed to the callee via an event and might later be compromized
@@ -321,7 +321,7 @@ namespace nxgmci.Protocol.WADM
 
             // Raise the event
             OnResponseReceived(new ResultEventArgs<Postmaster.QueryResponse>(
-                queryResult.Succeed(queryResponse, "QueryDatabase")));
+                Result<Postmaster.QueryResponse>.SucceedProduct(queryResult, queryResponse, "QueryDatabase")));
 
             // Check, if the process failed
             if (result.Finalized)
@@ -332,9 +332,9 @@ namespace nxgmci.Protocol.WADM
 
             // Sanity check the result
             if (parseResult == null)
-                return result.FailMessage("The parsed result was null!");
+                return Result<QueryDatabase.ResponseParameters>.FailMessage(result, "The parsed result was null!");
             if (parseResult.Success && (!parseResult.HasProduct || parseResult.Product == null))
-                return result.FailMessage("The parsed product was invalid!");
+                return Result<QueryDatabase.ResponseParameters>.FailMessage(result, "The parsed product was invalid!");
 
             // Check, if the result is a success
             if (parseResult.Success)
@@ -363,15 +363,15 @@ namespace nxgmci.Protocol.WADM
                     OnUpdateIDChanged(new UpdateIDEventArgs(newUpdateID, true, oldUpdateID));
 
                 // Return the result
-                return result.Succeed(parseResult.Product, parseResult.Message);
+                return Result<QueryDatabase.ResponseParameters>.SucceedProduct(result, parseResult.Product, parseResult.Message);
             }
 
             // Try to return a detailed error
             if (parseResult.Error != null)
-                return result.FailMessage("The parsing failed!", parseResult.Error);
+                return Result<QueryDatabase.ResponseParameters>.FailMessage(result, "The parsing failed!", parseResult.Error);
 
             // If not possible, return simple failure
-            return result.FailMessage("The parsing failed due to an unknown reason!");
+            return Result<QueryDatabase.ResponseParameters>.FailMessage(result, "The parsing failed due to an unknown reason!");
         }
 
         /// <summary>
@@ -411,7 +411,7 @@ namespace nxgmci.Protocol.WADM
             if (queryResponse == null)
                 result.FailMessage("The query response was null!");
             else if (!queryResponse.Success)
-                result.Fail("The query failed!", new Exception(queryResponse.Message));
+                result.FailErrorMessage(new Exception(queryResponse.Message), "The query failed!");
             else if (!queryResponse.IsTextualReponse || string.IsNullOrWhiteSpace(queryResponse.TextualResponse))
                 result.FailMessage("The query response was invalid!");
             else // Store a shadow copy of the response, as the query response is passed to the callee via an event and might later be compromized
@@ -419,7 +419,7 @@ namespace nxgmci.Protocol.WADM
 
             // Raise the event
             OnResponseReceived(new ResultEventArgs<Postmaster.QueryResponse>(
-                queryResult.Succeed(queryResponse, "QueryDiskSpace")));
+                Result<Postmaster.QueryResponse>.SucceedProduct(queryResult, queryResponse, "QueryDiskSpace")));
 
             // Check, if the process failed
             if (result.Finalized)
@@ -430,20 +430,20 @@ namespace nxgmci.Protocol.WADM
 
             // Sanity check the result
             if (parseResult == null)
-                return result.FailMessage("The parsed result was null!");
+                return Result<QueryDiskSpace.ResponseParameters>.FailMessage(result, "The parsed result was null!");
             if (parseResult.Success && (!parseResult.HasProduct || parseResult.Product == null))
-                return result.FailMessage("The parsed product was invalid!");
+                return Result<QueryDiskSpace.ResponseParameters>.FailMessage(result, "The parsed product was invalid!");
 
             // Check, if the result is a success and return it
             if (parseResult.Success)
-                return result.Succeed(parseResult.Product, parseResult.Message);
+                return Result<QueryDiskSpace.ResponseParameters>.SucceedProduct(result, parseResult.Product, parseResult.Message);
 
             // Try to return a detailed error
             if (parseResult.Error != null)
-                return result.FailMessage("The parsing failed!", parseResult.Error);
+                return Result<QueryDiskSpace.ResponseParameters>.FailMessage(result, "The parsing failed!", parseResult.Error);
 
             // If not possible, return simple failure
-            return result.FailMessage("The parsing failed due to an unknown reason!");
+            return Result<QueryDiskSpace.ResponseParameters>.FailMessage(result, "The parsing failed due to an unknown reason!");
         }
 
         /// <summary>
@@ -482,7 +482,7 @@ namespace nxgmci.Protocol.WADM
             if (queryResponse == null)
                 result.FailMessage("The query response was null!");
             else if (!queryResponse.Success)
-                result.Fail("The query failed!", new Exception(queryResponse.Message));
+                result.FailErrorMessage(new Exception(queryResponse.Message), "The query failed!");
             else if (!queryResponse.IsTextualReponse || string.IsNullOrWhiteSpace(queryResponse.TextualResponse))
                 result.FailMessage("The query response was invalid!");
             else // Store a shadow copy of the response, as the query response is passed to the callee via an event and might later be compromized
@@ -490,7 +490,7 @@ namespace nxgmci.Protocol.WADM
 
             // Raise the event
             OnResponseReceived(new ResultEventArgs<Postmaster.QueryResponse>(
-                queryResult.Succeed(queryResponse, "SvcDbDump")));
+                Result<Postmaster.QueryResponse>.SucceedProduct(queryResult, queryResponse, "SvcDbDump")));
 
             // Check, if the process failed
             if (result.Finalized)
@@ -501,20 +501,20 @@ namespace nxgmci.Protocol.WADM
 
             // Sanity check the result
             if (parseResult == null)
-                return result.FailMessage("The parsed result was null!");
+                return Result<SvcDbDump.ResponseParameters>.FailMessage(result, "The parsed result was null!");
             if (parseResult.Success && (!parseResult.HasProduct || parseResult.Product == null))
-                return result.FailMessage("The parsed product was invalid!");
+                return Result<SvcDbDump.ResponseParameters>.FailMessage(result, "The parsed product was invalid!");
 
             // Check, if the result is a success and return it
             if (parseResult.Success)
-                return result.Succeed(parseResult.Product, parseResult.Message);
+                return Result<SvcDbDump.ResponseParameters>.SucceedProduct(result, parseResult.Product, parseResult.Message);
 
             // Try to return a detailed error
             if (parseResult.Error != null)
-                return result.FailMessage("The parsing failed!", parseResult.Error);
+                return Result<SvcDbDump.ResponseParameters>.FailMessage(result, "The parsing failed!", parseResult.Error);
 
             // If not possible, return simple failure
-            return result.FailMessage("The parsing failed due to an unknown reason!");
+            return Result<SvcDbDump.ResponseParameters>.FailMessage(result, "The parsing failed due to an unknown reason!");
         }
 
         /// <summary>
@@ -556,7 +556,7 @@ namespace nxgmci.Protocol.WADM
             if (queryResponse == null)
                 result.FailMessage("The query response was null!");
             else if (!queryResponse.Success)
-                result.Fail("The query failed!", new Exception(queryResponse.Message));
+                result.FailErrorMessage(new Exception(queryResponse.Message), "The query failed!");
             else if (!queryResponse.IsTextualReponse || string.IsNullOrWhiteSpace(queryResponse.TextualResponse))
                 result.FailMessage("The query response was invalid!");
             else // Store a shadow copy of the response, as the query response is passed to the callee via an event and might later be compromized
@@ -564,7 +564,7 @@ namespace nxgmci.Protocol.WADM
 
             // Raise the event
             OnResponseReceived(new ResultEventArgs<Postmaster.QueryResponse>(
-                queryResult.Succeed(queryResponse, "RequestAlbumIndexTable")));
+                Result<Postmaster.QueryResponse>.SucceedProduct(queryResult, queryResponse, "RequestAlbumIndexTable")));
 
             // Check, if the process failed
             if (result.Finalized)
@@ -575,9 +575,9 @@ namespace nxgmci.Protocol.WADM
 
             // Sanity check the result
             if (parseResult == null)
-                return result.FailMessage("The parsed result was null!");
+                return Result<RequestAlbumIndexTable.ContentDataSet>.FailMessage(result, "The parsed result was null!");
             if (parseResult.Success && (!parseResult.HasProduct || parseResult.Product == null))
-                return result.FailMessage("The parsed product was invalid!");
+                return Result<RequestAlbumIndexTable.ContentDataSet>.FailMessage(result, "The parsed product was invalid!");
 
             // Check, if the result is a success
             if (parseResult.Success)
@@ -606,15 +606,15 @@ namespace nxgmci.Protocol.WADM
                     OnUpdateIDChanged(new UpdateIDEventArgs(newUpdateID, true, oldUpdateID));
 
                 // Return the result
-                return result.Succeed(parseResult.Product, parseResult.Message);
+                return Result<RequestAlbumIndexTable.ContentDataSet>.SucceedProduct(result, parseResult.Product, parseResult.Message);
             }
 
             // Try to return a detailed error
             if (parseResult.Error != null)
-                return result.FailMessage("The parsing failed!", parseResult.Error);
+                return Result<RequestAlbumIndexTable.ContentDataSet>.FailMessage(result, "The parsing failed!", parseResult.Error);
 
             // If not possible, return simple failure
-            return result.FailMessage("The parsing failed due to an unknown reason!");
+            return Result<RequestAlbumIndexTable.ContentDataSet>.FailMessage(result, "The parsing failed due to an unknown reason!");
         }
 
         /// <summary>
@@ -656,7 +656,7 @@ namespace nxgmci.Protocol.WADM
             if (queryResponse == null)
                 result.FailMessage("The query response was null!");
             else if (!queryResponse.Success)
-                result.Fail("The query failed!", new Exception(queryResponse.Message));
+                result.FailErrorMessage(new Exception(queryResponse.Message), "The query failed!");
             else if (!queryResponse.IsTextualReponse || string.IsNullOrWhiteSpace(queryResponse.TextualResponse))
                 result.FailMessage("The query response was invalid!");
             else // Store a shadow copy of the response, as the query response is passed to the callee via an event and might later be compromized
@@ -664,7 +664,7 @@ namespace nxgmci.Protocol.WADM
 
             // Raise the event
             OnResponseReceived(new ResultEventArgs<Postmaster.QueryResponse>(
-                queryResult.Succeed(queryResponse, "RequestArtistIndexTable")));
+                Result<Postmaster.QueryResponse>.SucceedProduct(queryResult, queryResponse, "RequestArtistIndexTable")));
 
             // Check, if the process failed
             if (result.Finalized)
@@ -675,9 +675,9 @@ namespace nxgmci.Protocol.WADM
 
             // Sanity check the result
             if (parseResult == null)
-                return result.FailMessage("The parsed result was null!");
+                return Result<RequestArtistIndexTable.ContentDataSet>.FailMessage(result, "The parsed result was null!");
             if (parseResult.Success && (!parseResult.HasProduct || parseResult.Product == null))
-                return result.FailMessage("The parsed product was invalid!");
+                return Result<RequestArtistIndexTable.ContentDataSet>.FailMessage(result, "The parsed product was invalid!");
 
             // Check, if the result is a success
             if (parseResult.Success)
@@ -706,15 +706,15 @@ namespace nxgmci.Protocol.WADM
                     OnUpdateIDChanged(new UpdateIDEventArgs(newUpdateID, true, oldUpdateID));
 
                 // Return the result
-                return result.Succeed(parseResult.Product, parseResult.Message);
+                return Result<RequestArtistIndexTable.ContentDataSet>.SucceedProduct(result, parseResult.Product, parseResult.Message);
             }
 
             // Try to return a detailed error
             if (parseResult.Error != null)
-                return result.FailMessage("The parsing failed!", parseResult.Error);
+                return Result<RequestArtistIndexTable.ContentDataSet>.FailMessage(result, "The parsing failed!", parseResult.Error);
 
             // If not possible, return simple failure
-            return result.FailMessage("The parsing failed due to an unknown reason!");
+            return Result<RequestArtistIndexTable.ContentDataSet>.FailMessage(result, "The parsing failed due to an unknown reason!");
         }
 
         /// <summary>
@@ -756,7 +756,7 @@ namespace nxgmci.Protocol.WADM
             if (queryResponse == null)
                 result.FailMessage("The query response was null!");
             else if (!queryResponse.Success)
-                result.Fail("The query failed!", new Exception(queryResponse.Message));
+                result.FailErrorMessage(new Exception(queryResponse.Message), "The query failed!");
             else if (!queryResponse.IsTextualReponse || string.IsNullOrWhiteSpace(queryResponse.TextualResponse))
                 result.FailMessage("The query response was invalid!");
             else // Store a shadow copy of the response, as the query response is passed to the callee via an event and might later be compromized
@@ -764,7 +764,7 @@ namespace nxgmci.Protocol.WADM
 
             // Raise the event
             OnResponseReceived(new ResultEventArgs<Postmaster.QueryResponse>(
-                queryResult.Succeed(queryResponse, "RequestGenreIndexTable")));
+                Result<Postmaster.QueryResponse>.SucceedProduct(queryResult, queryResponse, "RequestGenreIndexTable")));
 
             // Check, if the process failed
             if (result.Finalized)
@@ -775,9 +775,9 @@ namespace nxgmci.Protocol.WADM
 
             // Sanity check the result
             if (parseResult == null)
-                return result.FailMessage("The parsed result was null!");
+                return Result<RequestGenreIndexTable.ContentDataSet>.FailMessage(result, "The parsed result was null!");
             if (parseResult.Success && (!parseResult.HasProduct || parseResult.Product == null))
-                return result.FailMessage("The parsed product was invalid!");
+                return Result<RequestGenreIndexTable.ContentDataSet>.FailMessage(result, "The parsed product was invalid!");
 
             // Check, if the result is a success
             if (parseResult.Success)
@@ -806,15 +806,15 @@ namespace nxgmci.Protocol.WADM
                     OnUpdateIDChanged(new UpdateIDEventArgs(newUpdateID, true, oldUpdateID));
 
                 // Return the result
-                return result.Succeed(parseResult.Product, parseResult.Message);
+                return Result<RequestGenreIndexTable.ContentDataSet>.SucceedProduct(result, parseResult.Product, parseResult.Message);
             }
 
             // Try to return a detailed error
             if (parseResult.Error != null)
-                return result.FailMessage("The parsing failed!", parseResult.Error);
+                return Result<RequestGenreIndexTable.ContentDataSet>.FailMessage(result, "The parsing failed!", parseResult.Error);
 
             // If not possible, return simple failure
-            return result.FailMessage("The parsing failed due to an unknown reason!");
+            return Result<RequestGenreIndexTable.ContentDataSet>.FailMessage(result, "The parsing failed due to an unknown reason!");
         }
 
         /// <summary>
@@ -858,7 +858,7 @@ namespace nxgmci.Protocol.WADM
             if (queryResponse == null)
                 result.FailMessage("The query response was null!");
             else if (!queryResponse.Success)
-                result.Fail("The query failed!", new Exception(queryResponse.Message));
+                result.FailErrorMessage(new Exception(queryResponse.Message), "The query failed!");
             else if (!queryResponse.IsTextualReponse || string.IsNullOrWhiteSpace(queryResponse.TextualResponse))
                 result.FailMessage("The query response was invalid!");
             else // Store a shadow copy of the response, as the query response is passed to the callee via an event and might later be compromized
@@ -866,7 +866,7 @@ namespace nxgmci.Protocol.WADM
 
             // Raise the event
             OnResponseReceived(new ResultEventArgs<Postmaster.QueryResponse>(
-                queryResult.Succeed(queryResponse, "RequestUriMetaData")));
+                Result<Postmaster.QueryResponse>.SucceedProduct(queryResult, queryResponse, "RequestUriMetaData")));
 
             // Check, if the process failed
             if (result.Finalized)
@@ -877,9 +877,9 @@ namespace nxgmci.Protocol.WADM
 
             // Sanity check the result
             if (parseResult == null)
-                return result.FailMessage("The parsed result was null!");
+                return Result<RequestUriMetaData.ResponseParameters>.FailMessage(result, "The parsed result was null!");
             if (parseResult.Success && (!parseResult.HasProduct || parseResult.Product == null))
-                return result.FailMessage("The parsed product was invalid!");
+                return Result<RequestUriMetaData.ResponseParameters>.FailMessage(result, "The parsed product was invalid!");
 
             // Check, if the result is a success
             if (parseResult.Success)
@@ -908,15 +908,15 @@ namespace nxgmci.Protocol.WADM
                     OnUpdateIDChanged(new UpdateIDEventArgs(newUpdateID, true, oldUpdateID));
 
                 // Return the result
-                return result.Succeed(parseResult.Product, parseResult.Message);
+                return Result<RequestUriMetaData.ResponseParameters>.SucceedProduct(result, parseResult.Product, parseResult.Message);
             }
 
             // Try to return a detailed error
             if (parseResult.Error != null)
-                return result.FailMessage("The parsing failed!", parseResult.Error);
+                return Result<RequestUriMetaData.ResponseParameters>.FailMessage(result, "The parsing failed!", parseResult.Error);
 
             // If not possible, return simple failure
-            return result.FailMessage("The parsing failed due to an unknown reason!");
+            return Result<RequestUriMetaData.ResponseParameters>.FailMessage(result, "The parsing failed due to an unknown reason!");
         }
 
         /// <summary>
@@ -932,7 +932,7 @@ namespace nxgmci.Protocol.WADM
 
             // Perform input sanity checks
             if (Name == null)
-                return result.FailMessage("The argument '{0}' was null!", "Name");
+                return Result<RequestPlaylistCreate.ResponseParameters>.FailMessage(result, "The argument '{0}' was null!", "Name");
 
             // Allocate the temporary settings variables
             bool validateInput, looseSyntax, freezeUpdateID;
@@ -962,7 +962,7 @@ namespace nxgmci.Protocol.WADM
             if (queryResponse == null)
                 result.FailMessage("The query response was null!");
             else if (!queryResponse.Success)
-                result.Fail("The query failed!", new Exception(queryResponse.Message));
+                result.FailErrorMessage(new Exception(queryResponse.Message), "The query failed!");
             else if (!queryResponse.IsTextualReponse || string.IsNullOrWhiteSpace(queryResponse.TextualResponse))
                 result.FailMessage("The query response was invalid!");
             else // Store a shadow copy of the response, as the query response is passed to the callee via an event and might later be compromized
@@ -970,7 +970,7 @@ namespace nxgmci.Protocol.WADM
 
             // Raise the event
             OnResponseReceived(new ResultEventArgs<Postmaster.QueryResponse>(
-                queryResult.Succeed(queryResponse, "RequestPlaylistCreate")));
+                Result<Postmaster.QueryResponse>.SucceedProduct(queryResult, queryResponse, "RequestPlaylistCreate")));
 
             // Check, if the process failed
             if (result.Finalized)
@@ -981,9 +981,9 @@ namespace nxgmci.Protocol.WADM
 
             // Sanity check the result
             if (parseResult == null)
-                return result.FailMessage("The parsed result was null!");
+                return Result<RequestPlaylistCreate.ResponseParameters>.FailMessage(result, "The parsed result was null!");
             if (parseResult.Success && (!parseResult.HasProduct || parseResult.Product == null))
-                return result.FailMessage("The parsed product was invalid!");
+                return Result<RequestPlaylistCreate.ResponseParameters>.FailMessage(result, "The parsed product was invalid!");
 
             // Check, if the result is a success
             if (parseResult.Success)
@@ -1012,15 +1012,15 @@ namespace nxgmci.Protocol.WADM
                     OnUpdateIDChanged(new UpdateIDEventArgs(newUpdateID, true, oldUpdateID));
 
                 // Return the result
-                return result.Succeed(parseResult.Product, parseResult.Message);
+                return Result<RequestPlaylistCreate.ResponseParameters>.SucceedProduct(result, parseResult.Product, parseResult.Message);
             }
 
             // Try to return a detailed error
             if (parseResult.Error != null)
-                return result.FailMessage("The parsing failed!", parseResult.Error);
+                return Result<RequestPlaylistCreate.ResponseParameters>.FailMessage(result, "The parsing failed!", parseResult.Error);
 
             // If not possible, return simple failure
-            return result.FailMessage("The parsing failed due to an unknown reason!");
+            return Result<RequestPlaylistCreate.ResponseParameters>.FailMessage(result, "The parsing failed due to an unknown reason!");
         }
 
         /// <summary>
@@ -1038,7 +1038,7 @@ namespace nxgmci.Protocol.WADM
 
             // Perform input sanity checks
             if (Name == null)
-                return result.FailMessage("The argument '{0}' was null!", "Name");
+                return Result<RequestPlaylistRename.ResponseParameters>.FailMessage(result, "The argument '{0}' was null!", "Name");
             if (OriginalName == null)
                 OriginalName = string.Empty;
 
@@ -1070,7 +1070,7 @@ namespace nxgmci.Protocol.WADM
             if (queryResponse == null)
                 result.FailMessage("The query response was null!");
             else if (!queryResponse.Success)
-                result.Fail("The query failed!", new Exception(queryResponse.Message));
+                result.FailErrorMessage(new Exception(queryResponse.Message), "The query failed!");
             else if (!queryResponse.IsTextualReponse || string.IsNullOrWhiteSpace(queryResponse.TextualResponse))
                 result.FailMessage("The query response was invalid!");
             else // Store a shadow copy of the response, as the query response is passed to the callee via an event and might later be compromized
@@ -1078,7 +1078,7 @@ namespace nxgmci.Protocol.WADM
 
             // Raise the event
             OnResponseReceived(new ResultEventArgs<Postmaster.QueryResponse>(
-                queryResult.Succeed(queryResponse, "RequestPlaylistRename")));
+                Result<Postmaster.QueryResponse>.SucceedProduct(queryResult, queryResponse, "RequestPlaylistRename")));
 
             // Check, if the process failed
             if (result.Finalized)
@@ -1089,9 +1089,9 @@ namespace nxgmci.Protocol.WADM
 
             // Sanity check the result
             if (parseResult == null)
-                return result.FailMessage("The parsed result was null!");
+                return Result<RequestPlaylistRename.ResponseParameters>.FailMessage(result, "The parsed result was null!");
             if (parseResult.Success && (!parseResult.HasProduct || parseResult.Product == null))
-                return result.FailMessage("The parsed product was invalid!");
+                return Result<RequestPlaylistRename.ResponseParameters>.FailMessage(result, "The parsed product was invalid!");
 
             // Check, if the result is a success
             if (parseResult.Success)
@@ -1120,15 +1120,15 @@ namespace nxgmci.Protocol.WADM
                     OnUpdateIDChanged(new UpdateIDEventArgs(newUpdateID, true, oldUpdateID));
 
                 // Return the result
-                return result.Succeed(parseResult.Product, parseResult.Message);
+                return Result<RequestPlaylistRename.ResponseParameters>.SucceedProduct(result, parseResult.Product, parseResult.Message);
             }
 
             // Try to return a detailed error
             if (parseResult.Error != null)
-                return result.FailMessage("The parsing failed!", parseResult.Error);
+                return Result<RequestPlaylistRename.ResponseParameters>.FailMessage(result, "The parsing failed!", parseResult.Error);
 
             // If not possible, return simple failure
-            return result.FailMessage("The parsing failed due to an unknown reason!");
+            return Result<RequestPlaylistRename.ResponseParameters>.FailMessage(result, "The parsing failed due to an unknown reason!");
         }
 
         /// <summary>
@@ -1175,7 +1175,7 @@ namespace nxgmci.Protocol.WADM
             if (queryResponse == null)
                 result.FailMessage("The query response was null!");
             else if (!queryResponse.Success)
-                result.Fail("The query failed!", new Exception(queryResponse.Message));
+                result.FailErrorMessage(new Exception(queryResponse.Message), "The query failed!");
             else if (!queryResponse.IsTextualReponse || string.IsNullOrWhiteSpace(queryResponse.TextualResponse))
                 result.FailMessage("The query response was invalid!");
             else // Store a shadow copy of the response, as the query response is passed to the callee via an event and might later be compromized
@@ -1183,7 +1183,7 @@ namespace nxgmci.Protocol.WADM
 
             // Raise the event
             OnResponseReceived(new ResultEventArgs<Postmaster.QueryResponse>(
-                queryResult.Succeed(queryResponse, "RequestPlaylistDelete")));
+                Result<Postmaster.QueryResponse>.SucceedProduct(queryResult, queryResponse, "RequestPlaylistDelete")));
 
             // Check, if the process failed
             if (result.Finalized)
@@ -1194,9 +1194,9 @@ namespace nxgmci.Protocol.WADM
 
             // Sanity check the result
             if (parseResult == null)
-                return result.FailMessage("The parsed result was null!");
+                return Result<RequestPlaylistDelete.ResponseParameters>.FailMessage(result, "The parsed result was null!");
             if (parseResult.Success && (!parseResult.HasProduct || parseResult.Product == null))
-                return result.FailMessage("The parsed product was invalid!");
+                return Result<RequestPlaylistDelete.ResponseParameters>.FailMessage(result, "The parsed product was invalid!");
 
             // Check, if the result is a success
             if (parseResult.Success)
@@ -1225,15 +1225,15 @@ namespace nxgmci.Protocol.WADM
                     OnUpdateIDChanged(new UpdateIDEventArgs(newUpdateID, true, oldUpdateID));
 
                 // Return the result
-                return result.Succeed(parseResult.Product, parseResult.Message);
+                return Result<RequestPlaylistDelete.ResponseParameters>.SucceedProduct(result, parseResult.Product, parseResult.Message);
             }
 
             // Try to return a detailed error
             if (parseResult.Error != null)
-                return result.FailMessage("The parsing failed!", parseResult.Error);
+                return Result<RequestPlaylistDelete.ResponseParameters>.FailMessage(result, "The parsing failed!", parseResult.Error);
 
             // If not possible, return simple failure
-            return result.FailMessage("The parsing failed due to an unknown reason!");
+            return Result<RequestPlaylistDelete.ResponseParameters>.FailMessage(result, "The parsing failed due to an unknown reason!");
         }
 
         /// <summary>
@@ -1282,7 +1282,7 @@ namespace nxgmci.Protocol.WADM
             if (queryResponse == null)
                 result.FailMessage("The query response was null!");
             else if (!queryResponse.Success)
-                result.Fail("The query failed!", new Exception(queryResponse.Message));
+                result.FailErrorMessage(new Exception(queryResponse.Message), "The query failed!");
             else if (!queryResponse.IsTextualReponse || string.IsNullOrWhiteSpace(queryResponse.TextualResponse))
                 result.FailMessage("The query response was invalid!");
             else // Store a shadow copy of the response, as the query response is passed to the callee via an event and might later be compromized
@@ -1290,7 +1290,7 @@ namespace nxgmci.Protocol.WADM
 
             // Raise the event
             OnResponseReceived(new ResultEventArgs<Postmaster.QueryResponse>(
-                queryResult.Succeed(queryResponse, "RequestRawData")));
+                Result<Postmaster.QueryResponse>.SucceedProduct(queryResult, queryResponse, "RequestRawData")));
 
             // Check, if the process failed
             if (result.Finalized)
@@ -1301,9 +1301,9 @@ namespace nxgmci.Protocol.WADM
 
             // Sanity check the result
             if (parseResult == null)
-                return result.FailMessage("The parsed result was null!");
+                return Result<RequestRawData.ContentDataSet>.FailMessage(result, "The parsed result was null!");
             if (parseResult.Success && (!parseResult.HasProduct || parseResult.Product == null))
-                return result.FailMessage("The parsed product was invalid!");
+                return Result<RequestRawData.ContentDataSet>.FailMessage(result, "The parsed product was invalid!");
 
             // Check, if the result is a success
             if (parseResult.Success)
@@ -1332,15 +1332,15 @@ namespace nxgmci.Protocol.WADM
                     OnUpdateIDChanged(new UpdateIDEventArgs(newUpdateID, true, oldUpdateID));
 
                 // Return the result
-                return result.Succeed(parseResult.Product, parseResult.Message);
+                return Result<RequestRawData.ContentDataSet>.SucceedProduct(result, parseResult.Product, parseResult.Message);
             }
 
             // Try to return a detailed error
             if (parseResult.Error != null)
-                return result.FailMessage("The parsing failed!", parseResult.Error);
+                return Result<RequestRawData.ContentDataSet>.FailMessage(result, "The parsing failed!", parseResult.Error);
 
             // If not possible, return simple failure
-            return result.FailMessage("The parsing failed due to an unknown reason!");
+            return Result<RequestRawData.ContentDataSet>.FailMessage(result, "The parsing failed due to an unknown reason!");
         }
 
         /// <summary>
