@@ -6,13 +6,14 @@ namespace nxgmci.Protocol.WADM
 {
     /// <summary>
     /// Universal parser for parsing WADM API responses into result objects.
+    /// The parser on the stereo is a total mess; it only checks closing tags and ignores the opening ones.
     /// </summary>
     public class WADMParser
     {
         /// <summary>
         /// The maximum length of an XML field.
         /// </summary>
-        public const uint MaximumFieldLength = 128;
+        public const uint MAX_FIELD_LENGTH = 128;
 
         /// <summary>
         /// The name of the root wrapper node.
@@ -439,7 +440,7 @@ namespace nxgmci.Protocol.WADM
             Value = Value.Trim();
 
             // Check, if the maximum length is exceeded
-            if (Value.Length <= MaximumFieldLength)
+            if (Value.Length <= MAX_FIELD_LENGTH)
                 return Value;
 
             // If the value is encoded, decode it before shortening
@@ -447,7 +448,7 @@ namespace nxgmci.Protocol.WADM
                 Value = DecodeValue(Value);
 
             // Trim the string
-            Value = Value.Substring(0, MaximumFieldLength > 3 ? (int)MaximumFieldLength - 3 : 0);
+            Value = Value.Substring(0, MAX_FIELD_LENGTH > 3 ? (int)MAX_FIELD_LENGTH - 3 : 0);
             Value += "...";
 
             // Return the result
