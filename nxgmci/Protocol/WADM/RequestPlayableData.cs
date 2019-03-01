@@ -51,7 +51,7 @@ namespace nxgmci.Protocol.WADM
 
             // Make sure the response is not null
             if (string.IsNullOrWhiteSpace(Response))
-                return result.FailMessage("The response may not be null!");
+                return Result<ContentDataSet>.FailMessage(result, "The response may not be null!");
 
             // Check, if the namespace dictionary is null and initialize it if true
             if (NamespaceDict == null)
@@ -63,50 +63,50 @@ namespace nxgmci.Protocol.WADM
             // Check if it failed
             if (!parserResult.Success)
                 if (parserResult.Error != null)
-                    return result.FailMessage("The parsing failed:\n{0}", parserResult.ToString());
+                    return Result<ContentDataSet>.FailMessage(result, "The parsing failed:\n{0}", parserResult.ToString());
                 else
-                    return result.FailMessage("The parsing failed for unknown reasons!");
+                    return Result<ContentDataSet>.FailMessage(result, "The parsing failed for unknown reasons!");
 
             // Make sure the product is there
             if (parserResult.Product == null)
-                return result.FailMessage("The parsing product was null!");
+                return Result<ContentDataSet>.FailMessage(result, "The parsing product was null!");
 
             // And also make sure our state is correct
             if (parserResult.Product.Elements == null || parserResult.Product.List == null)
-                return result.FailMessage("The list of parsed elements or list items is null!");
+                return Result<ContentDataSet>.FailMessage(result, "The list of parsed elements or list items is null!");
 
             // Now, make sure our mandatory arguments exist
             if (!parserResult.Product.Elements.ContainsKey("totnumelem"))
-                return result.FailMessage("Could not locate parameter '{0}'!", "totnumelem");
+                return Result<ContentDataSet>.FailMessage(result, "Could not locate parameter '{0}'!", "totnumelem");
             if (!parserResult.Product.Elements.ContainsKey("fromindex"))
-                return result.FailMessage("Could not locate parameter '{0}'!", "fromindex");
+                return Result<ContentDataSet>.FailMessage(result, "Could not locate parameter '{0}'!", "fromindex");
             if (!parserResult.Product.Elements.ContainsKey("numelem"))
-                return result.FailMessage("Could not locate parameter '{0}'!", "numelem");
+                return Result<ContentDataSet>.FailMessage(result, "Could not locate parameter '{0}'!", "numelem");
             if (!parserResult.Product.Elements.ContainsKey("updateid"))
-                return result.FailMessage("Could not locate parameter '{0}'!", "updateid");
+                return Result<ContentDataSet>.FailMessage(result, "Could not locate parameter '{0}'!", "updateid");
 
             // Then, try to parse the parameters
             uint totNumElem, fromIndex, numElem, updateID;
             bool alphanumeric = parserResult.Product.Elements.ContainsKey("alphanumeric");
 
             if (!uint.TryParse(parserResult.Product.Elements["totnumelem"], out totNumElem))
-                return result.FailMessage("Could not parse parameter '{0}' as uint!", "totnumelem");
+                return Result<ContentDataSet>.FailMessage(result, "Could not parse parameter '{0}' as uint!", "totnumelem");
             if (!uint.TryParse(parserResult.Product.Elements["fromindex"], out fromIndex))
-                return result.FailMessage("Could not parse parameter '{0}' as uint!", "fromindex");
+                return Result<ContentDataSet>.FailMessage(result, "Could not parse parameter '{0}' as uint!", "fromindex");
             if (!uint.TryParse(parserResult.Product.Elements["numelem"], out numElem))
-                return result.FailMessage("Could not parse parameter '{0}' as uint!", "numelem");
+                return Result<ContentDataSet>.FailMessage(result, "Could not parse parameter '{0}' as uint!", "numelem");
             if (!uint.TryParse(parserResult.Product.Elements["updateid"], out updateID))
-                return result.FailMessage("Could not parse parameter '{0}' as uint!", "updateid");
+                return Result<ContentDataSet>.FailMessage(result, "Could not parse parameter '{0}' as uint!", "updateid");
 
             // If required, perform some sanity checks on the data
             if (ValidateInput)
             {
                 if (totNumElem < numElem)
-                    return result.FailMessage("totnumelem < numelem");
+                    return Result<ContentDataSet>.FailMessage(result, "totnumelem < numelem");
                 if (fromIndex + numElem > totNumElem)
-                    return result.FailMessage("fromindex + numelem > totnumelem");
+                    return Result<ContentDataSet>.FailMessage(result, "fromindex + numelem > totnumelem");
                 if (parserResult.Product.List.Count != numElem)
-                    return result.FailMessage("Number of list items != numelem");
+                    return Result<ContentDataSet>.FailMessage(result, "Number of list items != numelem");
             }
 
 
@@ -201,78 +201,78 @@ namespace nxgmci.Protocol.WADM
 
                 // First, make sure our mandatory arguments exist
                 if (!listItem.ContainsKey("name"))
-                    return result.FailMessage("Could not locate parameter '{0}' in item #{1}!", "name", elementNo);
+                    return Result<ContentDataSet>.FailMessage(result, "Could not locate parameter '{0}' in item #{1}!", "name", elementNo);
                 if (!listItem.ContainsKey("title"))
-                    return result.FailMessage("Could not locate parameter '{0}' in item #{1}!", "title", elementNo);
+                    return Result<ContentDataSet>.FailMessage(result, "Could not locate parameter '{0}' in item #{1}!", "title", elementNo);
                 if (!listItem.ContainsKey("nodeid"))
-                    return result.FailMessage("Could not locate parameter '{0}' in item #{1}!", "nodeid", elementNo);
+                    return Result<ContentDataSet>.FailMessage(result, "Could not locate parameter '{0}' in item #{1}!", "nodeid", elementNo);
                 if (!listItem.ContainsKey("parentid"))
-                    return result.FailMessage("Could not locate parameter '{0}' in item #{1}!", "parentid", elementNo);
+                    return Result<ContentDataSet>.FailMessage(result, "Could not locate parameter '{0}' in item #{1}!", "parentid", elementNo);
                 if (!listItem.ContainsKey("url"))
-                    return result.FailMessage("Could not locate parameter '{0}' in item #{1}!", "url", elementNo);
+                    return Result<ContentDataSet>.FailMessage(result, "Could not locate parameter '{0}' in item #{1}!", "url", elementNo);
                 if (!listItem.ContainsKey("album"))
-                    return result.FailMessage("Could not locate parameter '{0}' in item #{1}!", "album", elementNo);
+                    return Result<ContentDataSet>.FailMessage(result, "Could not locate parameter '{0}' in item #{1}!", "album", elementNo);
                 if (!listItem.ContainsKey("trackno"))
-                    return result.FailMessage("Could not locate parameter '{0}' in item #{1}!", "trackno", elementNo);
+                    return Result<ContentDataSet>.FailMessage(result, "Could not locate parameter '{0}' in item #{1}!", "trackno", elementNo);
                 if (!listItem.ContainsKey("year"))
-                    return result.FailMessage("Could not locate parameter '{0}' in item #{1}!", "year", elementNo);
+                    return Result<ContentDataSet>.FailMessage(result, "Could not locate parameter '{0}' in item #{1}!", "year", elementNo);
                 if (!listItem.ContainsKey("artist"))
-                    return result.FailMessage("Could not locate parameter '{0}' in item #{1}!", "artist", elementNo);
+                    return Result<ContentDataSet>.FailMessage(result, "Could not locate parameter '{0}' in item #{1}!", "artist", elementNo);
                 if (!listItem.ContainsKey("genre"))
-                    return result.FailMessage("Could not locate parameter '{0}' in item #{1}!", "genre", elementNo);
+                    return Result<ContentDataSet>.FailMessage(result, "Could not locate parameter '{0}' in item #{1}!", "genre", elementNo);
                 if (!listItem.ContainsKey("dmmcookie"))
-                    return result.FailMessage("Could not locate parameter '{0}' in item #{1}!", "dmmcookie", elementNo);
+                    return Result<ContentDataSet>.FailMessage(result, "Could not locate parameter '{0}' in item #{1}!", "dmmcookie", elementNo);
 
                 if (!listItem.ContainsKey("containertype"))
-                    return result.FailMessage("Could not locate parameter '{0}' in item #{1}!", "containertype", elementNo);
+                    return Result<ContentDataSet>.FailMessage(result, "Could not locate parameter '{0}' in item #{1}!", "containertype", elementNo);
                 if (!listItem.ContainsKey("playable"))
-                    return result.FailMessage("Could not locate parameter '{0}' in item #{1}!", "playable", elementNo);
+                    return Result<ContentDataSet>.FailMessage(result, "Could not locate parameter '{0}' in item #{1}!", "playable", elementNo);
                 if (!listItem.ContainsKey("albumarturl"))
-                    return result.FailMessage("Could not locate parameter '{0}' in item #{1}!", "albumarturl", elementNo);
+                    return Result<ContentDataSet>.FailMessage(result, "Could not locate parameter '{0}' in item #{1}!", "albumarturl", elementNo);
                 if (!listItem.ContainsKey("albumarttnurl"))
-                    return result.FailMessage("Could not locate parameter '{0}' in item #{1}!", "albumarttnurl", elementNo);
+                    return Result<ContentDataSet>.FailMessage(result, "Could not locate parameter '{0}' in item #{1}!", "albumarttnurl", elementNo);
                 if (!listItem.ContainsKey("likemusic"))
-                    return result.FailMessage("Could not locate parameter '{0}' in item #{1}!", "likemusic", elementNo);
+                    return Result<ContentDataSet>.FailMessage(result, "Could not locate parameter '{0}' in item #{1}!", "likemusic", elementNo);
 
                 // Then, try to parse the parameters
                 string name;
                 uint nodeID, album, trackNo, artist, genre, year, mediaType, dmmCookie;
                 if (string.IsNullOrWhiteSpace((name = listItem["name"])))
-                    return result.FailMessage("Could not parse parameter '{0}' in item #{1} as string!", "name", elementNo);
+                    return Result<ContentDataSet>.FailMessage(result, "Could not parse parameter '{0}' in item #{1} as string!", "name", elementNo);
                 if (!uint.TryParse(listItem["nodeid"], out nodeID))
-                    return result.FailMessage("Could not parse parameter '{0}' in item #{1} as uint!", "nodeid", elementNo);
+                    return Result<ContentDataSet>.FailMessage(result, "Could not parse parameter '{0}' in item #{1} as uint!", "nodeid", elementNo);
                 if (!uint.TryParse(listItem["album"], out album))
-                    return result.FailMessage("Could not parse parameter '{0}' in item #{1} as uint!", "album", elementNo);
+                    return Result<ContentDataSet>.FailMessage(result, "Could not parse parameter '{0}' in item #{1} as uint!", "album", elementNo);
                 if (!uint.TryParse(listItem["trackno"], out trackNo))
-                    return result.FailMessage("Could not parse parameter '{0}' in item #{1} as uint!", "trackno", elementNo);
+                    return Result<ContentDataSet>.FailMessage(result, "Could not parse parameter '{0}' in item #{1} as uint!", "trackno", elementNo);
                 if (!uint.TryParse(listItem["artist"], out artist))
-                    return result.FailMessage("Could not parse parameter '{0}' in item #{1} as uint!", "artist", elementNo);
+                    return Result<ContentDataSet>.FailMessage(result, "Could not parse parameter '{0}' in item #{1} as uint!", "artist", elementNo);
                 if (!uint.TryParse(listItem["genre"], out genre))
-                    return result.FailMessage("Could not parse parameter '{0}' in item #{1} as uint!", "genre", elementNo);
+                    return Result<ContentDataSet>.FailMessage(result, "Could not parse parameter '{0}' in item #{1} as uint!", "genre", elementNo);
                 if (!uint.TryParse(listItem["year"], out year))
-                    return result.FailMessage("Could not parse parameter '{0}' in item #{1} as uint!", "year", elementNo);
+                    return Result<ContentDataSet>.FailMessage(result, "Could not parse parameter '{0}' in item #{1} as uint!", "year", elementNo);
                 if (!uint.TryParse(listItem["mediatype"], out mediaType))
-                    return result.FailMessage("Could not parse parameter '{0}' in item #{1} as uint!", "mediatype", elementNo);
+                    return Result<ContentDataSet>.FailMessage(result, "Could not parse parameter '{0}' in item #{1} as uint!", "mediatype", elementNo);
                 if (!uint.TryParse(listItem["dmmcookie"], out dmmCookie))
-                    return result.FailMessage("Could not parse parameter '{0}' in item #{1} as uint!", "dmmcookie", elementNo);
+                    return Result<ContentDataSet>.FailMessage(result, "Could not parse parameter '{0}' in item #{1} as uint!", "dmmcookie", elementNo);
 
                 // If we need to, perform sanity checks on the input data
                 if (ValidateInput)
                 {
                     if (nodeID == 0)
-                        return result.FailMessage("nodeid #{0} == 0", elementNo);
+                        return Result<ContentDataSet>.FailMessage(result, "nodeid #{0} == 0", elementNo);
                     if (album == 0)
-                        return result.FailMessage("album #{0} == 0", elementNo);
+                        return Result<ContentDataSet>.FailMessage(result, "album #{0} == 0", elementNo);
                     if (genre == 0)
-                        return result.FailMessage("genre #{0} == 0", elementNo);
+                        return Result<ContentDataSet>.FailMessage(result, "genre #{0} == 0", elementNo);
                 }
 
-                // Finally, assemble and add the object
-               // items.Add(new ContentData(name, nodeID, album, trackNo, artist, genre, year, mediaType, dmmCookie));
+               // Finally, assemble and add the object
+               //items.Add(new ContentData(name, nodeID, album, trackNo, artist, genre, year, mediaType, dmmCookie));
             }
 
             // Finally, return the response
-            return result.Succeed(new ContentDataSet(items, totNumElem, fromIndex, numElem, updateID));
+            return Result<ContentDataSet>.SucceedProduct(result, new ContentDataSet(items, totNumElem, fromIndex, numElem, updateID));
         }
 
         /// <summary>
@@ -298,11 +298,11 @@ namespace nxgmci.Protocol.WADM
 
             // The node is simply invalid - no exception needs to be thrown here
             if (RootDataSet.InvalidNodeID > 0 || RootDataSet.NumElem == 0 || RootDataSet.TotNumElem == 0 || RootDataSet.ContentData == null)
-                return result.FailMessage("The node's parameters are invalid!");
+                return Result<Dictionary<ContainerType, uint>>.FailMessage(result, "The node's parameters are invalid!");
 
             // In this case, the data set is also invalid, since there may not be zero elements inside the root node
             if (RootDataSet.ContentData.Count == 0)
-                return result.FailMessage("The node does not contain any child elements!");
+                return Result<Dictionary<ContainerType, uint>>.FailMessage(result, "The node does not contain any child elements!");
 
             // Allocate the result dictionary
             Dictionary<ContainerType, uint> resultDict = new Dictionary<ContainerType, uint>();
@@ -323,12 +323,12 @@ namespace nxgmci.Protocol.WADM
                         continue;
 
                     // If we might not skip the error, we return an error
-                    return result.FailMessage("The child node {0} is null!", counter);
+                    return Result<Dictionary<ContainerType, uint>>.FailMessage(result, "The child node {0} is null!", counter);
                 }
 
                 // If any of our elements has a parent ID that is non-zero, there must be a problem
                 if (data.ParentID != 0)
-                    return result.FailMessage("The ID of the parent node is non-zero!");
+                    return Result<Dictionary<ContainerType, uint>>.FailMessage(result, "The ID of the parent node is non-zero!");
 
                 // Validate the child node's contents
                 if (data.NodeID == 0 || data.ContainerType <= ContainerType.None || data.ContainerType > ContainerType.AllTracks)
@@ -341,7 +341,7 @@ namespace nxgmci.Protocol.WADM
                         continue;
 
                     // If we might not skip the error, we return an error
-                    return result.FailMessage("The parameters of child node {0} are invalid!", counter);
+                    return Result<Dictionary<ContainerType, uint>>.FailMessage(result, "The parameters of child node {0} are invalid!", counter);
                 }
 
                 // Now, check if the item already exists and fail if true
@@ -357,15 +357,15 @@ namespace nxgmci.Protocol.WADM
 
             // Check, if we don't require all containers to be present and in that case, return the dictionary early
             if (!RejectIncomplete && resultDict.Count > 0)
-                return result.Succeed(resultDict);
+                return Result<Dictionary<ContainerType, uint>>.SucceedProduct(result, resultDict);
 
             // Finally, if required, check if all items are present
             if (!resultDict.ContainsKey(ContainerType.Albums) || !resultDict.ContainsKey(ContainerType.AllTracks) || !resultDict.ContainsKey(ContainerType.Artists)
                 || !resultDict.ContainsKey(ContainerType.Genres) || !resultDict.ContainsKey(ContainerType.Playlists))
-                return result.FailMessage("Some required child nodes could not be found!");
+                return Result<Dictionary<ContainerType, uint>>.FailMessage(result, "Some required child nodes could not be found!");
 
             // On success, return the resulting and complete dictionary
-            return result.Succeed(resultDict);
+            return Result<Dictionary<ContainerType, uint>>.SucceedProduct(result, resultDict);
         }
 
         // ContentDataSet-Structure:
