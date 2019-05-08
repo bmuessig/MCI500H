@@ -40,11 +40,13 @@ namespace nxgmci.Protocol.WADM
         /// Parses a ContentDataSet response.
         /// </summary>
         /// <param name="Response">Text response input from the stereo's server.</param>
-        /// <param name="NamespaceDict">Optional dictionary of namespaces used to categorize and verify the parsing result.</param>
         /// <param name="ValidateInput">Indicates whether to verify the contents received after parsing.</param>
         /// <param name="LazySyntax">Indicates whether minor parsing errors are ignored.</param>
-        /// <returns></returns>
-        public static Result<ContentDataSet> Parse(string Response, Dictionary<ContainerType, uint> NamespaceDict = null, bool ValidateInput = true, bool LazySyntax = false)
+        /// <returns>
+        /// A result object that contains a serialized version of the response data.
+        /// Note, that this will return the base class which has to be type checked and casted to the full, detailed type.
+        /// </returns>
+        public static Result<ContentDataSet> Parse(string Response, bool ValidateInput = true, bool LazySyntax = false)
         {
             // Allocate the result object
             Result<ContentDataSet> result = new Result<ContentDataSet>();
@@ -52,10 +54,6 @@ namespace nxgmci.Protocol.WADM
             // Make sure the response is not null
             if (string.IsNullOrWhiteSpace(Response))
                 return Result<ContentDataSet>.FailMessage(result, "The response may not be null!");
-
-            // Check, if the namespace dictionary is null and initialize it if true
-            if (NamespaceDict == null)
-                NamespaceDict = new Dictionary<ContainerType, uint>();
 
             // Then, parse the response
             Result<WADMProduct> parserResult = parser.Parse(Response, LazySyntax);
@@ -75,28 +73,84 @@ namespace nxgmci.Protocol.WADM
             if (parserResult.Product.Elements == null || parserResult.Product.List == null)
                 return Result<ContentDataSet>.FailMessage(result, "The list of parsed elements or list items is null!");
 
-            // Now, make sure our mandatory arguments exist
-            if (!parserResult.Product.Elements.ContainsKey("totnumelem"))
-                return Result<ContentDataSet>.FailMessage(result, "Could not locate parameter '{0}'!", "totnumelem");
-            if (!parserResult.Product.Elements.ContainsKey("fromindex"))
-                return Result<ContentDataSet>.FailMessage(result, "Could not locate parameter '{0}'!", "fromindex");
-            if (!parserResult.Product.Elements.ContainsKey("numelem"))
-                return Result<ContentDataSet>.FailMessage(result, "Could not locate parameter '{0}'!", "numelem");
-            if (!parserResult.Product.Elements.ContainsKey("updateid"))
-                return Result<ContentDataSet>.FailMessage(result, "Could not locate parameter '{0}'!", "updateid");
-
-            // Then, try to parse the parameters
-            uint totNumElem, fromIndex, numElem, updateID;
+            // Now, the request will be parsed and anaylzed
+            bool failed = false;
+            uint invalidNodeID = 0;
+            uint totNumElem = 0, fromIndex = 0, numElem = 0, updateID = 0;
             bool alphanumeric = parserResult.Product.Elements.ContainsKey("alphanumeric");
 
-            if (!uint.TryParse(parserResult.Product.Elements["totnumelem"], out totNumElem))
-                return Result<ContentDataSet>.FailMessage(result, "Could not parse parameter '{0}' as uint!", "totnumelem");
-            if (!uint.TryParse(parserResult.Product.Elements["fromindex"], out fromIndex))
-                return Result<ContentDataSet>.FailMessage(result, "Could not parse parameter '{0}' as uint!", "fromindex");
-            if (!uint.TryParse(parserResult.Product.Elements["numelem"], out numElem))
-                return Result<ContentDataSet>.FailMessage(result, "Could not parse parameter '{0}' as uint!", "numelem");
-            if (!uint.TryParse(parserResult.Product.Elements["updateid"], out updateID))
-                return Result<ContentDataSet>.FailMessage(result, "Could not parse parameter '{0}' as uint!", "updateid");
+            // First, check if the request failed
+            if (parserResult.Product.Elements.ContainsKey("invalidnodeid"))
+            {
+                // Set the failure flag
+                failed = true;
+
+                // Try to parse the invalid node id
+                if (!uint.TryParse(parserResult.Product.Elements["invalidnodeid"], out invalidNodeID))
+                    return Result<ContentDataSet>.FailMessage(result, "Could not parse parameter '{0}' as uint!", "invalidnodeid");
+            }
+
+            // Now, make sure our mandatory arguments exist
+            // If they do, try to parse them
+            // Note, that this will try to fetch as much information as possible from a failed request
+            // Therefore, every basic argument becomes optional if the requested node was invalid
+
+            // TotNumElem
+            if (!parserResult.Product.Elements.ContainsKey("totnumelem"))
+            {
+                if (!failed)
+                    return Result<ContentDataSet>.FailMessage(result, "Could not locate parameter '{0}'!", "totnumelem");
+            }
+            else
+            {
+                if (!uint.TryParse(parserResult.Product.Elements["totnumelem"], out totNumElem))
+                    if (!failed)
+                        return Result<ContentDataSet>.FailMessage(result, "Could not parse parameter '{0}' as uint!", "totnumelem");
+            }
+
+            // FromIndex
+            if (!parserResult.Product.Elements.ContainsKey("fromindex"))
+            {
+                if (!failed)
+                    return Result<ContentDataSet>.FailMessage(result, "Could not locate parameter '{0}'!", "fromindex");
+            }
+            else
+            {
+                if (!uint.TryParse(parserResult.Product.Elements["fromindex"], out fromIndex))
+                    if (!failed)
+                        return Result<ContentDataSet>.FailMessage(result, "Could not parse parameter '{0}' as uint!", "fromindex");
+            }
+
+            // NumElem
+            if (!parserResult.Product.Elements.ContainsKey("numelem"))
+            {
+                if (!failed)
+                    return Result<ContentDataSet>.FailMessage(result, "Could not locate parameter '{0}'!", "numelem");
+            }
+            else
+            {
+                if (!uint.TryParse(parserResult.Product.Elements["numelem"], out numElem))
+                    if (!failed)
+                        return Result<ContentDataSet>.FailMessage(result, "Could not parse parameter '{0}' as uint!", "numelem");
+            }
+
+            // Update ID
+            if (!parserResult.Product.Elements.ContainsKey("updateid"))
+            {
+                if (!failed)
+                    return Result<ContentDataSet>.FailMessage(result, "Could not locate parameter '{0}'!", "updateid");
+            }
+            else
+            {
+                if (!uint.TryParse(parserResult.Product.Elements["updateid"], out updateID))
+                    if (!failed)
+                        return Result<ContentDataSet>.FailMessage(result, "Could not parse parameter '{0}' as uint!", "updateid");
+            }
+
+            // Check, if the request failed and if true, return early
+            if (failed)
+                return Result<ContentDataSet>.SucceedProduct(result,
+                    new ContentDataSet(null, totNumElem, fromIndex, numElem, updateID, alphanumeric, invalidNodeID, failed));
 
             // If required, perform some sanity checks on the data
             if (ValidateInput)
@@ -108,11 +162,6 @@ namespace nxgmci.Protocol.WADM
                 if (parserResult.Product.List.Count != numElem)
                     return Result<ContentDataSet>.FailMessage(result, "Number of list items != numelem");
             }
-
-
-
-
-            // Rewrite..... ///////
 
             // Allocate a list for the items
             List<ContentData> items = new List<ContentData>();
@@ -127,7 +176,7 @@ namespace nxgmci.Protocol.WADM
                 // Make sure that all our elements are non-null
                 if (listItem == null)
                     continue;
-                
+
                 // First, attempt to parse the required fields
 
 
@@ -199,82 +248,249 @@ namespace nxgmci.Protocol.WADM
             </contentdataset>
                  */
 
-                // First, make sure our mandatory arguments exist
+                // The base class requires the following values: Name, NodeID, ParentID and NodeType
+                // Make sure that they exist - the other arguments are appended later
                 if (!listItem.ContainsKey("name"))
                     return Result<ContentDataSet>.FailMessage(result, "Could not locate parameter '{0}' in item #{1}!", "name", elementNo);
-                if (!listItem.ContainsKey("title"))
-                    return Result<ContentDataSet>.FailMessage(result, "Could not locate parameter '{0}' in item #{1}!", "title", elementNo);
                 if (!listItem.ContainsKey("nodeid"))
                     return Result<ContentDataSet>.FailMessage(result, "Could not locate parameter '{0}' in item #{1}!", "nodeid", elementNo);
                 if (!listItem.ContainsKey("parentid"))
                     return Result<ContentDataSet>.FailMessage(result, "Could not locate parameter '{0}' in item #{1}!", "parentid", elementNo);
-                if (!listItem.ContainsKey("url"))
-                    return Result<ContentDataSet>.FailMessage(result, "Could not locate parameter '{0}' in item #{1}!", "url", elementNo);
-                if (!listItem.ContainsKey("album"))
-                    return Result<ContentDataSet>.FailMessage(result, "Could not locate parameter '{0}' in item #{1}!", "album", elementNo);
-                if (!listItem.ContainsKey("trackno"))
-                    return Result<ContentDataSet>.FailMessage(result, "Could not locate parameter '{0}' in item #{1}!", "trackno", elementNo);
-                if (!listItem.ContainsKey("year"))
-                    return Result<ContentDataSet>.FailMessage(result, "Could not locate parameter '{0}' in item #{1}!", "year", elementNo);
-                if (!listItem.ContainsKey("artist"))
-                    return Result<ContentDataSet>.FailMessage(result, "Could not locate parameter '{0}' in item #{1}!", "artist", elementNo);
-                if (!listItem.ContainsKey("genre"))
-                    return Result<ContentDataSet>.FailMessage(result, "Could not locate parameter '{0}' in item #{1}!", "genre", elementNo);
-                if (!listItem.ContainsKey("dmmcookie"))
-                    return Result<ContentDataSet>.FailMessage(result, "Could not locate parameter '{0}' in item #{1}!", "dmmcookie", elementNo);
 
-                if (!listItem.ContainsKey("containertype"))
-                    return Result<ContentDataSet>.FailMessage(result, "Could not locate parameter '{0}' in item #{1}!", "containertype", elementNo);
-                if (!listItem.ContainsKey("playable"))
-                    return Result<ContentDataSet>.FailMessage(result, "Could not locate parameter '{0}' in item #{1}!", "playable", elementNo);
-                if (!listItem.ContainsKey("albumarturl"))
-                    return Result<ContentDataSet>.FailMessage(result, "Could not locate parameter '{0}' in item #{1}!", "albumarturl", elementNo);
-                if (!listItem.ContainsKey("albumarttnurl"))
-                    return Result<ContentDataSet>.FailMessage(result, "Could not locate parameter '{0}' in item #{1}!", "albumarttnurl", elementNo);
-                if (!listItem.ContainsKey("likemusic"))
-                    return Result<ContentDataSet>.FailMessage(result, "Could not locate parameter '{0}' in item #{1}!", "likemusic", elementNo);
-
-                // Then, try to parse the parameters
+                // Next, we parse these initial fields, as they are useful for determining and verifying the other fields
                 string name;
-                uint nodeID, album, trackNo, artist, genre, year, mediaType, dmmCookie;
+                uint nodeID, parentID;
+                NodeType nodeType = NodeType.Unknown;
+
+                // Name
                 if (string.IsNullOrWhiteSpace((name = listItem["name"])))
                     return Result<ContentDataSet>.FailMessage(result, "Could not parse parameter '{0}' in item #{1} as string!", "name", elementNo);
+
+                // NodeID
                 if (!uint.TryParse(listItem["nodeid"], out nodeID))
                     return Result<ContentDataSet>.FailMessage(result, "Could not parse parameter '{0}' in item #{1} as uint!", "nodeid", elementNo);
-                if (!uint.TryParse(listItem["album"], out album))
-                    return Result<ContentDataSet>.FailMessage(result, "Could not parse parameter '{0}' in item #{1} as uint!", "album", elementNo);
-                if (!uint.TryParse(listItem["trackno"], out trackNo))
-                    return Result<ContentDataSet>.FailMessage(result, "Could not parse parameter '{0}' in item #{1} as uint!", "trackno", elementNo);
-                if (!uint.TryParse(listItem["artist"], out artist))
-                    return Result<ContentDataSet>.FailMessage(result, "Could not parse parameter '{0}' in item #{1} as uint!", "artist", elementNo);
-                if (!uint.TryParse(listItem["genre"], out genre))
-                    return Result<ContentDataSet>.FailMessage(result, "Could not parse parameter '{0}' in item #{1} as uint!", "genre", elementNo);
-                if (!uint.TryParse(listItem["year"], out year))
-                    return Result<ContentDataSet>.FailMessage(result, "Could not parse parameter '{0}' in item #{1} as uint!", "year", elementNo);
-                if (!uint.TryParse(listItem["mediatype"], out mediaType))
-                    return Result<ContentDataSet>.FailMessage(result, "Could not parse parameter '{0}' in item #{1} as uint!", "mediatype", elementNo);
-                if (!uint.TryParse(listItem["dmmcookie"], out dmmCookie))
-                    return Result<ContentDataSet>.FailMessage(result, "Could not parse parameter '{0}' in item #{1} as uint!", "dmmcookie", elementNo);
 
-                // If we need to, perform sanity checks on the input data
-                if (ValidateInput)
+                // ParentID
+                if (!uint.TryParse(listItem["parentid"], out parentID))
+                    return Result<ContentDataSet>.FailMessage(result, "Could not parse parameter '{0}' in item #{1} as uint!", "parentid", elementNo);
+
+                // Verify the mutual exclusivity of the node being either a branch or being playable
+                if (listItem.ContainsKey("playable") && listItem.ContainsKey("branch"))
+                    return Result<ContentDataSet>.FailMessage(result, "Mutually exclusive parameters '{0}' and '{1}' present in item #{2}!", "playable", "branch", elementNo);
+
+                // Check the type of the node to determine the further parsing
+                // The remaining fields are basically optional but still contain essential information
+                if (listItem.ContainsKey("playable"))
                 {
-                    if (nodeID == 0)
-                        return Result<ContentDataSet>.FailMessage(result, "nodeid #{0} == 0", elementNo);
-                    if (album == 0)
-                        return Result<ContentDataSet>.FailMessage(result, "album #{0} == 0", elementNo);
-                    if (genre == 0)
-                        return Result<ContentDataSet>.FailMessage(result, "genre #{0} == 0", elementNo);
-                }
+                    // If desired, check if the node id might be valid
+                    if (ValidateInput)
+                        if (nodeID == 0)
+                            return Result<ContentDataSet>.FailMessage(result, "Unexpected parameter '{0}' in item #{1}!", "playable", elementNo);
 
-               // Finally, assemble and add the object
-               //items.Add(new ContentData(name, nodeID, album, trackNo, artist, genre, year, mediaType, dmmCookie));
-            }
+                    // The node is playable
+                    nodeType = NodeType.Playable;
+
+                    // Verify that all common fields are present
+                    if (!parserResult.Product.Elements.ContainsKey("title"))
+                        return Result<ContentDataSet>.FailMessage(result, "Could not locate parameter '{0}'!", "title");
+                    if (!parserResult.Product.Elements.ContainsKey("url"))
+                        return Result<ContentDataSet>.FailMessage(result, "Could not locate parameter '{0}'!", "url");
+                    if (!parserResult.Product.Elements.ContainsKey("album"))
+                        return Result<ContentDataSet>.FailMessage(result, "Could not locate parameter '{0}'!", "album");
+                    if (!parserResult.Product.Elements.ContainsKey("trackno"))
+                        return Result<ContentDataSet>.FailMessage(result, "Could not locate parameter '{0}'!", "trackno");
+                    if (!parserResult.Product.Elements.ContainsKey("year"))
+                        return Result<ContentDataSet>.FailMessage(result, "Could not locate parameter '{0}'!", "year");
+                    if (!parserResult.Product.Elements.ContainsKey("likemusic"))
+                        return Result<ContentDataSet>.FailMessage(result, "Could not locate parameter '{0}'!", "likemusic");
+                    if (!parserResult.Product.Elements.ContainsKey("artist"))
+                        return Result<ContentDataSet>.FailMessage(result, "Could not locate parameter '{0}'!", "artist");
+                    if (!parserResult.Product.Elements.ContainsKey("genre"))
+                        return Result<ContentDataSet>.FailMessage(result, "Could not locate parameter '{0}'!", "genre");
+                    if (!parserResult.Product.Elements.ContainsKey("dmmcookie"))
+                        return Result<ContentDataSet>.FailMessage(result, "Could not locate parameter '{0}'!", "dmmcookie");
+
+                    // Parse all common fields
+                    string title, url, album, artist, genre;
+                    uint trackNo, year, dmmCookie;
+                    bool likeMusic;
+
+                    // Title
+                    if (string.IsNullOrEmpty((title = listItem["title"])))
+                        return Result<ContentDataSet>.FailMessage(result, "Could not parse parameter '{0}' in item #{1} as string!", "title", elementNo);
+                    // URL
+                    if (string.IsNullOrEmpty((url = listItem["url"])))
+                        return Result<ContentDataSet>.FailMessage(result, "Could not parse parameter '{0}' in item #{1} as string!", "url", elementNo);
+                    // Album
+                    if (string.IsNullOrEmpty((album = listItem["album"])))
+                        return Result<ContentDataSet>.FailMessage(result, "Could not parse parameter '{0}' in item #{1} as string!", "album", elementNo);
+                    // TrackNo
+                    if (!uint.TryParse(listItem["trackno"], out trackNo))
+                        return Result<ContentDataSet>.FailMessage(result, "Could not parse parameter '{0}' in item #{1} as uint!", "trackno", elementNo);
+                    // Year
+                    if (!uint.TryParse(listItem["year"], out year))
+                        return Result<ContentDataSet>.FailMessage(result, "Could not parse parameter '{0}' in item #{1} as uint!", "year", elementNo);
+                    // LikeMusic
+                    string rawLikeMusic = (string.IsNullOrWhiteSpace(listItem["likemusic"]) ? string.Empty : listItem["likemusic"].ToLower());
+                    if (!(likeMusic = (rawLikeMusic == "true")) && rawLikeMusic != "false")
+                        return Result<ContentDataSet>.FailMessage(result, "Could not parse parameter '{0}' in item #{1} as bool!", "likemusic", elementNo);
+                    // Artist
+                    if (string.IsNullOrEmpty((artist = listItem["artist"])))
+                        return Result<ContentDataSet>.FailMessage(result, "Could not parse parameter '{0}' in item #{1} as string!", "artist", elementNo);
+                    // Genre
+                    if (string.IsNullOrEmpty((genre = listItem["genre"])))
+                        return Result<ContentDataSet>.FailMessage(result, "Could not parse parameter '{0}' in item #{1} as string!", "genre", elementNo);
+                    // DMMCookie
+                    if (!uint.TryParse(listItem["dmmcookie"], out dmmCookie))
+                        return Result<ContentDataSet>.FailMessage(result, "Could not parse parameter '{0}' in item #{1} as uint!", "dmmcookie", elementNo);
+
+                    // If necessairy, validate the common fields
+                    if (ValidateInput && !url.Trim().StartsWith("http://"))
+                        return Result<ContentDataSet>.FailMessage(result, "url #{0} is no valid URL!", elementNo);
+
+                    // Next, determine whether additional, fields concerning the album art are available
+                    if (parserResult.Product.Elements.ContainsKey("albumarturl") && parserResult.Product.Elements.ContainsKey("albumarttnurl"))
+                    {
+                        // If so, parse these fields too
+                        string albumArtUrl, albumArtTnUrl;
+
+                        // AlbumArtURL
+                        if (string.IsNullOrEmpty((albumArtUrl = listItem["albumarturl"])))
+                            return Result<ContentDataSet>.FailMessage(result, "Could not parse parameter '{0}' in item #{1} as string!", "albumarturl", elementNo);
+                        // AlbumArtTnURL
+                        if (string.IsNullOrEmpty((albumArtTnUrl = listItem["albumarttnurl"])))
+                            return Result<ContentDataSet>.FailMessage(result, "Could not parse parameter '{0}' in item #{1} as string!", "albumarttnurl", elementNo);
+
+                        // If necessairy, validate the additional fields
+                        if (ValidateInput)
+                        {
+                            if (!albumArtUrl.Trim().StartsWith("http://"))
+                                return Result<ContentDataSet>.FailMessage(result, "albumarturl #{0} is no valid URL!", elementNo);
+                            if (!albumArtTnUrl.Trim().StartsWith("http://"))
+                                return Result<ContentDataSet>.FailMessage(result, "albumarttnurl #{0} is no valid URL!", elementNo);
+                        }
+
+                        // Create and return the enhanced result object
+                        items.Add(new ContentDataPlayableArt(name, nodeID, parentID, nodeType,
+                            title, url, album, trackNo, likeMusic, artist, genre, dmmCookie, albumArtUrl, albumArtTnUrl));
+                    }
+
+                    // Create and return the basic result object
+                    items.Add(new ContentDataPlayable(name, nodeID, parentID, nodeType,
+                        title, url, album, trackNo, likeMusic, artist, genre, dmmCookie));
+                }
+                else if (listItem.ContainsKey("branch"))
+                {
+                    // The node is a branch
+                    nodeType = NodeType.Branch;
+
+                    // First, try to match all fields that belong to the ContentDataBranch parent
+                    // Check, if the icontype field exists
+                    if (!listItem.ContainsKey("icontype"))
+                        return Result<ContentDataSet>.FailMessage(result, "Could not locate parameter '{0}' in item #{1}!", "icontype", elementNo);
+
+                    // And parse it
+                    IconType iconType;
+                    uint iconTypeRaw;
+
+                    if (!uint.TryParse(listItem["icontype"], out iconTypeRaw))
+                        return Result<ContentDataSet>.FailMessage(result, "Could not parse parameter '{0}' in item #{1} as uint!", "icontype", elementNo);
+                    if (iconTypeRaw > (uint)IconType.AllTracks)
+                        return Result<ContentDataSet>.FailMessage(result, "Out of bounds parameter '{0}' in item #{1}!", "icontype", elementNo);
+                    iconType = (IconType)iconTypeRaw;
+
+                    // Now, determine the other properties
+                    if (listItem.ContainsKey("containertype"))
+                    {
+                        // The node appears to be the root node
+                        // If desired, check if this is indeed the root node
+                        if (ValidateInput)
+                            if (nodeID != 0)
+                                return Result<ContentDataSet>.FailMessage(result, "Unexpected parameter '{0}' in item #{1}!", "containertype", elementNo);
+
+                        // Parse the additional parameter
+                        ContainerType containerType;
+                        uint containerTypeRaw;
+
+                        if (!uint.TryParse(listItem["containertype"], out containerTypeRaw))
+                            return Result<ContentDataSet>.FailMessage(result, "Could not parse parameter '{0}' in item #{1} as uint!", "containertype", elementNo);
+                        if (containerTypeRaw > (uint)ContainerType.AllTracks)
+                            return Result<ContentDataSet>.FailMessage(result, "Out of bounds parameter '{0}' in item #{1}!", "containertype", elementNo);
+                        containerType = (ContainerType)containerTypeRaw;
+
+                        // And add the node
+                        items.Add(new ContentDataRoot(name, nodeID, parentID, nodeType, iconType, containerType));
+                    }
+                    else if (listItem.ContainsKey("nooftracks"))
+                    {
+                        // The node appears to be a playlist node
+                        // If desired, check if the node id might be valid
+                        if (ValidateInput)
+                            if (nodeID == 0)
+                                return Result<ContentDataSet>.FailMessage(result, "Unexpected parameter '{0}' in item #{1}!", "nooftracks", elementNo);
+
+                        // Parse the additional parameter
+                        uint noOfTracks;
+
+                        // NoOfTracks
+                        if (!uint.TryParse(listItem["nooftracks"], out noOfTracks))
+                            return Result<ContentDataSet>.FailMessage(result, "Could not parse parameter '{0}' in item #{1} as uint!", "nooftracks", elementNo);
+
+                        // And add the node
+                        items.Add(new ContentDataPlaylistNode(name, nodeID, parentID, nodeType, iconType, noOfTracks));
+                    }
+                    else if (listItem.ContainsKey("albumarturl") && listItem.ContainsKey("albumarttnurl"))
+                    {
+                        // The node appears to be an album node with album art
+                        // If desired, check if the node id might be valid
+                        if (ValidateInput)
+                            if (nodeID == 0)
+                                return Result<ContentDataSet>.FailMessage(result,
+                                    "Unexpected parameter '{0}' or '{1}' in item #{2}!", "albumarturl", "albumarttnurl", elementNo);
+
+                        // Parse the additional parameters
+                        string albumArtUrl, albumArtTnUrl;
+
+                        // AlbumArtURL
+                        if (string.IsNullOrEmpty((albumArtUrl = listItem["albumarturl"])))
+                            return Result<ContentDataSet>.FailMessage(result, "Could not parse parameter '{0}' in item #{1} as string!", "albumarturl", elementNo);
+                        // AlbumArtTnURL
+                        if (string.IsNullOrEmpty((albumArtTnUrl = listItem["albumarttnurl"])))
+                            return Result<ContentDataSet>.FailMessage(result, "Could not parse parameter '{0}' in item #{1} as string!", "albumarttnurl", elementNo);
+
+                        // If necessairy, validate the additional fields
+                        if (ValidateInput)
+                        {
+                            if (!albumArtUrl.Trim().StartsWith("http://"))
+                                return Result<ContentDataSet>.FailMessage(result, "albumarturl #{0} is no valid URL!", elementNo);
+                            if (!albumArtTnUrl.Trim().StartsWith("http://"))
+                                return Result<ContentDataSet>.FailMessage(result, "albumarttnurl #{0} is no valid URL!", elementNo);
+                        }
+
+                        // And add the node
+                        items.Add(new ContentDataAlbumNodeArt(name, nodeID, parentID, nodeType, iconType, albumArtUrl, albumArtTnUrl));
+                    }
+                    else
+                    {
+                        // The node is a standard branch node
+                        // If desired, check if the node id might be valid
+                        if (ValidateInput)
+                            if (nodeID == 0)
+                                return Result<ContentDataSet>.FailMessage(result, "Unexpected parameter '{0}' in item #{1}!", "branch", elementNo);
+
+                        // Since all information is already collected, just add the node.
+                        items.Add(new ContentDataBranch(name, nodeID, parentID, nodeType, iconType));
+                    }
+                }
+                else
+                    return Result<ContentDataSet>.FailMessage(result, "Could not locate parameter '{0}' or '{1}' in item #{2}!", "playable", "branch", elementNo);
+            } // End of foreach-loop
 
             // Finally, return the response
-            return Result<ContentDataSet>.SucceedProduct(result, new ContentDataSet(items, totNumElem, fromIndex, numElem, updateID));
+            return Result<ContentDataSet>.SucceedProduct(result, new ContentDataSet(items.ToArray(), totNumElem, fromIndex, numElem, updateID, alphanumeric));
         }
 
+        /*
         /// <summary>
         /// Parses the root node for it's container node IDs. This is an essential function to fetch a complete list of tracks.
         /// </summary>
@@ -294,7 +510,7 @@ namespace nxgmci.Protocol.WADM
 
             // Input sanity check
             if (RootDataSet == null)
-                throw new ArgumentNullException("RootDataSet"); // TODO: Potentionally replace this with an action result
+                return Result<Dictionary<ContainerType, uint>>.FailMessage(result, "The root dataset is null!");
 
             // The node is simply invalid - no exception needs to be thrown here
             if (RootDataSet.InvalidNodeID > 0 || RootDataSet.NumElem == 0 || RootDataSet.TotNumElem == 0 || RootDataSet.ContentData == null)
@@ -366,7 +582,7 @@ namespace nxgmci.Protocol.WADM
 
             // On success, return the resulting and complete dictionary
             return Result<Dictionary<ContainerType, uint>>.SucceedProduct(result, resultDict);
-        }
+        }*/
 
         // ContentDataSet-Structure:
         // elements:            Returned elements
@@ -374,28 +590,71 @@ namespace nxgmci.Protocol.WADM
         // fromindex	(uint): Copy of the request start index parameter
         // numelem		(uint):	Number of elements returned in this query
         // updateid		(uint): UNKNOWN! e.g. 422
-        // invalidnodeid(uint): Only returned if the request failed. Then it will return the queried node id.
+        // invalidnodeid(uint): Only returned if the request failed. It will then return the queried, invalid, node id.
         public class ContentDataSet
         {
-            public List<ContentData> ContentData;
-            public readonly uint TotNumElem;
-            public readonly uint FromIndex;
-            public readonly uint NumElem;
-            public readonly uint UpdateID;
-            public readonly uint InvalidNodeID;
+            /// <summary>
+            /// List of returned elements.
+            /// </summary>
+            public ContentData[] ContentData;
 
-            internal ContentDataSet(uint TotNumElem, uint FromIndex, uint NumElem, uint UpdateID)
+            /// <summary>
+            /// Total number of elements that could potentionally be queried.
+            /// </summary>
+            public readonly uint TotNumElem;
+            
+            /// <summary>
+            /// Echo of the request start index parameter.
+            /// </summary>
+            public readonly uint FromIndex;
+            
+            /// <summary>
+            /// Number of elements returned in this query.
+            /// </summary>
+            public readonly uint NumElem;
+            
+            /// <summary>
+            /// Modification update ID.
+            /// </summary>
+            public readonly uint UpdateID;
+
+            /// <summary>
+            /// Possibly indicates that the result is alphanumerically sorted by name.
+            /// </summary>
+            public readonly bool Alphanumeric;
+
+            /// <summary>
+            /// In case that the request failed, this echos the ID of the supplied invalid node.
+            /// </summary>
+            public readonly uint InvalidNodeID;
+            
+            /// <summary>
+            /// Indicates whether the request failed.
+            /// </summary>
+            public readonly bool Failed;
+
+            /// <summary>
+            /// Internal constructor.
+            /// </summary>
+            /// <param name="ContentData">List of returned elements.</param>
+            /// <param name="TotNumElem">Total number of elements that could potentionally be queried.</param>
+            /// <param name="FromIndex">Echo of the request start index parameter.</param>
+            /// <param name="NumElem">Number of elements returned in this query.</param>
+            /// <param name="UpdateID">Modification update ID.</param>
+            /// <param name="Alphanumeric">Possibly indicates that the result is alphanumerically sorted by name.</param>
+            /// <param name="InvalidNodeID">In case that the request failed, this echos the ID of the supplied invalid node.</param>
+            /// <param name="Failed">Indicates whether the request failed.</param>
+            internal ContentDataSet(ContentData[] ContentData, uint TotNumElem, uint FromIndex, uint NumElem, uint UpdateID, bool Alphanumeric,
+                uint InvalidNodeID = 0, bool Failed = false)
             {
+                this.ContentData = ContentData;
                 this.TotNumElem = TotNumElem;
                 this.FromIndex = FromIndex;
                 this.NumElem = NumElem;
                 this.UpdateID = UpdateID;
-            }
-
-            internal ContentDataSet(List<ContentData> ContentData, uint TotNumElem, uint FromIndex, uint NumElem, uint UpdateID)
-                : this(TotNumElem, FromIndex, NumElem, UpdateID)
-            {
-                this.ContentData = ContentData;
+                this.Alphanumeric = Alphanumeric;
+                this.InvalidNodeID = InvalidNodeID;
+                this.Failed = Failed;
             }
         }
 
@@ -469,7 +728,7 @@ namespace nxgmci.Protocol.WADM
         /// <summary>
         /// Indicates the programatically identified and verified type of the current container.
         /// </summary>
-        public enum CurrentLevelType
+        public enum NodePath
         {
             /// <summary>
             /// Global root node.
@@ -559,7 +818,6 @@ namespace nxgmci.Protocol.WADM
         /// <summary>
         /// Indicates the type and function of a container node.
         /// This enum matches the values returned in the containertype field.
-        /// 
         /// </summary>
         public enum ContainerType : sbyte
         {
@@ -567,15 +825,6 @@ namespace nxgmci.Protocol.WADM
             /// Indicates that no container type had been supplied.
             /// </summary>
             None = -1,
-
-            /// <summary>
-            /// Indicates that a minimum number of fields is available.
-            /// This is set automatically once the minimum common denominator of fields could be parsed.
-            /// Note, that if the node is playable, the icontype is not available.
-            /// Available fields:
-            /// </summary>
-            [Obsolete]
-            Basic = -2,
 
             /// <summary>
             /// Indicates the Playlist node.
@@ -623,7 +872,6 @@ namespace nxgmci.Protocol.WADM
             /// <summary>
             /// Represents a Playlist icon.
             /// </summary>
-            /// 
             Playlist = 0,
 
             /// <summary>
@@ -647,156 +895,312 @@ namespace nxgmci.Protocol.WADM
             AllTracks = 4
         }
 
+        /// <summary>
+        /// Common ContentData node base class.
+        /// </summary>
         public class ContentData
         {
             /// <summary>
-            /// This might later be used to indicate that an entry had been completely parsed and verfied.
-            /// </summary>
-            bool IsComplete;
-
-            /// <summary>
-            /// This will store whether cover art is present.
-            /// </summary>
-            bool HasCoverArt;
-
-            /* COMMON:
-                name
-                nodeid
-                parentid
-                (icontype - all branch, not playable track)
-                branch/playable
-             */
-
-            /* ALL:
-                name
-                title
-                nodeid
-                containertype
-                icontype
-                nooftracks
-                parentid
-                branch/playable
-                url
-                album
-                albumarturl
-                albumarttnurl
-                trackno
-                year
-                likemusic
-                artist
-                genre
-                dmmcookie
-             */
-
-            /// <summary>
             /// The name or title of the node. May be equal to the title for tracks.
             /// </summary>
-            public string Name;
-            
-            /// <summary>
-            /// The title of the track.
-            /// </summary>
-            public string Title;
-            
+            public readonly string Name;
+
             /// <summary>
             /// The unique ID of this node.
             /// </summary>
-            public uint NodeID;
-            
+            public readonly uint NodeID;
+
+            /// <summary>
+            /// Determines the path to the current node using it's node ID.
+            /// </summary>
+            public NodePath NodePath
+            {
+                get
+                {
+                    throw new NotImplementedException();
+                }
+            }
+
             /// <summary>
             /// The unique ID of the parent node.
             /// </summary>
-            public uint ParentID;
-            
-            /// <summary>
-            /// The public URI to the media file.
-            /// </summary>
-            public string URL;
+            public readonly uint ParentID;
 
             /// <summary>
-            /// The title of the album.
+            /// Determines the path to the parent node using it's node ID.
             /// </summary>
-            public uint Album;
-
-            /// <summary>
-            /// The number of the track in the album.
-            /// </summary>
-            public uint TrackNo;
-
-            /// <summary>
-            /// The year of release of the album.
-            /// </summary>
-            public uint Year;
-
-            /// <summary>
-            /// The name of the artist(s) involved in the track.
-            /// </summary>
-            public uint Artist;
-
-            /// <summary>
-            /// The genre of the track.
-            /// </summary>
-            public uint Genre;
-
-            /// <summary>
-            /// The DMMCookie. A so far unknown variable.
-            /// </summary>
-            public uint DMMCookie;
-
-            // -- Optional
-
-            /// <summary>
-            /// The container type. This is used to indicate the function of a root node without checking the potentionally language-specific label (e.g. Playlists, Albums, etc.).
-            /// </summary>
-            public ContainerType ContainerType = ContainerType.None;
-
-            /// <summary>
-            /// The type of icon associated with a branch child node to be used in an interactive media browser (e.g. Playlist, Album, etc.).
-            /// </summary>
-            public IconType IconType = IconType.None;
+            public NodePath ParentPath
+            {
+                get
+                {
+                    throw new NotImplementedException();
+                }
+            }
 
             /// <summary>
             /// The type of the node (e.g. playable, branch, etc.).
             /// </summary>
-            public NodeType NodeType;
+            public readonly NodeType NodeType; // Node / Playable
 
             /// <summary>
-            /// The public URI to the track's album art. The linked file has to be decrypted.
+            /// Internal constructor.
             /// </summary>
-            public string AlbumArtURL;
+            /// <param name="Name">The name or title of the node.</param>
+            /// <param name="NodeID">The unique ID of this node.</param>
+            /// <param name="ParentID">The unique ID of the parent node.</param>
+            /// <param name="NodeType">The type of the node (e.g. playable, branch, etc.).</param>
+            internal ContentData(string Name, uint NodeID, uint ParentID, NodeType NodeType)
+            {
+                this.Name = Name;
+                this.NodeID = NodeID;
+                this.ParentID = ParentID;
+                this.NodeType = NodeType;
+            }
+        }
+
+        /// <summary>
+        /// Class for playable nodes.
+        /// </summary>
+        public class ContentDataPlayable : ContentData
+        {
+            /// <summary>
+            /// The title of the track.
+            /// </summary>
+            public readonly string Title;
 
             /// <summary>
-            /// The public URI to the track's album art thumbnail. The linked file has to be decrypted.
+            /// The public URI of the media file.
             /// </summary>
-            public string AlbumArtTnURL;
+            public readonly string URL;
+
+            /// <summary>
+            /// The title of the album.
+            /// </summary>
+            public readonly string Album;
+
+            /// <summary>
+            /// The number of the track in the album.
+            /// </summary>
+            public readonly uint TrackNo;
+
+            /// <summary>
+            /// The year of release of the album.
+            /// </summary>
+            public readonly uint Year;
 
             /// <summary>
             /// Stores whether the track has the LikeMusic flag set.
             /// </summary>
-            public bool LikeMusic;
+            public readonly bool LikeMusic;
 
-            internal ContentData()
-            {
-            }
+            /// <summary>
+            /// The name of the artist(s) involved in the track.
+            /// </summary>
+            public readonly string Artist;
 
-            internal ContentData(string Name, string Title, uint NodeID, uint ParentID, string URL,
-                uint Album, uint TrackNo, uint Year, uint Artist, uint Genre, uint DMMCookie)
+            /// <summary>
+            /// The genre of the track.
+            /// </summary>
+            public readonly string Genre;
+
+            /// <summary>
+            /// The DMMCookie. A so far unknown variable.
+            /// </summary>
+            public readonly uint DMMCookie;
+
+            /// <summary>
+            /// Internal constructor.
+            /// </summary>
+            /// <param name="Name">The name or title of the node.</param>
+            /// <param name="NodeID">The unique ID of this node.</param>
+            /// <param name="ParentID">The unique ID of the parent node.</param>
+            /// <param name="NodeType">The type of the node (e.g. playable, branch, etc.).</param>
+            /// <param name="Title">The title of the track.</param>
+            /// <param name="URL">The public URI of the media file.</param>
+            /// <param name="Album">The title of the album.</param>
+            /// <param name="TrackNo">The number of the track in the album.</param>
+            /// <param name="LikeMusic">Stores whether the track has the LikeMusic flag set.</param>
+            /// <param name="Artist">The name of the artist(s) involved in the track.</param>
+            /// <param name="Genre">The genre of the track.</param>
+            /// <param name="DMMCookie">The DMMCookie.</param>
+            internal ContentDataPlayable(
+                string Name, uint NodeID, uint ParentID, NodeType NodeType,
+                string Title, string URL, string Album, uint TrackNo, bool LikeMusic, string Artist, string Genre, uint DMMCookie)
+                : base(Name, NodeID, ParentID, NodeType)
             {
-                this.Name = Name;
-                this.NodeID = NodeID;
+                this.Title = Title;
+                this.URL = URL;
                 this.Album = Album;
                 this.TrackNo = TrackNo;
+                this.LikeMusic = LikeMusic;
                 this.Artist = Artist;
                 this.Genre = Genre;
-                this.Year = Year;
                 this.DMMCookie = DMMCookie;
             }
+        }
 
-            public override string ToString()
+        /// <summary>
+        /// Class for playable nodes with album art.
+        /// </summary>
+        public class ContentDataPlayableArt : ContentDataPlayable
+        {
+            /// <summary>
+            /// The public URI of the track's album art. The linked file has to be decrypted.
+            /// </summary>
+            public readonly string AlbumArtURL;
+
+            /// <summary>
+            /// The public URI of the track's album art thumbnail. The linked file has to be decrypted.
+            /// </summary>
+            public readonly string AlbumArtTnURL;
+
+            /// <summary>
+            /// Internal constructor.
+            /// </summary>
+            /// <param name="Name">The name or title of the node.</param>
+            /// <param name="NodeID">The unique ID of this node.</param>
+            /// <param name="ParentID">The unique ID of the parent node.</param>
+            /// <param name="NodeType">The type of the node (e.g. playable, branch, etc.).</param>
+            /// <param name="Title">The title of the track.</param>
+            /// <param name="URL">The public URI of the media file.</param>
+            /// <param name="Album">The title of the album.</param>
+            /// <param name="TrackNo">The number of the track in the album.</param>
+            /// <param name="LikeMusic">Stores whether the track has the LikeMusic flag set.</param>
+            /// <param name="Artist">The name of the artist(s) involved in the track.</param>
+            /// <param name="Genre">The genre of the track.</param>
+            /// <param name="DMMCookie">The DMMCookie.</param>
+            /// <param name="AlbumArtURL">The public URI of the track's album art.</param>
+            /// <param name="AlbumArtTnURL">The public URI of the track's album art thumbnail.</param>
+            internal ContentDataPlayableArt(
+                string Name, uint NodeID, uint ParentID, NodeType NodeType,
+                string Title, string URL, string Album, uint TrackNo, bool LikeMusic, string Artist, string Genre, uint DMMCookie,
+                string AlbumArtURL, string AlbumArtTnURL)
+                : base(Name, NodeID, ParentID, NodeType, Title, URL, Album, TrackNo, LikeMusic, Artist, Genre, DMMCookie)
             {
-                if (string.IsNullOrWhiteSpace(Name))
-                    return NodeID.ToString();
-                return Name;
+                this.AlbumArtURL = AlbumArtURL;
+                this.AlbumArtTnURL = AlbumArtTnURL;
+            }
+        }
+
+        /// <summary>
+        /// Common class for branch nodes.
+        /// </summary>
+        public class ContentDataBranch : ContentData
+        {
+            /// <summary>
+            /// The type of icon associated with a branch child node to be used in an interactive media browser (e.g. Playlist, Album, etc.).
+            /// </summary>
+            public readonly IconType IconType;
+
+            /// <summary>
+            /// Internal constructor.
+            /// </summary>
+            /// <param name="Name">The name or title of the node.</param>
+            /// <param name="NodeID">The unique ID of this node.</param>
+            /// <param name="ParentID">The unique ID of the parent node.</param>
+            /// <param name="NodeType">The type of the node (e.g. playable, branch, etc.).</param>
+            /// <param name="IconType">The type of icon associated with a branch child node.</param>
+            internal ContentDataBranch(
+                string Name, uint NodeID, uint ParentID, NodeType NodeType,
+                IconType IconType)
+                : base(Name, NodeID, ParentID, NodeType)
+            {
+                this.IconType = IconType;
+            }
+        }
+
+        /// <summary>
+        /// Class of the root node.
+        /// </summary>
+        public class ContentDataRoot : ContentDataBranch
+        {
+            /// <summary>
+            /// The container type. This is used to indicate the function of a root node without checking the potentionally language-specific label (e.g. Playlists, Albums, etc.).
+            /// </summary>
+            public readonly ContainerType ContainerType;
+
+            /// <summary>
+            /// Internal constructor.
+            /// </summary>
+            /// <param name="Name">The name or title of the node.</param>
+            /// <param name="NodeID">The unique ID of this node.</param>
+            /// <param name="ParentID">The unique ID of the parent node.</param>
+            /// <param name="NodeType">The type of the node (e.g. playable, branch, etc.).</param>
+            /// <param name="IconType">The type of icon associated with a branch child node.</param>
+            /// <param name="ContainerType">The container type indicating the node function.</param>
+            internal ContentDataRoot(
+                string Name, uint NodeID, uint ParentID, NodeType NodeType,
+                IconType IconType,
+                ContainerType ContainerType)
+                : base(Name, NodeID, ParentID, NodeType, IconType)
+            {
+                this.ContainerType = ContainerType;
+            }
+        }
+
+        /// <summary>
+        /// Class of the playlist nodes.
+        /// </summary>
+        public class ContentDataPlaylistNode : ContentDataBranch
+        {
+            /// <summary>
+            /// The number of tracks contained within the current playlist. This appears to be broken and always stuck at zero.
+            /// </summary>
+            public readonly uint NoOfTracks;
+
+            /// <summary>
+            /// Internal constructor.
+            /// </summary>
+            /// <param name="Name">The name or title of the node.</param>
+            /// <param name="NodeID">The unique ID of this node.</param>
+            /// <param name="ParentID">The unique ID of the parent node.</param>
+            /// <param name="NodeType">The type of the node (e.g. playable, branch, etc.).</param>
+            /// <param name="IconType">The type of icon associated with a branch child node.</param>
+            /// <param name="NoOfTracks">The number of tracks contained within the current playlist.</param>
+            internal ContentDataPlaylistNode(
+                string Name, uint NodeID, uint ParentID, NodeType NodeType,
+                IconType IconType,
+                uint NoOfTracks)
+                : base(Name, NodeID, ParentID, NodeType, IconType)
+            {
+                this.NoOfTracks = NoOfTracks;
+            }
+        }
+
+        /// <summary>
+        /// Class of the album nodes with album art.
+        /// </summary>
+        public class ContentDataAlbumNodeArt : ContentDataBranch
+        {
+            /// <summary>
+            /// The public URI of the album's art. The linked file has to be decrypted.
+            /// </summary>
+            public readonly string AlbumArtURL;
+
+            /// <summary>
+            /// The public URI of the album art's thumbnail. The linked file has to be decrypted.
+            /// </summary>
+            public readonly string AlbumArtTnURL;
+
+            /// <summary>
+            /// Internal constructor.
+            /// </summary>
+            /// <param name="Name">The name or title of the node.</param>
+            /// <param name="NodeID">The unique ID of this node.</param>
+            /// <param name="ParentID">The unique ID of the parent node.</param>
+            /// <param name="NodeType">The type of the node (e.g. playable, branch, etc.).</param>
+            /// <param name="IconType">The type of icon associated with a branch child node.</param>
+            /// <param name="NoOfTracks">The number of tracks contained within the current playlist.</param>
+            /// <param name="AlbumArtURL">The public URI of the album's art.</param>
+            /// <param name="AlbumArtTnURL">The public URI of the album art's thumbnail.</param>
+            internal ContentDataAlbumNodeArt(
+                string Name, uint NodeID, uint ParentID, NodeType NodeType,
+                IconType IconType,
+                string AlbumArtURL, string AlbumArtTnURL)
+                : base(Name, NodeID, ParentID, NodeType, IconType)
+            {
+                this.AlbumArtURL = AlbumArtURL;
+                this.AlbumArtTnURL = AlbumArtTnURL;
             }
         }
     }
