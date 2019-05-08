@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using System.Collections;
 
 namespace nxgmci.Protocol.WADM
 {
@@ -135,7 +136,72 @@ namespace nxgmci.Protocol.WADM
             }
 
             // Finally, return the response
-            return Result<ResponseParameters>.SucceedProduct(result, new ResponseParameters(uriPath, idMask, containerSize, mediaTypeDict, updateID));
+            return Result<ResponseParameters>.SucceedProduct(result, new ResponseParameters(uriPath, idMask, containerSize, new MediaTypeKey(mediaTypeDict), updateID));
+        }
+
+        /// <summary>
+        /// Represents a media type collection that is used to map database entries to their file format and extension.
+        /// </summary>
+        public class MediaTypeKey
+        {
+            private Dictionary<uint, string> keyDictionary;
+
+            /// <summary>
+            /// Internal constructor.
+            /// </summary>
+            /// <param name="SourceDictionary">Source media type key dictionary.</param>
+            internal MediaTypeKey(Dictionary<uint, string> SourceDictionary)
+            {
+                keyDictionary = new Dictionary<uint, string>(SourceDictionary);
+            }
+
+            /// <summary>
+            /// Returns whether the media type key exists.
+            /// </summary>
+            /// <param name="Key">Media type key to check.</param>
+            /// <returns>True, if the media type key exists and false if not.</returns>
+            public bool ContainsKey(uint Key)
+            {
+                return keyDictionary.ContainsKey(Key);
+            }
+
+            /// <summary>
+            /// Returns whether the media type (file extension) exists (is supported).
+            /// </summary>
+            /// <param name="Value">Media type to check.</param>
+            /// <returns>True, if the media type exists and false if not.</returns>
+            public bool ContainsValue(string Value)
+            {
+                if (string.IsNullOrWhiteSpace(Value))
+                    return false;
+
+                return keyDictionary.ContainsValue(Value);
+            }
+
+            /// <summary>
+            /// Returns the collection enumerator.
+            /// </summary>
+            /// <returns>The collection enumerator.</returns>
+            public IEnumerator GetEnumerator()
+            {
+                return keyDictionary.GetEnumerator();
+            }
+
+            /// <summary>
+            /// Collection indexer.
+            /// </summary>
+            /// <param name="Key">Media type key.</param>
+            /// <returns>The media type (file extension) on success and null if the key does not exist.</returns>
+            public string this[uint Key]
+            {
+                get
+                {
+                    if (!keyDictionary.ContainsKey(Key))
+                        return null;
+
+                    return keyDictionary[Key];
+                }
+            }
         }
 
         /// <summary>
@@ -160,12 +226,11 @@ namespace nxgmci.Protocol.WADM
 
             /// <summary>
             /// This is used to map the content type IDs to their actual file type.
-            /// KeyValuePair[] of uint==string.
             /// </summary>
-            public readonly Dictionary<uint, string> MediaTypeKey;
+            public readonly MediaTypeKey MediaTypeKey;
 
             /// <summary>
-            /// UNKNOWN! e.g. 422.
+            /// Modification update ID.
             /// </summary>
             public readonly uint UpdateID;
 
@@ -175,9 +240,9 @@ namespace nxgmci.Protocol.WADM
             /// <param name="URIPath">The absolute HTTP path to the root of the media webserver.</param>
             /// <param name="IDMask">The ID-mask used to get the universal IDs.</param>
             /// <param name="ContainerSize">The size of each folder container on the harddisk.</param>
-            /// <param name="MediaTypeKey">A KeyValuePair-collection that stores the supported file formats along their IDs.</param>
-            /// <param name="UpdateID">Unknown ID.</param>
-            internal ResponseParameters(string URIPath, uint IDMask, uint ContainerSize, Dictionary<uint, string> MediaTypeKey, uint UpdateID)
+            /// <param name="MediaTypeKey">A collection that stores the supported file formats along their IDs.</param>
+            /// <param name="UpdateID">Modification update ID.</param>
+            internal ResponseParameters(string URIPath, uint IDMask, uint ContainerSize, MediaTypeKey MediaTypeKey, uint UpdateID)
             {
                 this.URIPath = URIPath;
                 this.IDMask = IDMask;

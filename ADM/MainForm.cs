@@ -260,7 +260,7 @@ namespace ADM
         {
             if (currentMediaLib == null)
                 return;
-            if (lastid + 1 < currentMediaLib.ContentData.Count)
+            if (lastid + 1 < currentMediaLib.ContentData.Length)
                 lastid++;
             else
                 return;
@@ -368,7 +368,7 @@ namespace ADM
                 if (MessageBox.Show(string.Format("The parsing succeeded after {0}ms!\n{1} root elements and {2} list elements were found.\n\nDo you want to break the program to see the list?",
                     (int)result.TimeDelta.TotalMilliseconds, result.Product.Elements.Count, result.Product.HadList ? result.Product.List.Count : 0), "Success!",
                     MessageBoxButtons.YesNo, MessageBoxIcon.Information, MessageBoxDefaultButton.Button2) == DialogResult.Yes)
-                    ((string)null).ToLower(); // Crash the program
+                    throw null; // Break the program
             }
             else
                 MessageBox.Show(string.Format("The parsing FAILED after {0}ms!\n\n{1}", (int)result.TimeDelta.TotalMilliseconds, result.ToString(true, false, true)), "Error!",

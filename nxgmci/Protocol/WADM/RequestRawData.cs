@@ -138,7 +138,7 @@ namespace nxgmci.Protocol.WADM
                 // Then, try to parse the parameters
                 string name;
                 uint nodeID, album, trackNo, artist, genre, year, mediaType, dmmCookie;
-                if (string.IsNullOrWhiteSpace((name = listItem["name"])))
+                if (string.IsNullOrEmpty((name = listItem["name"])))
                     return Result<ContentDataSet>.FailMessage(result, "Could not parse parameter '{0}' in item #{1} as string!", "name", elementNo);
                 if (!uint.TryParse(listItem["nodeid"], out nodeID))
                     return Result<ContentDataSet>.FailMessage(result, "Could not parse parameter '{0}' in item #{1} as uint!", "nodeid", elementNo);
@@ -173,7 +173,7 @@ namespace nxgmci.Protocol.WADM
             }
 
             // Finally, return the response
-            return Result<ContentDataSet>.SucceedProduct(result, new ContentDataSet(items, totNumElem, fromIndex, numElem, updateID));
+            return Result<ContentDataSet>.SucceedProduct(result, new ContentDataSet(items.ToArray(), totNumElem, fromIndex, numElem, updateID));
         }
 
         /// <summary>
@@ -184,7 +184,7 @@ namespace nxgmci.Protocol.WADM
             /// <summary>
             /// List of returned elements.
             /// </summary>
-            public List<ContentData> ContentData;
+            public readonly ContentData[] ContentData;
 
             /// <summary>
             /// Total number of elements that could potentionally be queried.
@@ -202,22 +202,25 @@ namespace nxgmci.Protocol.WADM
             public readonly uint NumElem;
 
             /// <summary>
-            /// Unknown update ID.
+            /// Modification update ID.
             /// </summary>
             public readonly uint UpdateID;
 
-            internal ContentDataSet(uint TotNumElem, uint FromIndex, uint NumElem, uint UpdateID)
+            /// <summary>
+            /// Internal constructor.
+            /// </summary>
+            /// <param name="ContentData">List of returned elements.</param>
+            /// <param name="TotNumElem">Total number of elements that could potentionally be queried.</param>
+            /// <param name="FromIndex">Echo of the request start index parameter.</param>
+            /// <param name="NumElem">Number of elements returned in this query.</param>
+            /// <param name="UpdateID">Modification update ID.</param>
+            internal ContentDataSet(ContentData[] ContentData, uint TotNumElem, uint FromIndex, uint NumElem, uint UpdateID)
             {
+                this.ContentData = ContentData;
                 this.TotNumElem = TotNumElem;
                 this.FromIndex = FromIndex;
                 this.NumElem = NumElem;
                 this.UpdateID = UpdateID;
-            }
-
-            internal ContentDataSet(List<ContentData> ContentData, uint TotNumElem, uint FromIndex, uint NumElem, uint UpdateID)
-                : this(TotNumElem, FromIndex, NumElem, UpdateID)
-            {
-                this.ContentData = ContentData;
             }
         }
 
@@ -229,54 +232,47 @@ namespace nxgmci.Protocol.WADM
             /// <summary>
             /// Title of the track.
             /// </summary>
-            public string Name;
+            public readonly string Name;
 
             /// <summary>
             /// Universal track node ID number that has to be bitwise AND'ed with idmask.
             /// </summary>
-            public uint NodeID;
+            public readonly uint NodeID;
 
             /// <summary>
             /// Universal album node ID number that has to be bitwise AND'ed with idmask.
             /// </summary>
-            public uint Album;
+            public readonly uint Album;
 
             /// <summary>
             /// Positional index of the track in the album.
             /// </summary>
-            public uint TrackNo;
+            public readonly uint TrackNo;
 
             /// <summary>
             /// Universal artist node ID number that has to be bitwise AND'ed with idmask.
             /// </summary>
-            public uint Artist;
+            public readonly uint Artist;
 
             /// <summary>
             /// Universal genre node ID number that has to be bitwise AND'ed with idmask.
             /// </summary>
-            public uint Genre;
+            public readonly uint Genre;
 
             /// <summary>
             /// Year that the track was published / recorded in.
             /// </summary>
-            public uint Year;
+            public readonly uint Year;
 
             /// <summary>
             /// File format of the media item (index into the urimetadata table of media types).
             /// </summary>
-            public uint MediaType;
+            public readonly uint MediaType;
 
             /// <summary>
             /// Unknown DMMCookie. e.g. 1644662629.
             /// </summary>
-            public uint DMMCookie;
-
-            /// <summary>
-            /// Parameterless internal constructor.
-            /// </summary>
-            internal ContentData()
-            {
-            }
+            public readonly uint DMMCookie;
 
             /// <summary>
             /// Internal constructor.

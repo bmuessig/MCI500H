@@ -85,7 +85,7 @@ namespace nxgmci.Protocol.WADM
                 // Then, try to parse the parameters
                 string name;
                 uint index;
-                if (string.IsNullOrWhiteSpace((name = listItem["name"])))
+                if (string.IsNullOrEmpty((name = listItem["name"])))
                     return Result<ContentDataSet>.FailMessage(result, "Could not parse parameter '{0}' in item #{1} as string!", "name", elementNo);
                 if (!uint.TryParse(listItem["index"], out index))
                     return Result<ContentDataSet>.FailMessage(result, "Could not parse parameter '{0}' in item #{1} as uint!", "index", elementNo);
