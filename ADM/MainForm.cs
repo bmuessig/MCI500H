@@ -29,6 +29,7 @@ namespace ADM
         bool lastSuccess = false;
 
         WADMClient client = new WADMClient(new EndpointDescriptor(ip));
+        WebClient web = new WebClient();
 
         public MainForm()
         {
@@ -375,14 +376,158 @@ namespace ADM
                     MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
         }
 
+        uint currentNodeID = 0;
+        string currentNodeName = "Root";
+        Stack<KeyValuePair<uint, string>> nodeStack = new Stack<KeyValuePair<uint, string>>();
+        RequestPlayableData.ContentDataSet currentDataSet;
+        Bitmap coverImage;
+
         private void treeUpButton_Click(object sender, EventArgs e)
         {
-
+            treeUpButton.Enabled = false;
+            GoUp();
+            treeUpButton.Enabled = true;
         }
 
         private void treeResetButton_Click(object sender, EventArgs e)
         {
+            treeResetButton.Enabled = false;
+            currentNodeID = 0;
+            currentNodeName = "Root";
+            nodeStack.Clear();
+            treeStackListBox.Items.Clear();
+            treeItemsListBox.Items.Clear();
+            treeInfoTextBox.Clear();
+            UpdateBrowser();
+            treeResetButton.Enabled = true;
+        }
 
+        private void GoUp()
+        {
+            if (nodeStack.Count < 1)
+                return;
+            KeyValuePair<uint, string> currentLevel = nodeStack.Pop();
+            currentNodeID = currentLevel.Key;
+            currentNodeName = currentLevel.Value;
+            UpdateStack();
+            UpdateBrowser();
+        }
+
+        private void GoNodeID(uint NodeID, string NodeName)
+        {
+            if (currentNodeID == NodeID)
+                return;
+            nodeStack.Push(new KeyValuePair<uint, string>(currentNodeID, currentNodeName));
+            UpdateStack();
+            currentNodeID = NodeID;
+            currentNodeName = NodeName;
+            UpdateBrowser();
+        }
+
+        private void UpdateStack()
+        {
+            treeStackListBox.Items.Clear();
+            foreach (KeyValuePair<uint, string> nodePair in nodeStack)
+                treeStackListBox.Items.Add(string.Format("{0} (${1})", nodePair.Value, nodePair.Key.ToString("X4")));
+        }
+
+        private void UpdateBrowser()
+        {
+            Result<RequestPlayableData.ContentDataSet> result = client.RequestPlayableData(currentNodeID);
+            if (!result.Success)
+            {
+                MessageBox.Show(string.Format("The process failed:\n\n{0}", result.ToString()), "Error!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                return;
+            }
+
+            if (result.Product.Failed)
+            {
+                MessageBox.Show("The process failed, as the ID was invalid!", "Error!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                return;
+            }
+
+            currentDataSet = result.Product;
+            UpdateBrowserList();
+        }
+
+        private void UpdateBrowserList()
+        {
+            if (currentDataSet == null)
+                return;
+
+            treeItemsListBox.Items.Clear();
+
+            foreach (RequestPlayableData.ContentData data in currentDataSet.ContentData)
+            {
+                treeItemsListBox.Items.Add(string.Format("{0} (${1}, {2})",
+                    data.Name, data.NodeID.ToString("X4"), data.NodeType));
+            }
+        }
+
+        private void PlayNode(RequestPlayableData.ContentDataPlayable Node)
+        {
+            if (Node == null)
+                return;
+            stereo.Stop();
+            stereo.SelectMedia(new Uri(Node.URL));
+            stereo.Play();
+
+            titleLabel.Text = Node.Title;
+            artistLabel.Text = Node.Artist;
+            albumLabel.Text = Node.Album;
+            genreLabel.Text = Node.Genre;
+            idLabel.Text = string.Format("${0}", Node.NodeID.ToString("X4"));
+
+            if (Node is RequestPlayableData.ContentDataPlayableArt)
+            {
+                RequestPlayableData.ContentDataPlayableArt artNode = (RequestPlayableData.ContentDataPlayableArt)Node;
+                string coverUrl = artNode.AlbumArtURL;
+
+                try
+                {
+                    byte[] cover = web.DownloadData(coverUrl);
+                    CoverCrypt.EncryptBuffer(ref cover, (uint)cover.Length);
+                    MemoryStream ms = new MemoryStream(cover);
+                    ms.Position = 0;
+                    coverImage = new Bitmap(ms);
+                    ms.Close();
+                    coverPictureBox.Image = coverImage;
+                }
+                catch (Exception) { }
+            }
+        }
+
+        private void treeGoButton_Click(object sender, EventArgs e)
+        {
+            if (treeItemsListBox.SelectedItems.Count != 1)
+                return;
+            treeGoButton.Enabled = false;
+            RequestPlayableData.ContentData data = currentDataSet.ContentData[treeItemsListBox.SelectedIndex];
+            if (data.NodeType != RequestPlayableData.NodeType.Branch)
+            {
+                treeGoButton.Enabled = true;
+                MessageBox.Show("The process failed, as the node is not a branch!", "Error!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                return;
+            }
+            GoNodeID(data.NodeID, data.Name);
+            treeGoButton.Enabled = true;
+        }
+
+        private void treePlayButton_Click(object sender, EventArgs e)
+        {
+            if (treeItemsListBox.SelectedItems.Count != 1)
+                return;
+            treePlayButton.Enabled = false;
+            RequestPlayableData.ContentData data = currentDataSet.ContentData[treeItemsListBox.SelectedIndex];
+            if (data.NodeType != RequestPlayableData.NodeType.Playable)
+            {
+                treePlayButton.Enabled = true;
+                MessageBox.Show("The process failed, as the node is not playable!", "Error!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                return;
+            }
+            if (data is RequestPlayableData.ContentDataPlayable)
+                PlayNode((RequestPlayableData.ContentDataPlayable)data);
+            treePlayButton.Enabled = true;
         }
     }
 }

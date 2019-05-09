@@ -33,7 +33,7 @@ namespace nxgmci.Protocol.WADM
                 "<numelem>{1}</numelem>"+
                 "</requestplayabledata>",
                 NodeID,
-                NumElem);
+                processedNumElem);
         }
 
         /// <summary>
@@ -214,30 +214,30 @@ namespace nxgmci.Protocol.WADM
                 {
                     // If desired, check if the node id might be valid
                     if (ValidateInput)
-                        if (nodeID == 0)
+                        if (parentID == 0 || nodeID == 0)
                             return Result<ContentDataSet>.FailMessage(result, "Unexpected parameter '{0}' in item #{1}!", "playable", elementNo);
 
                     // The node is playable
                     nodeType = NodeType.Playable;
 
                     // Verify that all common fields are present
-                    if (!parserResult.Product.Elements.ContainsKey("title"))
+                    if (!listItem.ContainsKey("title"))
                         return Result<ContentDataSet>.FailMessage(result, "Could not locate parameter '{0}'!", "title");
-                    if (!parserResult.Product.Elements.ContainsKey("url"))
+                    if (!listItem.ContainsKey("url"))
                         return Result<ContentDataSet>.FailMessage(result, "Could not locate parameter '{0}'!", "url");
-                    if (!parserResult.Product.Elements.ContainsKey("album"))
+                    if (!listItem.ContainsKey("album"))
                         return Result<ContentDataSet>.FailMessage(result, "Could not locate parameter '{0}'!", "album");
-                    if (!parserResult.Product.Elements.ContainsKey("trackno"))
+                    if (!listItem.ContainsKey("trackno"))
                         return Result<ContentDataSet>.FailMessage(result, "Could not locate parameter '{0}'!", "trackno");
-                    if (!parserResult.Product.Elements.ContainsKey("year"))
+                    if (!listItem.ContainsKey("year"))
                         return Result<ContentDataSet>.FailMessage(result, "Could not locate parameter '{0}'!", "year");
-                    if (!parserResult.Product.Elements.ContainsKey("likemusic"))
+                    if (!listItem.ContainsKey("likemusic"))
                         return Result<ContentDataSet>.FailMessage(result, "Could not locate parameter '{0}'!", "likemusic");
-                    if (!parserResult.Product.Elements.ContainsKey("artist"))
+                    if (!listItem.ContainsKey("artist"))
                         return Result<ContentDataSet>.FailMessage(result, "Could not locate parameter '{0}'!", "artist");
-                    if (!parserResult.Product.Elements.ContainsKey("genre"))
+                    if (!listItem.ContainsKey("genre"))
                         return Result<ContentDataSet>.FailMessage(result, "Could not locate parameter '{0}'!", "genre");
-                    if (!parserResult.Product.Elements.ContainsKey("dmmcookie"))
+                    if (!listItem.ContainsKey("dmmcookie"))
                         return Result<ContentDataSet>.FailMessage(result, "Could not locate parameter '{0}'!", "dmmcookie");
 
                     // Parse all common fields
@@ -279,7 +279,7 @@ namespace nxgmci.Protocol.WADM
                         return Result<ContentDataSet>.FailMessage(result, "url #{0} is no valid URL!", elementNo);
 
                     // Next, determine whether additional, fields concerning the album art are available
-                    if (parserResult.Product.Elements.ContainsKey("albumarturl") && parserResult.Product.Elements.ContainsKey("albumarttnurl"))
+                    if (listItem.ContainsKey("albumarturl") && listItem.ContainsKey("albumarttnurl"))
                     {
                         // If so, parse these fields too
                         string albumArtUrl, albumArtTnUrl;
@@ -299,15 +299,14 @@ namespace nxgmci.Protocol.WADM
                             if (!albumArtTnUrl.Trim().StartsWith("http://"))
                                 return Result<ContentDataSet>.FailMessage(result, "albumarttnurl #{0} is no valid URL!", elementNo);
                         }
-
-                        // Create and return the enhanced result object
+                        
+                        // Create and add the enhanced result object
                         items.Add(new ContentDataPlayableArt(name, nodeID, parentID, nodeType,
                             title, url, album, trackNo, likeMusic, artist, genre, dmmCookie, albumArtUrl, albumArtTnUrl));
                     }
-
-                    // Create and return the basic result object
-                    items.Add(new ContentDataPlayable(name, nodeID, parentID, nodeType,
-                        title, url, album, trackNo, likeMusic, artist, genre, dmmCookie));
+                    else // Create and add the basic result object
+                        items.Add(new ContentDataPlayable(name, nodeID, parentID, nodeType,
+                            title, url, album, trackNo, likeMusic, artist, genre, dmmCookie));
                 }
                 else if (listItem.ContainsKey("branch"))
                 {
@@ -335,7 +334,7 @@ namespace nxgmci.Protocol.WADM
                         // The node appears to be the root node
                         // If desired, check if this is indeed the root node
                         if (ValidateInput)
-                            if (nodeID != 0)
+                            if (parentID != 0 || nodeID == 0)
                                 return Result<ContentDataSet>.FailMessage(result, "Unexpected parameter '{0}' in item #{1}!", "containertype", elementNo);
 
                         // Parse the additional parameter
@@ -356,7 +355,7 @@ namespace nxgmci.Protocol.WADM
                         // The node appears to be a playlist node
                         // If desired, check if the node id might be valid
                         if (ValidateInput)
-                            if (nodeID == 0)
+                            if (parentID == 0 || nodeID == 0)
                                 return Result<ContentDataSet>.FailMessage(result, "Unexpected parameter '{0}' in item #{1}!", "nooftracks", elementNo);
 
                         // Parse the additional parameter
@@ -374,7 +373,7 @@ namespace nxgmci.Protocol.WADM
                         // The node appears to be an album node with album art
                         // If desired, check if the node id might be valid
                         if (ValidateInput)
-                            if (nodeID == 0)
+                            if (parentID == 0 || nodeID == 0)
                                 return Result<ContentDataSet>.FailMessage(result,
                                     "Unexpected parameter '{0}' or '{1}' in item #{2}!", "albumarturl", "albumarttnurl", elementNo);
 
@@ -405,7 +404,7 @@ namespace nxgmci.Protocol.WADM
                         // The node is a standard branch node
                         // If desired, check if the node id might be valid
                         if (ValidateInput)
-                            if (nodeID == 0)
+                            if (parentID == 0 || nodeID == 0)
                                 return Result<ContentDataSet>.FailMessage(result, "Unexpected parameter '{0}' in item #{1}!", "branch", elementNo);
 
                         // Since all information is already collected, just add the node.

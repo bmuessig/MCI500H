@@ -269,7 +269,7 @@ namespace nxgmci.Protocol.WADM
 
             // Try to return a detailed error
             if (parseResult.Error != null)
-                return Result<GetUpdateID.ResponseParameters>.FailMessage(result, "The parsing failed!", parseResult.Error);
+                return Result<GetUpdateID.ResponseParameters>.FailErrorMessage(result, parseResult.Error, "The parsing failed!");
 
             // If not possible, return simple failure
             return Result<GetUpdateID.ResponseParameters>.FailMessage(result, "The parsing failed due to an unknown reason!");
@@ -368,7 +368,7 @@ namespace nxgmci.Protocol.WADM
 
             // Try to return a detailed error
             if (parseResult.Error != null)
-                return Result<QueryDatabase.ResponseParameters>.FailMessage(result, "The parsing failed!", parseResult.Error);
+                return Result<QueryDatabase.ResponseParameters>.FailErrorMessage(result, parseResult.Error, "The parsing failed!");
 
             // If not possible, return simple failure
             return Result<QueryDatabase.ResponseParameters>.FailMessage(result, "The parsing failed due to an unknown reason!");
@@ -440,7 +440,7 @@ namespace nxgmci.Protocol.WADM
 
             // Try to return a detailed error
             if (parseResult.Error != null)
-                return Result<QueryDiskSpace.ResponseParameters>.FailMessage(result, "The parsing failed!", parseResult.Error);
+                return Result<QueryDiskSpace.ResponseParameters>.FailErrorMessage(result, parseResult.Error, "The parsing failed!");
 
             // If not possible, return simple failure
             return Result<QueryDiskSpace.ResponseParameters>.FailMessage(result, "The parsing failed due to an unknown reason!");
@@ -511,7 +511,7 @@ namespace nxgmci.Protocol.WADM
 
             // Try to return a detailed error
             if (parseResult.Error != null)
-                return Result<SvcDbDump.ResponseParameters>.FailMessage(result, "The parsing failed!", parseResult.Error);
+                return Result<SvcDbDump.ResponseParameters>.FailErrorMessage(result, parseResult.Error, "The parsing failed!");
 
             // If not possible, return simple failure
             return Result<SvcDbDump.ResponseParameters>.FailMessage(result, "The parsing failed due to an unknown reason!");
@@ -611,7 +611,7 @@ namespace nxgmci.Protocol.WADM
 
             // Try to return a detailed error
             if (parseResult.Error != null)
-                return Result<RequestAlbumIndexTable.ContentDataSet>.FailMessage(result, "The parsing failed!", parseResult.Error);
+                return Result<RequestAlbumIndexTable.ContentDataSet>.FailErrorMessage(result, parseResult.Error, "The parsing failed!");
 
             // If not possible, return simple failure
             return Result<RequestAlbumIndexTable.ContentDataSet>.FailMessage(result, "The parsing failed due to an unknown reason!");
@@ -711,7 +711,7 @@ namespace nxgmci.Protocol.WADM
 
             // Try to return a detailed error
             if (parseResult.Error != null)
-                return Result<RequestArtistIndexTable.ContentDataSet>.FailMessage(result, "The parsing failed!", parseResult.Error);
+                return Result<RequestArtistIndexTable.ContentDataSet>.FailErrorMessage(result, parseResult.Error, "The parsing failed!");
 
             // If not possible, return simple failure
             return Result<RequestArtistIndexTable.ContentDataSet>.FailMessage(result, "The parsing failed due to an unknown reason!");
@@ -811,7 +811,7 @@ namespace nxgmci.Protocol.WADM
 
             // Try to return a detailed error
             if (parseResult.Error != null)
-                return Result<RequestGenreIndexTable.ContentDataSet>.FailMessage(result, "The parsing failed!", parseResult.Error);
+                return Result<RequestGenreIndexTable.ContentDataSet>.FailErrorMessage(result, parseResult.Error, "The parsing failed!");
 
             // If not possible, return simple failure
             return Result<RequestGenreIndexTable.ContentDataSet>.FailMessage(result, "The parsing failed due to an unknown reason!");
@@ -913,7 +913,7 @@ namespace nxgmci.Protocol.WADM
 
             // Try to return a detailed error
             if (parseResult.Error != null)
-                return Result<RequestUriMetaData.ResponseParameters>.FailMessage(result, "The parsing failed!", parseResult.Error);
+                return Result<RequestUriMetaData.ResponseParameters>.FailErrorMessage(result, parseResult.Error, "The parsing failed!");
 
             // If not possible, return simple failure
             return Result<RequestUriMetaData.ResponseParameters>.FailMessage(result, "The parsing failed due to an unknown reason!");
@@ -1017,7 +1017,7 @@ namespace nxgmci.Protocol.WADM
 
             // Try to return a detailed error
             if (parseResult.Error != null)
-                return Result<RequestPlaylistCreate.ResponseParameters>.FailMessage(result, "The parsing failed!", parseResult.Error);
+                return Result<RequestPlaylistCreate.ResponseParameters>.FailErrorMessage(result, parseResult.Error, "The parsing failed!");
 
             // If not possible, return simple failure
             return Result<RequestPlaylistCreate.ResponseParameters>.FailMessage(result, "The parsing failed due to an unknown reason!");
@@ -1125,7 +1125,7 @@ namespace nxgmci.Protocol.WADM
 
             // Try to return a detailed error
             if (parseResult.Error != null)
-                return Result<RequestPlaylistRename.ResponseParameters>.FailMessage(result, "The parsing failed!", parseResult.Error);
+                return Result<RequestPlaylistRename.ResponseParameters>.FailErrorMessage(result, parseResult.Error, "The parsing failed!");
 
             // If not possible, return simple failure
             return Result<RequestPlaylistRename.ResponseParameters>.FailMessage(result, "The parsing failed due to an unknown reason!");
@@ -1230,7 +1230,7 @@ namespace nxgmci.Protocol.WADM
 
             // Try to return a detailed error
             if (parseResult.Error != null)
-                return Result<RequestPlaylistDelete.ResponseParameters>.FailMessage(result, "The parsing failed!", parseResult.Error);
+                return Result<RequestPlaylistDelete.ResponseParameters>.FailErrorMessage(result, parseResult.Error, "The parsing failed!");
 
             // If not possible, return simple failure
             return Result<RequestPlaylistDelete.ResponseParameters>.FailMessage(result, "The parsing failed due to an unknown reason!");
@@ -1337,7 +1337,7 @@ namespace nxgmci.Protocol.WADM
 
             // Try to return a detailed error
             if (parseResult.Error != null)
-                return Result<RequestRawData.ContentDataSet>.FailMessage(result, "The parsing failed!", parseResult.Error);
+                return Result<RequestRawData.ContentDataSet>.FailErrorMessage(result, parseResult.Error, "The parsing failed!");
 
             // If not possible, return simple failure
             return Result<RequestRawData.ContentDataSet>.FailMessage(result, "The parsing failed due to an unknown reason!");
@@ -1439,7 +1439,7 @@ namespace nxgmci.Protocol.WADM
 
             // Try to return a detailed error
             if (parseResult.Error != null)
-                return Result<RequestPlayableData.ContentDataSet>.FailMessage(result, "The parsing failed!", parseResult.Error);
+                return Result<RequestPlayableData.ContentDataSet>.FailErrorMessage(result, parseResult.Error, "The parsing failed!");
 
             // If not possible, return simple failure
             return Result<RequestPlayableData.ContentDataSet>.FailMessage(result, "The parsing failed due to an unknown reason!");

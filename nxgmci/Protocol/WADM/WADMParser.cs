@@ -359,13 +359,7 @@ namespace nxgmci.Protocol.WADM
 
                 // After that, determine if the entry already exists and add it
                 if (elements.ContainsKey(key))
-                    if (LooseSyntax)
-                        elements[key] = value;
-                    else
-                    {
-                        Error = "The element had already been encountered in strict mode!";
-                        return null;
-                    }
+                    elements[key] = value;
                 else
                     elements.Add(key, value);
             }

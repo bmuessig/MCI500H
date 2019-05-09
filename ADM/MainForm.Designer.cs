@@ -52,10 +52,8 @@
             this.treeInfoTextBox = new System.Windows.Forms.TextBox();
             this.panel1 = new System.Windows.Forms.Panel();
             this.treeItemsListBox = new System.Windows.Forms.ListBox();
-            this.label1 = new System.Windows.Forms.Label();
             this.treeStackListBox = new System.Windows.Forms.ListBox();
             this.treePlayButton = new System.Windows.Forms.Button();
-            this.treeGotoSelectionButton = new System.Windows.Forms.Button();
             this.treeResetButton = new System.Windows.Forms.Button();
             this.treeUpButton = new System.Windows.Forms.Button();
             this.extrasTabPage = new System.Windows.Forms.TabPage();
@@ -67,7 +65,7 @@
             this.fetchButton = new System.Windows.Forms.Button();
             this.metaLayoutTable = new System.Windows.Forms.TableLayoutPanel();
             this.idLabel = new System.Windows.Forms.Label();
-            this.typeLabel = new System.Windows.Forms.Label();
+            this.genreLabel = new System.Windows.Forms.Label();
             this.artistLabel = new System.Windows.Forms.Label();
             this.titleLabel = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
@@ -78,6 +76,7 @@
             this.coverPictureBox = new System.Windows.Forms.PictureBox();
             this.playUriTextBox = new System.Windows.Forms.TextBox();
             this.playUriButton = new System.Windows.Forms.Button();
+            this.treeGoButton = new System.Windows.Forms.Button();
             this.tabControl1.SuspendLayout();
             this.mediaTabPage.SuspendLayout();
             this.browserTabPage.SuspendLayout();
@@ -337,11 +336,10 @@
             // 
             // panel1
             // 
+            this.panel1.Controls.Add(this.treeGoButton);
             this.panel1.Controls.Add(this.treeItemsListBox);
-            this.panel1.Controls.Add(this.label1);
             this.panel1.Controls.Add(this.treeStackListBox);
             this.panel1.Controls.Add(this.treePlayButton);
-            this.panel1.Controls.Add(this.treeGotoSelectionButton);
             this.panel1.Controls.Add(this.treeResetButton);
             this.panel1.Controls.Add(this.treeUpButton);
             this.panel1.Dock = System.Windows.Forms.DockStyle.Left;
@@ -361,52 +359,34 @@
             this.treeItemsListBox.Size = new System.Drawing.Size(287, 212);
             this.treeItemsListBox.TabIndex = 3;
             // 
-            // label1
-            // 
-            this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(3, 232);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(38, 13);
-            this.label1.TabIndex = 8;
-            this.label1.Text = "Stack:";
-            // 
             // treeStackListBox
             // 
             this.treeStackListBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.treeStackListBox.FormattingEnabled = true;
-            this.treeStackListBox.Location = new System.Drawing.Point(101, 218);
+            this.treeStackListBox.Location = new System.Drawing.Point(0, 218);
             this.treeStackListBox.Name = "treeStackListBox";
             this.treeStackListBox.ScrollAlwaysVisible = true;
-            this.treeStackListBox.Size = new System.Drawing.Size(186, 69);
+            this.treeStackListBox.SelectionMode = System.Windows.Forms.SelectionMode.None;
+            this.treeStackListBox.Size = new System.Drawing.Size(287, 69);
             this.treeStackListBox.TabIndex = 0;
             // 
             // treePlayButton
             // 
             this.treePlayButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.treePlayButton.Location = new System.Drawing.Point(81, 293);
+            this.treePlayButton.Location = new System.Drawing.Point(68, 293);
             this.treePlayButton.Name = "treePlayButton";
-            this.treePlayButton.Size = new System.Drawing.Size(75, 23);
+            this.treePlayButton.Size = new System.Drawing.Size(53, 23);
             this.treePlayButton.TabIndex = 7;
             this.treePlayButton.Text = "Play";
             this.treePlayButton.UseVisualStyleBackColor = true;
-            // 
-            // treeGotoSelectionButton
-            // 
-            this.treeGotoSelectionButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.treeGotoSelectionButton.Location = new System.Drawing.Point(6, 256);
-            this.treeGotoSelectionButton.Name = "treeGotoSelectionButton";
-            this.treeGotoSelectionButton.Size = new System.Drawing.Size(89, 23);
-            this.treeGotoSelectionButton.TabIndex = 1;
-            this.treeGotoSelectionButton.Text = "Goto selection";
-            this.treeGotoSelectionButton.UseVisualStyleBackColor = true;
+            this.treePlayButton.Click += new System.EventHandler(this.treePlayButton_Click);
             // 
             // treeResetButton
             // 
             this.treeResetButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.treeResetButton.Location = new System.Drawing.Point(6, 293);
             this.treeResetButton.Name = "treeResetButton";
-            this.treeResetButton.Size = new System.Drawing.Size(69, 23);
+            this.treeResetButton.Size = new System.Drawing.Size(56, 23);
             this.treeResetButton.TabIndex = 6;
             this.treeResetButton.Text = "Reset";
             this.treeResetButton.UseVisualStyleBackColor = true;
@@ -415,9 +395,9 @@
             // treeUpButton
             // 
             this.treeUpButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.treeUpButton.Location = new System.Drawing.Point(45, 227);
+            this.treeUpButton.Location = new System.Drawing.Point(143, 293);
             this.treeUpButton.Name = "treeUpButton";
-            this.treeUpButton.Size = new System.Drawing.Size(50, 23);
+            this.treeUpButton.Size = new System.Drawing.Size(69, 23);
             this.treeUpButton.TabIndex = 2;
             this.treeUpButton.Text = "Go Up";
             this.treeUpButton.UseVisualStyleBackColor = true;
@@ -523,7 +503,7 @@
             this.metaLayoutTable.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 30F));
             this.metaLayoutTable.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 70F));
             this.metaLayoutTable.Controls.Add(this.idLabel, 1, 4);
-            this.metaLayoutTable.Controls.Add(this.typeLabel, 1, 3);
+            this.metaLayoutTable.Controls.Add(this.genreLabel, 1, 3);
             this.metaLayoutTable.Controls.Add(this.artistLabel, 1, 2);
             this.metaLayoutTable.Controls.Add(this.titleLabel, 0, 0);
             this.metaLayoutTable.Controls.Add(this.label3, 0, 2);
@@ -554,16 +534,16 @@
             this.idLabel.Text = "label8";
             this.idLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
-            // typeLabel
+            // genreLabel
             // 
-            this.typeLabel.AutoEllipsis = true;
-            this.typeLabel.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.typeLabel.Location = new System.Drawing.Point(107, 74);
-            this.typeLabel.Name = "typeLabel";
-            this.typeLabel.Size = new System.Drawing.Size(233, 20);
-            this.typeLabel.TabIndex = 8;
-            this.typeLabel.Text = "label7";
-            this.typeLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.genreLabel.AutoEllipsis = true;
+            this.genreLabel.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.genreLabel.Location = new System.Drawing.Point(107, 74);
+            this.genreLabel.Name = "genreLabel";
+            this.genreLabel.Size = new System.Drawing.Size(233, 20);
+            this.genreLabel.TabIndex = 8;
+            this.genreLabel.Text = "label7";
+            this.genreLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // artistLabel
             // 
@@ -620,7 +600,7 @@
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(96, 20);
             this.label4.TabIndex = 4;
-            this.label4.Text = "Type";
+            this.label4.Text = "Genre";
             this.label4.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // label5
@@ -676,6 +656,17 @@
             this.playUriButton.UseVisualStyleBackColor = true;
             this.playUriButton.Click += new System.EventHandler(this.playUriButton_Click);
             // 
+            // treeGoButton
+            // 
+            this.treeGoButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.treeGoButton.Location = new System.Drawing.Point(218, 293);
+            this.treeGoButton.Name = "treeGoButton";
+            this.treeGoButton.Size = new System.Drawing.Size(69, 23);
+            this.treeGoButton.TabIndex = 8;
+            this.treeGoButton.Text = "Go";
+            this.treeGoButton.UseVisualStyleBackColor = true;
+            this.treeGoButton.Click += new System.EventHandler(this.treeGoButton_Click);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -691,7 +682,6 @@
             this.browserTabPage.ResumeLayout(false);
             this.browserTabPage.PerformLayout();
             this.panel1.ResumeLayout(false);
-            this.panel1.PerformLayout();
             this.extrasTabPage.ResumeLayout(false);
             this.extrasTabPage.PerformLayout();
             this.extraSplitContainer.Panel1.ResumeLayout(false);
@@ -741,7 +731,7 @@
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.Label idLabel;
-        private System.Windows.Forms.Label typeLabel;
+        private System.Windows.Forms.Label genreLabel;
         private System.Windows.Forms.Label artistLabel;
         private System.Windows.Forms.Label albumLabel;
         private System.Windows.Forms.Button getUrlButton;
@@ -751,15 +741,14 @@
         private System.Windows.Forms.TextBox receiveTextBox;
         private System.Windows.Forms.TabPage browserTabPage;
         private System.Windows.Forms.Button treeUpButton;
-        private System.Windows.Forms.Button treeGotoSelectionButton;
         private System.Windows.Forms.ListBox treeStackListBox;
         private System.Windows.Forms.Button treeResetButton;
         private System.Windows.Forms.TextBox treeInfoTextBox;
         private System.Windows.Forms.ListBox treeItemsListBox;
-        private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Button treePlayButton;
         private System.Windows.Forms.Panel panel1;
         private System.Windows.Forms.Button viewIDButton;
+        private System.Windows.Forms.Button treeGoButton;
     }
 }
 
