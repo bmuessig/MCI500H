@@ -428,7 +428,7 @@ namespace ADM
         {
             treeStackListBox.Items.Clear();
             foreach (KeyValuePair<uint, string> nodePair in nodeStack)
-                treeStackListBox.Items.Add(string.Format("{0} (${1})", nodePair.Value, nodePair.Key.ToString("X4")));
+                treeStackListBox.Items.Add(string.Format("{0} (${1})", nodePair.Value, nodePair.Key.ToString("X8")));
         }
 
         private void UpdateBrowser()
@@ -460,7 +460,7 @@ namespace ADM
             foreach (RequestPlayableData.ContentData data in currentDataSet.ContentData)
             {
                 treeItemsListBox.Items.Add(string.Format("{0} (${1}, {2})",
-                    data.Name, data.NodeID.ToString("X4"), data.NodeType));
+                    data.Name, data.NodeID.ToString("X8"), data.NodeType));
             }
         }
 
