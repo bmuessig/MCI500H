@@ -6,11 +6,11 @@ using nxgmci.Device;
 
 namespace nxgmci.Protocol.NVRAM
 {
-    public class NVRAM
+    public class NVRAMClient
     {
         public readonly EndpointDescriptor Endpoint;
 
-        public NVRAM(EndpointDescriptor Endpoint)
+        public NVRAMClient(EndpointDescriptor Endpoint)
         {
             // Input sanity checks
             // The actual port number is not yet validated since it could still change

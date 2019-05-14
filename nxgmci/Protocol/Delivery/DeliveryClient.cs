@@ -14,6 +14,14 @@ namespace nxgmci.Protocol.Delivery
 
         public DeliveryClient(EndpointDescriptor Endpoint)
         {
+            // Input sanity checks
+            // The actual port number is not yet validated since it could still change
+            if (Endpoint == null)
+                throw new ArgumentNullException("Endpoint");
+            if (Endpoint.IPAddress == null)
+                throw new NullReferenceException("Endpoint.IPAddress may not be null!");
+
+            // Store the descriptor locally
             this.Endpoint = Endpoint;
         }
 

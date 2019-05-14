@@ -64,8 +64,9 @@
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <Compile Include="Protocol\Delivery\DeliveryClient.cs" />
+    <Compile Include="Protocol\DLNA\DLNAClient.cs" />
     <Compile Include="Protocol\NVRAM\MCI500NVRAM.cs" />
-    <Compile Include="Protocol\NVRAM\NVRAM.cs" />
+    <Compile Include="Protocol\NVRAM\NVRAMClient.cs" />
     <Compile Include="Protocol\WADM\GetUpdateID.cs" />
     <Compile Include="Protocol\WADM\RequestPlaylistDelete.cs" />
     <Compile Include="Protocol\WADM\QueryDatabase.cs" />
