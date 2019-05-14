@@ -8,7 +8,7 @@ namespace nxgmci.Protocol.WADM
     /// Additionally, this is one of the single most important API calls to fetch data from the stero.
     /// Though this, cover art, direct URLs, titles, artists, genres, etc. can be fetched directly, which is particularily useful for display and playback.
     /// </summary>
-    public static class RequestPlayableData
+    public static class RequestPlayableNavData
     {
         /// <summary>
         /// ContentDataSet Parser
@@ -16,22 +16,43 @@ namespace nxgmci.Protocol.WADM
         private readonly static WADMParser parser = new WADMParser("contentdataset", "contentdata", true);
 
         /// <summary>
-        /// Builds a RequestArtistIndexTable request from the supplied elements.
+        /// Builds a RequestPlayableData request from the supplied elements.
         /// </summary>
         /// <param name="NodeID">Parent node ID to fetch the child elements from.</param>
         /// <param name="NumElem">Maximum number of elements (0 returns all elements).</param>
-        /// <returns></returns>
-        public static string Build(uint NodeID, uint NumElem = 0)
+        /// <returns>A request string that can be passed to the stereo.</returns>
+        public static string BuildPlayable(uint NodeID, uint NumElem = 0)
         {
-            int processedNumElem = (int)NumElem; // Potentional overflow here
+            int processedNumElem = (int)NumElem; // Potentional overflow here - probably not, as there can only be 30k-ish tracks
             if (NodeID == 0 && NumElem == 0)
                 processedNumElem = -1;
 
             return string.Format(
-                "<requestplayabledata>"+
-                "<nodeid>{0}</nodeid>"+
-                "<numelem>{1}</numelem>"+
+                "<requestplayabledata>" +
+                "<nodeid>{0}</nodeid>" +
+                "<numelem>{1}</numelem>" +
                 "</requestplayabledata>",
+                NodeID,
+                processedNumElem);
+        }
+
+        /// <summary>
+        /// Builds a RequestNavData request from the supplied elements.
+        /// </summary>
+        /// <param name="NodeID">Parent node ID to fetch the child elements from.</param>
+        /// <param name="NumElem">Maximum number of elements (0 returns all elements).</param>
+        /// <returns>A request string that can be passed to the stereo.</returns>
+        public static string BuildNav(uint NodeID, uint NumElem = 0)
+        {
+            int processedNumElem = (int)NumElem; // Potentional overflow here - probably not, as there can only be 30k-ish tracks
+            if (NodeID == 0 && NumElem == 0)
+                processedNumElem = -1;
+
+            return string.Format(
+                "<requestnavdata>" +
+                "<nodeid>{0}</nodeid>" +
+                "<numelem>{1}</numelem>" +
+                "</requestnavdata>",
                 NodeID,
                 processedNumElem);
         }

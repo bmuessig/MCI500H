@@ -217,7 +217,7 @@ namespace nxgmci.Protocol.WADM
                 result.FailErrorMessage(new Exception(queryResponse.Message), "The query failed!");
             else if (!queryResponse.IsTextualReponse || string.IsNullOrWhiteSpace(queryResponse.TextualResponse))
                 result.FailMessage("The query response was invalid!");
-            else // Store a shadow copy of the response, as the query response is passed to the callee via an event and might later be compromized
+            else // Store a shadow copy of the response, as the query response is passed to the callee via an event and might later be compromised
                 shadowResponse = string.Copy(queryResponse.TextualResponse.Trim());
 
             // Raise the event
@@ -316,7 +316,7 @@ namespace nxgmci.Protocol.WADM
                 result.FailErrorMessage(new Exception(queryResponse.Message), "The query failed!");
             else if (!queryResponse.IsTextualReponse || string.IsNullOrWhiteSpace(queryResponse.TextualResponse))
                 result.FailMessage("The query response was invalid!");
-            else // Store a shadow copy of the response, as the query response is passed to the callee via an event and might later be compromized
+            else // Store a shadow copy of the response, as the query response is passed to the callee via an event and might later be compromised
                 shadowResponse = string.Copy(queryResponse.TextualResponse.Trim());
 
             // Raise the event
@@ -414,7 +414,7 @@ namespace nxgmci.Protocol.WADM
                 result.FailErrorMessage(new Exception(queryResponse.Message), "The query failed!");
             else if (!queryResponse.IsTextualReponse || string.IsNullOrWhiteSpace(queryResponse.TextualResponse))
                 result.FailMessage("The query response was invalid!");
-            else // Store a shadow copy of the response, as the query response is passed to the callee via an event and might later be compromized
+            else // Store a shadow copy of the response, as the query response is passed to the callee via an event and might later be compromised
                 shadowResponse = string.Copy(queryResponse.TextualResponse.Trim());
 
             // Raise the event
@@ -485,7 +485,7 @@ namespace nxgmci.Protocol.WADM
                 result.FailErrorMessage(new Exception(queryResponse.Message), "The query failed!");
             else if (!queryResponse.IsTextualReponse || string.IsNullOrWhiteSpace(queryResponse.TextualResponse))
                 result.FailMessage("The query response was invalid!");
-            else // Store a shadow copy of the response, as the query response is passed to the callee via an event and might later be compromized
+            else // Store a shadow copy of the response, as the query response is passed to the callee via an event and might later be compromised
                 shadowResponse = string.Copy(queryResponse.TextualResponse.Trim());
 
             // Raise the event
@@ -523,10 +523,10 @@ namespace nxgmci.Protocol.WADM
         /// Using this request will update the client's update ID.
         /// </summary>
         /// <returns>A result object that contains a serialized version of the response data.</returns>
-        public Result<RequestAlbumIndexTable.ContentDataSet> RequestAlbumIndexTable()
+        public Result<RequestIndexTable.ContentDataSet> RequestAlbumIndexTable()
         {
             // Create the result object
-            Result<RequestAlbumIndexTable.ContentDataSet> result = new Result<RequestAlbumIndexTable.ContentDataSet>();
+            Result<RequestIndexTable.ContentDataSet> result = new Result<RequestIndexTable.ContentDataSet>();
 
             // Allocate the temporary settings variables
             bool validateInput, looseSyntax, freezeUpdateID;
@@ -541,7 +541,7 @@ namespace nxgmci.Protocol.WADM
 
             // Allocate the response objects
             Postmaster.QueryResponse queryResponse;
-            Result<RequestAlbumIndexTable.ContentDataSet> parseResult;
+            Result<RequestIndexTable.ContentDataSet> parseResult;
 
             // Create the event result object
             Result<Postmaster.QueryResponse> queryResult = new Result<Postmaster.QueryResponse>();
@@ -550,7 +550,7 @@ namespace nxgmci.Protocol.WADM
             string shadowResponse = string.Empty;
 
             // Execute the request
-            queryResponse = Postmaster.PostXML(ipEndpoint, Path, WADM.RequestAlbumIndexTable.Build(), true);
+            queryResponse = Postmaster.PostXML(ipEndpoint, Path, WADM.RequestIndexTable.BuildAlbum(), true);
 
             // Check the result
             if (queryResponse == null)
@@ -559,7 +559,7 @@ namespace nxgmci.Protocol.WADM
                 result.FailErrorMessage(new Exception(queryResponse.Message), "The query failed!");
             else if (!queryResponse.IsTextualReponse || string.IsNullOrWhiteSpace(queryResponse.TextualResponse))
                 result.FailMessage("The query response was invalid!");
-            else // Store a shadow copy of the response, as the query response is passed to the callee via an event and might later be compromized
+            else // Store a shadow copy of the response, as the query response is passed to the callee via an event and might later be compromised
                 shadowResponse = string.Copy(queryResponse.TextualResponse.Trim());
 
             // Raise the event
@@ -571,13 +571,13 @@ namespace nxgmci.Protocol.WADM
                 return result;
 
             // Parse the response
-            parseResult = WADM.RequestAlbumIndexTable.Parse(shadowResponse, validateInput, looseSyntax);
+            parseResult = WADM.RequestIndexTable.Parse(shadowResponse, validateInput, looseSyntax);
 
             // Sanity check the result
             if (parseResult == null)
-                return Result<RequestAlbumIndexTable.ContentDataSet>.FailMessage(result, "The parsed result was null!");
+                return Result<RequestIndexTable.ContentDataSet>.FailMessage(result, "The parsed result was null!");
             if (parseResult.Success && (!parseResult.HasProduct || parseResult.Product == null))
-                return Result<RequestAlbumIndexTable.ContentDataSet>.FailMessage(result, "The parsed product was invalid!");
+                return Result<RequestIndexTable.ContentDataSet>.FailMessage(result, "The parsed product was invalid!");
 
             // Check, if the result is a success
             if (parseResult.Success)
@@ -606,15 +606,15 @@ namespace nxgmci.Protocol.WADM
                     OnUpdateIDChanged(new UpdateIDEventArgs(newUpdateID, true, oldUpdateID));
 
                 // Return the result
-                return Result<RequestAlbumIndexTable.ContentDataSet>.SucceedProduct(result, parseResult.Product, parseResult.Message);
+                return Result<RequestIndexTable.ContentDataSet>.SucceedProduct(result, parseResult.Product, parseResult.Message);
             }
 
             // Try to return a detailed error
             if (parseResult.Error != null)
-                return Result<RequestAlbumIndexTable.ContentDataSet>.FailErrorMessage(result, parseResult.Error, "The parsing failed!");
+                return Result<RequestIndexTable.ContentDataSet>.FailErrorMessage(result, parseResult.Error, "The parsing failed!");
 
             // If not possible, return simple failure
-            return Result<RequestAlbumIndexTable.ContentDataSet>.FailMessage(result, "The parsing failed due to an unknown reason!");
+            return Result<RequestIndexTable.ContentDataSet>.FailMessage(result, "The parsing failed due to an unknown reason!");
         }
 
         /// <summary>
@@ -623,10 +623,10 @@ namespace nxgmci.Protocol.WADM
         /// Using this request will update the client's update ID.
         /// </summary>
         /// <returns>A result object that contains a serialized version of the response data.</returns>
-        public Result<RequestArtistIndexTable.ContentDataSet> RequestArtistIndexTable()
+        public Result<RequestIndexTable.ContentDataSet> RequestArtistIndexTable()
         {
             // Create the result object
-            Result<RequestArtistIndexTable.ContentDataSet> result = new Result<RequestArtistIndexTable.ContentDataSet>();
+            Result<RequestIndexTable.ContentDataSet> result = new Result<RequestIndexTable.ContentDataSet>();
 
             // Allocate the temporary settings variables
             bool validateInput, looseSyntax, freezeUpdateID;
@@ -641,7 +641,7 @@ namespace nxgmci.Protocol.WADM
 
             // Allocate the response objects
             Postmaster.QueryResponse queryResponse;
-            Result<RequestArtistIndexTable.ContentDataSet> parseResult;
+            Result<RequestIndexTable.ContentDataSet> parseResult;
 
             // Create the event result object
             Result<Postmaster.QueryResponse> queryResult = new Result<Postmaster.QueryResponse>();
@@ -650,7 +650,7 @@ namespace nxgmci.Protocol.WADM
             string shadowResponse = string.Empty;
 
             // Execute the request
-            queryResponse = Postmaster.PostXML(ipEndpoint, Path, WADM.RequestArtistIndexTable.Build(), true);
+            queryResponse = Postmaster.PostXML(ipEndpoint, Path, WADM.RequestIndexTable.BuildArtist(), true);
 
             // Check the result
             if (queryResponse == null)
@@ -659,7 +659,7 @@ namespace nxgmci.Protocol.WADM
                 result.FailErrorMessage(new Exception(queryResponse.Message), "The query failed!");
             else if (!queryResponse.IsTextualReponse || string.IsNullOrWhiteSpace(queryResponse.TextualResponse))
                 result.FailMessage("The query response was invalid!");
-            else // Store a shadow copy of the response, as the query response is passed to the callee via an event and might later be compromized
+            else // Store a shadow copy of the response, as the query response is passed to the callee via an event and might later be compromised
                 shadowResponse = string.Copy(queryResponse.TextualResponse.Trim());
 
             // Raise the event
@@ -671,13 +671,13 @@ namespace nxgmci.Protocol.WADM
                 return result;
 
             // Parse the response
-            parseResult = WADM.RequestArtistIndexTable.Parse(shadowResponse, validateInput, looseSyntax);
+            parseResult = WADM.RequestIndexTable.Parse(shadowResponse, validateInput, looseSyntax);
 
             // Sanity check the result
             if (parseResult == null)
-                return Result<RequestArtistIndexTable.ContentDataSet>.FailMessage(result, "The parsed result was null!");
+                return Result<RequestIndexTable.ContentDataSet>.FailMessage(result, "The parsed result was null!");
             if (parseResult.Success && (!parseResult.HasProduct || parseResult.Product == null))
-                return Result<RequestArtistIndexTable.ContentDataSet>.FailMessage(result, "The parsed product was invalid!");
+                return Result<RequestIndexTable.ContentDataSet>.FailMessage(result, "The parsed product was invalid!");
 
             // Check, if the result is a success
             if (parseResult.Success)
@@ -706,15 +706,15 @@ namespace nxgmci.Protocol.WADM
                     OnUpdateIDChanged(new UpdateIDEventArgs(newUpdateID, true, oldUpdateID));
 
                 // Return the result
-                return Result<RequestArtistIndexTable.ContentDataSet>.SucceedProduct(result, parseResult.Product, parseResult.Message);
+                return Result<RequestIndexTable.ContentDataSet>.SucceedProduct(result, parseResult.Product, parseResult.Message);
             }
 
             // Try to return a detailed error
             if (parseResult.Error != null)
-                return Result<RequestArtistIndexTable.ContentDataSet>.FailErrorMessage(result, parseResult.Error, "The parsing failed!");
+                return Result<RequestIndexTable.ContentDataSet>.FailErrorMessage(result, parseResult.Error, "The parsing failed!");
 
             // If not possible, return simple failure
-            return Result<RequestArtistIndexTable.ContentDataSet>.FailMessage(result, "The parsing failed due to an unknown reason!");
+            return Result<RequestIndexTable.ContentDataSet>.FailMessage(result, "The parsing failed due to an unknown reason!");
         }
 
         /// <summary>
@@ -723,10 +723,10 @@ namespace nxgmci.Protocol.WADM
         /// Using this request will update the client's update ID.
         /// </summary>
         /// <returns>A result object that contains a serialized version of the response data.</returns>
-        public Result<RequestGenreIndexTable.ContentDataSet> RequestGenreIndexTable()
+        public Result<RequestIndexTable.ContentDataSet> RequestGenreIndexTable()
         {
             // Create the result object
-            Result<RequestGenreIndexTable.ContentDataSet> result = new Result<RequestGenreIndexTable.ContentDataSet>();
+            Result<RequestIndexTable.ContentDataSet> result = new Result<RequestIndexTable.ContentDataSet>();
 
             // Allocate the temporary settings variables
             bool validateInput, looseSyntax, freezeUpdateID;
@@ -741,7 +741,7 @@ namespace nxgmci.Protocol.WADM
 
             // Allocate the response objects
             Postmaster.QueryResponse queryResponse;
-            Result<RequestGenreIndexTable.ContentDataSet> parseResult;
+            Result<RequestIndexTable.ContentDataSet> parseResult;
 
             // Create the event result object
             Result<Postmaster.QueryResponse> queryResult = new Result<Postmaster.QueryResponse>();
@@ -750,7 +750,7 @@ namespace nxgmci.Protocol.WADM
             string shadowResponse = string.Empty;
 
             // Execute the request
-            queryResponse = Postmaster.PostXML(ipEndpoint, Path, WADM.RequestGenreIndexTable.Build(), true);
+            queryResponse = Postmaster.PostXML(ipEndpoint, Path, WADM.RequestIndexTable.BuildGenre(), true);
 
             // Check the result
             if (queryResponse == null)
@@ -759,7 +759,7 @@ namespace nxgmci.Protocol.WADM
                 result.FailErrorMessage(new Exception(queryResponse.Message), "The query failed!");
             else if (!queryResponse.IsTextualReponse || string.IsNullOrWhiteSpace(queryResponse.TextualResponse))
                 result.FailMessage("The query response was invalid!");
-            else // Store a shadow copy of the response, as the query response is passed to the callee via an event and might later be compromized
+            else // Store a shadow copy of the response, as the query response is passed to the callee via an event and might later be compromised
                 shadowResponse = string.Copy(queryResponse.TextualResponse.Trim());
 
             // Raise the event
@@ -771,13 +771,13 @@ namespace nxgmci.Protocol.WADM
                 return result;
 
             // Parse the response
-            parseResult = WADM.RequestGenreIndexTable.Parse(shadowResponse, validateInput, looseSyntax);
+            parseResult = WADM.RequestIndexTable.Parse(shadowResponse, validateInput, looseSyntax);
 
             // Sanity check the result
             if (parseResult == null)
-                return Result<RequestGenreIndexTable.ContentDataSet>.FailMessage(result, "The parsed result was null!");
+                return Result<RequestIndexTable.ContentDataSet>.FailMessage(result, "The parsed result was null!");
             if (parseResult.Success && (!parseResult.HasProduct || parseResult.Product == null))
-                return Result<RequestGenreIndexTable.ContentDataSet>.FailMessage(result, "The parsed product was invalid!");
+                return Result<RequestIndexTable.ContentDataSet>.FailMessage(result, "The parsed product was invalid!");
 
             // Check, if the result is a success
             if (parseResult.Success)
@@ -806,15 +806,15 @@ namespace nxgmci.Protocol.WADM
                     OnUpdateIDChanged(new UpdateIDEventArgs(newUpdateID, true, oldUpdateID));
 
                 // Return the result
-                return Result<RequestGenreIndexTable.ContentDataSet>.SucceedProduct(result, parseResult.Product, parseResult.Message);
+                return Result<RequestIndexTable.ContentDataSet>.SucceedProduct(result, parseResult.Product, parseResult.Message);
             }
 
             // Try to return a detailed error
             if (parseResult.Error != null)
-                return Result<RequestGenreIndexTable.ContentDataSet>.FailErrorMessage(result, parseResult.Error, "The parsing failed!");
+                return Result<RequestIndexTable.ContentDataSet>.FailErrorMessage(result, parseResult.Error, "The parsing failed!");
 
             // If not possible, return simple failure
-            return Result<RequestGenreIndexTable.ContentDataSet>.FailMessage(result, "The parsing failed due to an unknown reason!");
+            return Result<RequestIndexTable.ContentDataSet>.FailMessage(result, "The parsing failed due to an unknown reason!");
         }
 
         /// <summary>
@@ -861,7 +861,7 @@ namespace nxgmci.Protocol.WADM
                 result.FailErrorMessage(new Exception(queryResponse.Message), "The query failed!");
             else if (!queryResponse.IsTextualReponse || string.IsNullOrWhiteSpace(queryResponse.TextualResponse))
                 result.FailMessage("The query response was invalid!");
-            else // Store a shadow copy of the response, as the query response is passed to the callee via an event and might later be compromized
+            else // Store a shadow copy of the response, as the query response is passed to the callee via an event and might later be compromised
                 shadowResponse = string.Copy(queryResponse.TextualResponse.Trim());
 
             // Raise the event
@@ -965,7 +965,7 @@ namespace nxgmci.Protocol.WADM
                 result.FailErrorMessage(new Exception(queryResponse.Message), "The query failed!");
             else if (!queryResponse.IsTextualReponse || string.IsNullOrWhiteSpace(queryResponse.TextualResponse))
                 result.FailMessage("The query response was invalid!");
-            else // Store a shadow copy of the response, as the query response is passed to the callee via an event and might later be compromized
+            else // Store a shadow copy of the response, as the query response is passed to the callee via an event and might later be compromised
                 shadowResponse = string.Copy(queryResponse.TextualResponse.Trim());
 
             // Raise the event
@@ -1073,7 +1073,7 @@ namespace nxgmci.Protocol.WADM
                 result.FailErrorMessage(new Exception(queryResponse.Message), "The query failed!");
             else if (!queryResponse.IsTextualReponse || string.IsNullOrWhiteSpace(queryResponse.TextualResponse))
                 result.FailMessage("The query response was invalid!");
-            else // Store a shadow copy of the response, as the query response is passed to the callee via an event and might later be compromized
+            else // Store a shadow copy of the response, as the query response is passed to the callee via an event and might later be compromised
                 shadowResponse = string.Copy(queryResponse.TextualResponse.Trim());
 
             // Raise the event
@@ -1178,7 +1178,7 @@ namespace nxgmci.Protocol.WADM
                 result.FailErrorMessage(new Exception(queryResponse.Message), "The query failed!");
             else if (!queryResponse.IsTextualReponse || string.IsNullOrWhiteSpace(queryResponse.TextualResponse))
                 result.FailMessage("The query response was invalid!");
-            else // Store a shadow copy of the response, as the query response is passed to the callee via an event and might later be compromized
+            else // Store a shadow copy of the response, as the query response is passed to the callee via an event and might later be compromised
                 shadowResponse = string.Copy(queryResponse.TextualResponse.Trim());
 
             // Raise the event
@@ -1285,7 +1285,7 @@ namespace nxgmci.Protocol.WADM
                 result.FailErrorMessage(new Exception(queryResponse.Message), "The query failed!");
             else if (!queryResponse.IsTextualReponse || string.IsNullOrWhiteSpace(queryResponse.TextualResponse))
                 result.FailMessage("The query response was invalid!");
-            else // Store a shadow copy of the response, as the query response is passed to the callee via an event and might later be compromized
+            else // Store a shadow copy of the response, as the query response is passed to the callee via an event and might later be compromised
                 shadowResponse = string.Copy(queryResponse.TextualResponse.Trim());
 
             // Raise the event
@@ -1344,17 +1344,16 @@ namespace nxgmci.Protocol.WADM
         }
 
         /// <summary>
-        /// This request is used to fetch all database data in chunks and in a DLNA-like manner.
-        /// It accepts a parent node ID and a max. items parameter (count).
-        /// Using the parameters 0,0 will fetch the index.
+        /// Internal function for fetching and browsing all database data using either RequestPlayableData or RequestNavData.
         /// </summary>
-        /// <param name="FromIndex">Parent node ID of the query.</param>
-        /// <param name="NumElem">Number of elements to be queried. Use zero to query all elements.</param>
+        /// <param name="RequestPlayable">If true, a RequestPlayableData is used to make the request. Otherwise RequestNavData is used.</param>
+        /// <param name="NodeID">Parent node ID to fetch the child elements from.</param>
+        /// <param name="NumElem">Maximum number of elements (0 returns all elements).</param>
         /// <returns>A result object that contains a serialized version of the response data.</returns>
-        public Result<RequestPlayableData.ContentDataSet> RequestPlayableData(uint NodeID = 0, uint NumElem = 0)
+        private Result<RequestPlayableNavData.ContentDataSet> RequestPlayableNavData(bool RequestPlayable, uint NodeID, uint NumElem)
         {
             // Create the result object
-            Result<RequestPlayableData.ContentDataSet> result = new Result<RequestPlayableData.ContentDataSet>();
+            Result<RequestPlayableNavData.ContentDataSet> result = new Result<RequestPlayableNavData.ContentDataSet>();
 
             // Allocate the temporary settings variables
             bool validateInput, looseSyntax, freezeUpdateID;
@@ -1369,7 +1368,7 @@ namespace nxgmci.Protocol.WADM
 
             // Allocate the response objects
             Postmaster.QueryResponse queryResponse;
-            Result<RequestPlayableData.ContentDataSet> parseResult;
+            Result<RequestPlayableNavData.ContentDataSet> parseResult;
 
             // Create the event result object
             Result<Postmaster.QueryResponse> queryResult = new Result<Postmaster.QueryResponse>();
@@ -1378,7 +1377,10 @@ namespace nxgmci.Protocol.WADM
             string shadowResponse = string.Empty;
 
             // Execute the request
-            queryResponse = Postmaster.PostXML(ipEndpoint, Path, WADM.RequestPlayableData.Build(NodeID, NumElem), true);
+            if (RequestPlayable)
+                queryResponse = Postmaster.PostXML(ipEndpoint, Path, WADM.RequestPlayableNavData.BuildPlayable(NodeID, NumElem), true);
+            else
+                queryResponse = Postmaster.PostXML(ipEndpoint, Path, WADM.RequestPlayableNavData.BuildNav(NodeID, NumElem), true);
 
             // Check the result
             if (queryResponse == null)
@@ -1387,25 +1389,25 @@ namespace nxgmci.Protocol.WADM
                 result.FailErrorMessage(new Exception(queryResponse.Message), "The query failed!");
             else if (!queryResponse.IsTextualReponse || string.IsNullOrWhiteSpace(queryResponse.TextualResponse))
                 result.FailMessage("The query response was invalid!");
-            else // Store a shadow copy of the response, as the query response is passed to the callee via an event and might later be compromized
+            else // Store a shadow copy of the response, as the query response is passed to the callee via an event and might later be compromised
                 shadowResponse = string.Copy(queryResponse.TextualResponse.Trim());
 
             // Raise the event
             OnResponseReceived(new ResultEventArgs<Postmaster.QueryResponse>(
-                Result<Postmaster.QueryResponse>.SucceedProduct(queryResult, queryResponse, "RequestPlayableData")));
+                Result<Postmaster.QueryResponse>.SucceedProduct(queryResult, queryResponse, RequestPlayable ? "RequestPlayableData" : "RequestNavData")));
 
             // Check, if the process failed
             if (result.Finalized)
                 return result;
 
             // Parse the response
-            parseResult = WADM.RequestPlayableData.Parse(shadowResponse, validateInput, looseSyntax);
+            parseResult = WADM.RequestPlayableNavData.Parse(shadowResponse, validateInput, looseSyntax);
 
             // Sanity check the result
             if (parseResult == null)
-                return Result<RequestPlayableData.ContentDataSet>.FailMessage(result, "The parsed result was null!");
+                return Result<RequestPlayableNavData.ContentDataSet>.FailMessage(result, "The parsed result was null!");
             if (parseResult.Success && (!parseResult.HasProduct || parseResult.Product == null))
-                return Result<RequestPlayableData.ContentDataSet>.FailMessage(result, "The parsed product was invalid!");
+                return Result<RequestPlayableNavData.ContentDataSet>.FailMessage(result, "The parsed product was invalid!");
 
             // Check, if the result is a success
             if (parseResult.Success)
@@ -1434,15 +1436,41 @@ namespace nxgmci.Protocol.WADM
                     OnUpdateIDChanged(new UpdateIDEventArgs(newUpdateID, true, oldUpdateID));
 
                 // Return the result
-                return Result<RequestPlayableData.ContentDataSet>.SucceedProduct(result, parseResult.Product, parseResult.Message);
+                return Result<RequestPlayableNavData.ContentDataSet>.SucceedProduct(result, parseResult.Product, parseResult.Message);
             }
 
             // Try to return a detailed error
             if (parseResult.Error != null)
-                return Result<RequestPlayableData.ContentDataSet>.FailErrorMessage(result, parseResult.Error, "The parsing failed!");
+                return Result<RequestPlayableNavData.ContentDataSet>.FailErrorMessage(result, parseResult.Error, "The parsing failed!");
 
             // If not possible, return simple failure
-            return Result<RequestPlayableData.ContentDataSet>.FailMessage(result, "The parsing failed due to an unknown reason!");
+            return Result<RequestPlayableNavData.ContentDataSet>.FailMessage(result, "The parsing failed due to an unknown reason!");
+        }
+
+        /// <summary>
+        /// This request is used to fetch all playable database data in chunks and in a DLNA-like manner.
+        /// It accepts a parent node ID and a max. items parameter (count).
+        /// Using the parameters 0,0 will fetch the index.
+        /// </summary>
+        /// <param name="FromIndex">Parent node ID of the query.</param>
+        /// <param name="NumElem">Number of elements to be queried. Use zero to query all elements.</param>
+        /// <returns>A result object that contains a serialized version of the response data.</returns>
+        public Result<RequestPlayableNavData.ContentDataSet> RequestPlayableData(uint NodeID = 0, uint NumElem = 0)
+        {
+            return RequestPlayableNavData(true, NodeID, NumElem);
+        }
+
+        /// <summary>
+        /// This request is used to fetch all navigation database data in chunks and in a DLNA-like manner.
+        /// It accepts a parent node ID and a max. items parameter (count).
+        /// Using the parameters 0,0 will fetch the index.
+        /// </summary>
+        /// <param name="FromIndex">Parent node ID of the query.</param>
+        /// <param name="NumElem">Number of elements to be queried. Use zero to query all elements.</param>
+        /// <returns>A result object that contains a serialized version of the response data.</returns>
+        public Result<RequestPlayableNavData.ContentDataSet> RequestNavData(uint NodeID = 0, uint NumElem = 0)
+        {
+            return RequestPlayableNavData(false, NodeID, NumElem);
         }
 
         /// <summary>

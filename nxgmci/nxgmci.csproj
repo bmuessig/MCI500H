@@ -76,11 +76,9 @@
     <Compile Include="Protocol\WADM\SvcDbDump.cs" />
     <Compile Include="Protocol\WADM\WADMClient.cs" />
     <Compile Include="Protocol\WADM\WADMProduct.cs" />
-    <Compile Include="Protocol\WADM\RequestPlayableData.cs" />
+    <Compile Include="Protocol\WADM\RequestPlayableNavData.cs" />
     <Compile Include="Protocol\WADM\RequestUriMetaData.cs" />
-    <Compile Include="Protocol\WADM\RequestGenreIndexTable.cs" />
-    <Compile Include="Protocol\WADM\RequestAlbumIndexTable.cs" />
-    <Compile Include="Protocol\WADM\RequestArtistIndexTable.cs" />
+    <Compile Include="Protocol\WADM\RequestIndexTable.cs" />
     <Compile Include="Network\NetUtils.cs" />
     <Compile Include="Network\Postmaster.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

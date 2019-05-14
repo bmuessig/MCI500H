@@ -122,9 +122,7 @@ namespace ADM
         }
 
         RequestRawData.ContentDataSet currentMediaLib;
-        RequestAlbumIndexTable.ContentDataSet currentAlbumIndex;
-        RequestArtistIndexTable.ContentDataSet currentArtistIndex;
-        RequestGenreIndexTable.ContentDataSet currentGenreIndex;
+        RequestIndexTable.ContentDataSet currentAlbumIndex, currentArtistIndex, currentGenreIndex;
         RequestUriMetaData.ResponseParameters currentUriMetaData;
 
         private void mediaFetchButton_Click(object sender, EventArgs e)
@@ -138,7 +136,7 @@ namespace ADM
             }
 
             // Fetch artists
-            Result<RequestArtistIndexTable.ContentDataSet> artistResp = client.RequestArtistIndexTable();
+            Result<RequestIndexTable.ContentDataSet> artistResp = client.RequestArtistIndexTable();
             if (!artistResp.Success)
             {
                 MessageBox.Show(artistResp.ToString());
@@ -146,7 +144,7 @@ namespace ADM
             }
 
             // Fetch albums
-            Result<RequestAlbumIndexTable.ContentDataSet> albumResp = client.RequestAlbumIndexTable();
+            Result<RequestIndexTable.ContentDataSet> albumResp = client.RequestAlbumIndexTable();
             if (!albumResp.Success)
             {
                 MessageBox.Show(albumResp.ToString());
@@ -154,7 +152,7 @@ namespace ADM
             }
 
             // Fetch genres
-            Result<RequestGenreIndexTable.ContentDataSet> genreResp = client.RequestGenreIndexTable();
+            Result<RequestIndexTable.ContentDataSet> genreResp = client.RequestGenreIndexTable();
             if (!genreResp.Success)
             {
                 MessageBox.Show(genreResp.ToString());
@@ -197,14 +195,14 @@ namespace ADM
             {
                 string title = contentData.Name.Trim(), artist, album;
 
-                RequestArtistIndexTable.ContentData artistEntry =
+                RequestIndexTable.ContentData artistEntry =
                     currentArtistIndex.GetEntry(contentData.Artist);
                 if (artistEntry == null)
                     artist = contentData.Artist.ToString();
                 else
                     artist = artistEntry.Name;
 
-                RequestAlbumIndexTable.ContentData albumEntry =
+                RequestIndexTable.ContentData albumEntry =
                     currentAlbumIndex.GetEntry(contentData.Album);
                 if (albumEntry == null)
                     album = contentData.Album.ToString();
@@ -379,7 +377,7 @@ namespace ADM
         uint currentNodeID = 0;
         string currentNodeName = "Root";
         Stack<KeyValuePair<uint, string>> nodeStack = new Stack<KeyValuePair<uint, string>>();
-        RequestPlayableData.ContentDataSet currentDataSet;
+        RequestPlayableNavData.ContentDataSet currentDataSet;
         Bitmap coverImage;
 
         private void treeUpButton_Click(object sender, EventArgs e)
@@ -433,7 +431,7 @@ namespace ADM
 
         private void UpdateBrowser()
         {
-            Result<RequestPlayableData.ContentDataSet> result = client.RequestPlayableData(currentNodeID);
+            Result<RequestPlayableNavData.ContentDataSet> result = client.RequestPlayableData(currentNodeID);
             if (!result.Success)
             {
                 MessageBox.Show(string.Format("The process failed:\n\n{0}", result.ToString()), "Error!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
@@ -457,14 +455,14 @@ namespace ADM
 
             treeItemsListBox.Items.Clear();
 
-            foreach (RequestPlayableData.ContentData data in currentDataSet.ContentData)
+            foreach (RequestPlayableNavData.ContentData data in currentDataSet.ContentData)
             {
                 treeItemsListBox.Items.Add(string.Format("{0} (${1}, {2})",
                     data.Name, data.NodeID.ToString("X8"), data.NodeType));
             }
         }
 
-        private void PlayNode(RequestPlayableData.ContentDataPlayable Node)
+        private void PlayNode(RequestPlayableNavData.ContentDataPlayable Node)
         {
             if (Node == null)
                 return;
@@ -478,9 +476,9 @@ namespace ADM
             genreLabel.Text = Node.Genre;
             idLabel.Text = string.Format("${0}", Node.NodeID.ToString("X4"));
 
-            if (Node is RequestPlayableData.ContentDataPlayableArt)
+            if (Node is RequestPlayableNavData.ContentDataPlayableArt)
             {
-                RequestPlayableData.ContentDataPlayableArt artNode = (RequestPlayableData.ContentDataPlayableArt)Node;
+                RequestPlayableNavData.ContentDataPlayableArt artNode = (RequestPlayableNavData.ContentDataPlayableArt)Node;
                 string coverUrl = artNode.AlbumArtURL;
 
                 try
@@ -502,8 +500,8 @@ namespace ADM
             if (treeItemsListBox.SelectedItems.Count != 1)
                 return;
             treeGoButton.Enabled = false;
-            RequestPlayableData.ContentData data = currentDataSet.ContentData[treeItemsListBox.SelectedIndex];
-            if (data.NodeType != RequestPlayableData.NodeType.Branch)
+            RequestPlayableNavData.ContentData data = currentDataSet.ContentData[treeItemsListBox.SelectedIndex];
+            if (data.NodeType != RequestPlayableNavData.NodeType.Branch)
             {
                 treeGoButton.Enabled = true;
                 MessageBox.Show("The process failed, as the node is not a branch!", "Error!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
@@ -518,15 +516,15 @@ namespace ADM
             if (treeItemsListBox.SelectedItems.Count != 1)
                 return;
             treePlayButton.Enabled = false;
-            RequestPlayableData.ContentData data = currentDataSet.ContentData[treeItemsListBox.SelectedIndex];
-            if (data.NodeType != RequestPlayableData.NodeType.Playable)
+            RequestPlayableNavData.ContentData data = currentDataSet.ContentData[treeItemsListBox.SelectedIndex];
+            if (data.NodeType != RequestPlayableNavData.NodeType.Playable)
             {
                 treePlayButton.Enabled = true;
                 MessageBox.Show("The process failed, as the node is not playable!", "Error!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                 return;
             }
-            if (data is RequestPlayableData.ContentDataPlayable)
-                PlayNode((RequestPlayableData.ContentDataPlayable)data);
+            if (data is RequestPlayableNavData.ContentDataPlayable)
+                PlayNode((RequestPlayableNavData.ContentDataPlayable)data);
             treePlayButton.Enabled = true;
         }
     }

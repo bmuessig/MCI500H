@@ -3,25 +3,43 @@
 namespace nxgmci.Protocol.WADM
 {
     /// <summary>
-    /// This request returns a dictionary of all genre IDs and their cleartext names.
-    /// This information can be used to map the genre IDs returned by RequestRawData to strings.
+    /// This request returns a dictionary of all artist/album/genre IDs and their cleartext names.
+    /// This information can be used to map the artist/album/genre IDs returned by RequestRawData to strings.
     /// </summary>
-    public static class RequestGenreIndexTable
+    public static class RequestIndexTable
     {
         // ContentDataSet Parser
         private readonly static WADMParser parser = new WADMParser("contentdataset", "contentdata", true);
 
         /// <summary>
-        /// Assembles a RequestGenreIndexTable request to be passed to the stereo.
+        /// Assembles a RequestArtistIndexTable request to be passed to the stereo.
         /// </summary>
         /// <returns>A request string that can be passed to the stereo.</returns>
-        public static string Build()
+        public static string BuildArtist()
         {
-            return "<requestgenreindextable></requestgenreindextable>";
+            return "<requestartistindextable></requestartistindextable>";
+        }
+        
+        /// <summary>
+        /// Assembles a RequestAlbumIndexTable request to be passed to the stereo.
+        /// </summary>
+        /// <returns>A request string that can be passed to the stereo.</returns>
+        public static string BuildAlbum()
+        {
+            return "<requestalbumindextable></requestalbumindextable>";
         }
 
         /// <summary>
-        /// Parses RequestGenreIndexTable's ContentDataSet and returns the result.
+        /// Assembles a RequestGenreIndexTable request to be passed to the stereo.
+        /// </summary>
+        /// <returns>A request string that can be passed to the stereo.</returns>
+        public static string BuildGenre()
+        {
+            return "<requestgenreindextable></requestgenreindextable>";
+        }
+        
+        /// <summary>
+        /// Parses RequestIndexTable's ContentDataSet and returns the result.
         /// </summary>
         /// <param name="Response">The response received from the stereo.</param>
         /// <param name="ValidateInput">Indicates whether to validate the data values received.</param>
@@ -36,6 +54,7 @@ namespace nxgmci.Protocol.WADM
             if (string.IsNullOrWhiteSpace(Response))
                 return Result<ContentDataSet>.FailMessage(result, "The response may not be null!");
 
+            // Then, parse the response
             Result<WADMProduct> parserResult = parser.Parse(Response, LazySyntax);
 
             // Check if it failed
@@ -105,7 +124,7 @@ namespace nxgmci.Protocol.WADM
         }
 
         /// <summary>
-        /// RequestGenreIndexTable's ContentDataSet reply.
+        /// RequestIndexTable's ContentDataSet reply.
         /// </summary>
         public class ContentDataSet
         {
@@ -115,14 +134,14 @@ namespace nxgmci.Protocol.WADM
             public List<ContentData> ContentData;
 
             /// <summary>
-            /// Unknown update ID.
+            /// Modification update ID.
             /// </summary>
             public readonly uint UpdateID;
 
             /// <summary>
             /// Internal constructor.
             /// </summary>
-            /// <param name="UpdateID">Unknown update ID.</param>
+            /// <param name="UpdateID">Modification update ID.</param>
             internal ContentDataSet(uint UpdateID)
             {
                 this.UpdateID = UpdateID;
@@ -133,7 +152,7 @@ namespace nxgmci.Protocol.WADM
             /// Internal constructor.
             /// </summary>
             /// <param name="ContentData">List of returned elements.</param>
-            /// <param name="UpdateID">Unknown update ID.</param>
+            /// <param name="UpdateID">Modification update ID.</param>
             internal ContentDataSet(List<ContentData> ContentData, uint UpdateID)
                 : this(UpdateID)
             {
@@ -151,7 +170,7 @@ namespace nxgmci.Protocol.WADM
             public bool AddEntry(ContentData Data, bool ReplaceDuplicates = true)
             {
                 // Perform some input sanity checks
-                if (Data == null)
+                if(Data == null)
                     return false;
                 if (string.IsNullOrWhiteSpace(Data.Name))
                     return false;
@@ -159,8 +178,7 @@ namespace nxgmci.Protocol.WADM
                 // Just making sure we don't get any null issues
                 if (ContentData == null)
                     ContentData = new List<ContentData>();
-                else
-                {
+                else {
                     // If we may not replace duplicates, and have a duplicate, fail
                     if (!ReplaceDuplicates)
                         if (ContainsEntry(Data.Index))
@@ -169,7 +187,7 @@ namespace nxgmci.Protocol.WADM
                     // Otherwise just check for a duplicate and remove it if present
                     RemoveEntry(Data.Index);
                 }
-
+                
                 // Finally, add the new entry
                 ContentData.Add(Data);
 
@@ -221,7 +239,7 @@ namespace nxgmci.Protocol.WADM
             public bool ContainsEntry(uint Index)
             {
                 // Just making sure we don't get any null issues
-                if (ContentData == null)
+                if(ContentData == null)
                 {
                     ContentData = new List<ContentData>();
                     return false;
@@ -261,25 +279,25 @@ namespace nxgmci.Protocol.WADM
         }
 
         /// <summary>
-        /// RequestGenreIndexTable's ContentDataSet's ContentData.
+        /// RequestIndexTable's ContentDataSet's ContentData.
         /// </summary>
         public class ContentData
         {
             /// <summary>
-            /// Name of the genre.
+            /// Name of the artist/album/genre.
             /// </summary>
             public string Name;
 
             /// <summary>
-            /// Node ID number of the genre.
+            /// Node ID number of the artist/album/genre.
             /// </summary>
             public uint Index;
 
             /// <summary>
             /// Default internal constructor.
             /// </summary>
-            /// <param name="Name">Name of the genre.</param>
-            /// <param name="Index">Node ID number of the genre.</param>
+            /// <param name="Name">Name of the artist/album/genre.</param>
+            /// <param name="Index">Node ID number of the artist/album/genre.</param>
             internal ContentData(string Name, uint Index)
             {
                 this.Name = Name;
@@ -287,7 +305,7 @@ namespace nxgmci.Protocol.WADM
             }
 
             /// <summary>
-            /// Returns the string representation of the entry. Usually returns the genre name, if available.
+            /// Returns the string representation of the entry. Usually returns the artist/album/genre name, if available.
             /// </summary>
             /// <returns>A string representation of the object.</returns>
             public override string ToString()
