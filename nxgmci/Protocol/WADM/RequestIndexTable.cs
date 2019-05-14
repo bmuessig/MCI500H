@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System;
 
 namespace nxgmci.Protocol.WADM
 {
@@ -82,7 +83,7 @@ namespace nxgmci.Protocol.WADM
                 return Result<ContentDataSet>.FailMessage(result, "Could not parse parameter '{0}' as uint!", "updateid");
 
             // Allocate our result object
-            ContentDataSet set = new ContentDataSet(updateID);
+            ContentDataCompiler set = new ContentDataCompiler();
 
             // Next, pay attention to the list items (yes, there are a lot of them)
             uint elementNo = 0;
@@ -120,47 +121,14 @@ namespace nxgmci.Protocol.WADM
             }
 
             // Finally, return the response
-            return Result<ContentDataSet>.SucceedProduct(result, set);
+            return Result<ContentDataSet>.SucceedProduct(result, new ContentDataSet(set.ToArray(), updateID));
         }
 
         /// <summary>
-        /// RequestIndexTable's ContentDataSet reply.
+        /// List that allows to easily sort out duplicates and to finally compile a ContentData array.
         /// </summary>
-        public class ContentDataSet
+        private class ContentDataCompiler : List<ContentData>
         {
-            /// <summary>
-            /// List of returned elements.
-            /// </summary>
-            public List<ContentData> ContentData;
-
-            /// <summary>
-            /// Modification update ID.
-            /// </summary>
-            public readonly uint UpdateID;
-
-            /// <summary>
-            /// Internal constructor.
-            /// </summary>
-            /// <param name="UpdateID">Modification update ID.</param>
-            internal ContentDataSet(uint UpdateID)
-            {
-                this.UpdateID = UpdateID;
-                this.ContentData = new List<ContentData>();
-            }
-
-            /// <summary>
-            /// Internal constructor.
-            /// </summary>
-            /// <param name="ContentData">List of returned elements.</param>
-            /// <param name="UpdateID">Modification update ID.</param>
-            internal ContentDataSet(List<ContentData> ContentData, uint UpdateID)
-                : this(UpdateID)
-            {
-                // Make sure ContentData is initialized
-                if (ContentData != null)
-                    this.ContentData = ContentData;
-            }
-
             /// <summary>
             /// Adds a new entry to the collection.
             /// </summary>
@@ -170,26 +138,22 @@ namespace nxgmci.Protocol.WADM
             public bool AddEntry(ContentData Data, bool ReplaceDuplicates = true)
             {
                 // Perform some input sanity checks
-                if(Data == null)
+                if (Data == null)
                     return false;
                 if (string.IsNullOrWhiteSpace(Data.Name))
                     return false;
 
                 // Just making sure we don't get any null issues
-                if (ContentData == null)
-                    ContentData = new List<ContentData>();
-                else {
-                    // If we may not replace duplicates, and have a duplicate, fail
-                    if (!ReplaceDuplicates)
-                        if (ContainsEntry(Data.Index))
-                            return false;
+                // If we may not replace duplicates, and have a duplicate, fail
+                if (!ReplaceDuplicates)
+                    if (ContainsEntry(Data.Index))
+                        return false;
 
-                    // Otherwise just check for a duplicate and remove it if present
-                    RemoveEntry(Data.Index);
-                }
-                
+                // Otherwise just check for a duplicate and remove it if present
+                RemoveEntry(Data.Index);
+
                 // Finally, add the new entry
-                ContentData.Add(Data);
+                Add(Data);
 
                 // And return success
                 return true;
@@ -214,19 +178,12 @@ namespace nxgmci.Protocol.WADM
             /// <param name="Index">The index that should be removed from the collection.</param>
             public void RemoveEntry(uint Index)
             {
-                // Just making sure we don't get any null issues
-                if (ContentData == null)
-                {
-                    ContentData = new List<ContentData>();
-                    return; // This is no failure, since there are entries
-                }
-
                 // Loop through all items until we find our offender
-                for (int i = 0; i < ContentData.Count; i++)
-                    if (ContentData[i].Index == Index)
+                for (int i = 0; i < Count; i++)
+                    if (this[i].Index == Index)
                     {
                         // If we find it, remove it and exit
-                        ContentData.RemoveAt(i);
+                        RemoveAt(i);
                         return;
                     }
             }
@@ -238,15 +195,8 @@ namespace nxgmci.Protocol.WADM
             /// <returns>True, if the entry exists and false otherwise.</returns>
             public bool ContainsEntry(uint Index)
             {
-                // Just making sure we don't get any null issues
-                if(ContentData == null)
-                {
-                    ContentData = new List<ContentData>();
-                    return false;
-                }
-
                 // Loop through all items until we find a duplicate
-                foreach (ContentData data in ContentData)
+                foreach (ContentData data in this)
                     if (data.Index == Index)
                         return true;
 
@@ -261,17 +211,113 @@ namespace nxgmci.Protocol.WADM
             /// <returns>Returns the entry if it could be found. Null otherwise.</returns>
             public ContentData GetEntry(uint Index)
             {
-                // Just making sure we don't get any null issues
+                // Loop through all items until we find our item
+                foreach (ContentData data in this)
+                    if (data.Index == Index)
+                        return data;
+
+                // If we don't find anything return null
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// RequestIndexTable's ContentDataSet reply.
+        /// </summary>
+        public class ContentDataSet
+        {
+            /// <summary>
+            /// List of returned elements.
+            /// </summary>
+            public readonly ContentData[] ContentData;
+
+            /// <summary>
+            /// Modification update ID.
+            /// </summary>
+            public readonly uint UpdateID;
+
+            /// <summary>
+            /// Internal constructor.
+            /// </summary>
+            /// <param name="ContentData">List of returned elements.</param>
+            /// <param name="UpdateID">Modification update ID.</param>
+            internal ContentDataSet(ContentData[] ContentData, uint UpdateID)
+            {
+                // Make sure ContentData is initialized
                 if (ContentData == null)
-                {
-                    ContentData = new List<ContentData>();
+                    throw new ArgumentNullException("ContentData");
+
+                // Assign the values
+                this.ContentData = ContentData;
+                this.UpdateID = UpdateID;
+            }
+
+            /// <summary>
+            /// Attempts to return an entry by its name.
+            /// </summary>
+            /// <param name="Name">The name that should be searched for.</param>
+            /// <param name="IgnoreCase">If true, the name is searched case insensitive.</param>
+            /// <param name="IgnoreWhiteSpace">If true, preceeding and trailing whitespace is ignored.</param>
+            /// <returns>Returns the entry if it could be found. Null otherwise.</returns>
+            public ContentData FindName(string Name, bool IgnoreCase = false, bool IgnoreWhiteSpace = false)
+            {
+                // Check if the content data is null (it should never be)
+                if (ContentData == null || Name == null)
                     return null;
-                }
+
+                // Check if the name needs to be adjusted
+                if (IgnoreCase)
+                    Name = Name.ToLower();
+                if (IgnoreWhiteSpace)
+                    Name = Name.Trim();
 
                 // Loop through all items until we find our item
                 foreach (ContentData data in ContentData)
+                {
+                    // Sanity check the item input
+                    if (data == null)
+                        continue;
+                    if (data.Name == null)
+                        continue;
+
+                    // Modify the name for comparsion
+                    string itemName = data.Name;
+                    if (IgnoreCase)
+                        itemName = itemName.ToLower();
+                    if (IgnoreWhiteSpace)
+                        itemName = itemName.Trim();
+
+                    // Check, if the entry matches
+                    if (data.Name == Name)
+                        return data;
+                }
+
+                // If we don't find anything return null
+                return null;
+            }
+
+            /// <summary>
+            /// Attempts to return an entry by its index.
+            /// </summary>
+            /// <param name="Index">The index that should be searched for.</param>
+            /// <returns>Returns the entry if it could be found. Null otherwise.</returns>
+            public ContentData FindIndex(uint Index)
+            {
+                // Check if the content data is null (it should never be)
+                if (ContentData == null)
+                    return null;
+
+                // Loop through all items until we find our item
+                foreach (ContentData data in ContentData)
+                {
+                    // Sanity check item
+                    if (data == null)
+                        continue;
+
+                    // Check the index
                     if (data.Index == Index)
                         return data;
+                }
 
                 // If we don't find anything return null
                 return null;

@@ -196,14 +196,14 @@ namespace ADM
                 string title = contentData.Name.Trim(), artist, album;
 
                 RequestIndexTable.ContentData artistEntry =
-                    currentArtistIndex.GetEntry(contentData.Artist);
+                    currentArtistIndex.FindIndex(contentData.Artist);
                 if (artistEntry == null)
                     artist = contentData.Artist.ToString();
                 else
                     artist = artistEntry.Name;
 
                 RequestIndexTable.ContentData albumEntry =
-                    currentAlbumIndex.GetEntry(contentData.Album);
+                    currentAlbumIndex.FindIndex(contentData.Album);
                 if (albumEntry == null)
                     album = contentData.Album.ToString();
                 else
