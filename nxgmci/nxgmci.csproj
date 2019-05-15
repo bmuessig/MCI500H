@@ -67,6 +67,7 @@
     <Compile Include="Protocol\DLNA\DLNAClient.cs" />
     <Compile Include="Protocol\NVRAM\MCI500NVRAM.cs" />
     <Compile Include="Protocol\NVRAM\NVRAMClient.cs" />
+    <Compile Include="Protocol\NVRAM\NVRAMParser.cs" />
     <Compile Include="Protocol\WADM\GetUpdateID.cs" />
     <Compile Include="Protocol\WADM\RequestPlaylistDelete.cs" />
     <Compile Include="Protocol\WADM\QueryDatabase.cs" />
