@@ -50,6 +50,7 @@ namespace nxgmci.Protocol.WADM
         /// </summary>
         public readonly bool HasWrappedList;
 
+        // The Regex templates
         private const string WRAP_REGEX = @"^\s*<{0}>\s*<{1}>\s*([\s\S]*)\s*<\/{1}>\s*<\/{0}>\s*$";
         private const string LIST_REGEX = @"^\s*<{0}>\s*([\s\S]*)\s*<\/{0}>\s*$";
         private const string LIST_WRAP_REGEX = @"^\s*<{0}>\s*<{1}>\s*([\s\S]*)\s*<{2}>\s*([\s\S]*)\s*<\/{2}>\s*([\s\S]*)\s*<\/{1}>\s*<\/{0}>\s*$";
@@ -187,7 +188,7 @@ namespace nxgmci.Protocol.WADM
             if (HasList && HasWrap && HasWrappedList)
             {
                 if (rootMatch.Groups.Count != 4)
-                    return Result<WADMProduct>.FailMessage(result, "The root group count was incorrect (should be 4)!");
+                    return Result<WADMProduct>.FailMessage(result, "The root group count was incorrect (was {0}, should be 4)!", rootMatch.Groups.Count);
                 if (!rootMatch.Groups[1].Success || !rootMatch.Groups[2].Success || !rootMatch.Groups[3].Success)
                     return Result<WADMProduct>.FailMessage(result, "One of the root content groups did not succeed!");
                 // Create the product
@@ -200,7 +201,7 @@ namespace nxgmci.Protocol.WADM
             else
             {
                 if (rootMatch.Groups.Count != 2)
-                    return Result<WADMProduct>.FailMessage(result, "The root group count was incorrect (should be 2)!");
+                    return Result<WADMProduct>.FailMessage(result, "The root group count was incorrect (was {0}, should be 2)!", rootMatch.Groups.Count);
                 if (!rootMatch.Groups[1].Success)
                     return Result<WADMProduct>.FailMessage(result, "The root content group did not succeed!");
                 if (HasList && !HasWrap && !HasWrappedList)
