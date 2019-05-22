@@ -1349,8 +1349,9 @@ namespace nxgmci.Protocol.WADM
         /// <param name="RequestPlayable">If true, a RequestPlayableData is used to make the request. Otherwise RequestNavData is used.</param>
         /// <param name="NodeID">Parent node ID to fetch the child elements from.</param>
         /// <param name="NumElem">Maximum number of elements (0 returns all elements).</param>
+        /// <param name="FromIndex">Offset index to base the query on.</param>
         /// <returns>A result object that contains a serialized version of the response data.</returns>
-        private Result<RequestPlayableNavData.ContentDataSet> RequestPlayableNavData(bool RequestPlayable, uint NodeID, uint NumElem)
+        private Result<RequestPlayableNavData.ContentDataSet> RequestPlayableNavData(bool RequestPlayable, uint NodeID, uint NumElem, uint FromIndex)
         {
             // Create the result object
             Result<RequestPlayableNavData.ContentDataSet> result = new Result<RequestPlayableNavData.ContentDataSet>();
@@ -1378,9 +1379,9 @@ namespace nxgmci.Protocol.WADM
 
             // Execute the request
             if (RequestPlayable)
-                queryResponse = Postmaster.PostXML(ipEndpoint, Path, WADM.RequestPlayableNavData.BuildPlayable(NodeID, NumElem), true);
+                queryResponse = Postmaster.PostXML(ipEndpoint, Path, WADM.RequestPlayableNavData.BuildPlayable(NodeID, NumElem, FromIndex), true);
             else
-                queryResponse = Postmaster.PostXML(ipEndpoint, Path, WADM.RequestPlayableNavData.BuildNav(NodeID, NumElem), true);
+                queryResponse = Postmaster.PostXML(ipEndpoint, Path, WADM.RequestPlayableNavData.BuildNav(NodeID, NumElem, FromIndex), true);
 
             // Check the result
             if (queryResponse == null)
@@ -1452,12 +1453,13 @@ namespace nxgmci.Protocol.WADM
         /// It accepts a parent node ID and a max. items parameter (count).
         /// Using the parameters 0,0 will fetch the index.
         /// </summary>
-        /// <param name="FromIndex">Parent node ID of the query.</param>
+        /// <param name="NodeID">Parent node ID of the query.</param>
         /// <param name="NumElem">Number of elements to be queried. Use zero to query all elements.</param>
+        /// <param name="FromIndex">Offset index to base the query on.</param>
         /// <returns>A result object that contains a serialized version of the response data.</returns>
-        public Result<RequestPlayableNavData.ContentDataSet> RequestPlayableData(uint NodeID = 0, uint NumElem = 0)
+        public Result<RequestPlayableNavData.ContentDataSet> RequestPlayableData(uint NodeID = 0, uint NumElem = 0, uint FromIndex = 0)
         {
-            return RequestPlayableNavData(true, NodeID, NumElem);
+            return RequestPlayableNavData(true, NodeID, NumElem, FromIndex);
         }
 
         /// <summary>
@@ -1465,12 +1467,13 @@ namespace nxgmci.Protocol.WADM
         /// It accepts a parent node ID and a max. items parameter (count).
         /// Using the parameters 0,0 will fetch the index.
         /// </summary>
-        /// <param name="FromIndex">Parent node ID of the query.</param>
+        /// <param name="NodeID">Parent node ID of the query.</param>
         /// <param name="NumElem">Number of elements to be queried. Use zero to query all elements.</param>
+        /// <param name="FromIndex">Offset index to base the query on.</param>
         /// <returns>A result object that contains a serialized version of the response data.</returns>
-        public Result<RequestPlayableNavData.ContentDataSet> RequestNavData(uint NodeID = 0, uint NumElem = 0)
+        public Result<RequestPlayableNavData.ContentDataSet> RequestNavData(uint NodeID = 0, uint NumElem = 0, uint FromIndex = 0)
         {
-            return RequestPlayableNavData(false, NodeID, NumElem);
+            return RequestPlayableNavData(false, NodeID, NumElem, FromIndex);
         }
 
         /// <summary>

@@ -20,8 +20,9 @@ namespace nxgmci.Protocol.WADM
         /// </summary>
         /// <param name="NodeID">Parent node ID to fetch the child elements from.</param>
         /// <param name="NumElem">Maximum number of elements (0 returns all elements).</param>
+        /// <param name="FromIndex">Offset index to base the query on.</param>
         /// <returns>A request string that can be passed to the stereo.</returns>
-        public static string BuildPlayable(uint NodeID, uint NumElem = 0)
+        public static string BuildPlayable(uint NodeID, uint NumElem = 0, uint FromIndex = 0)
         {
             int processedNumElem = (int)NumElem; // Potentional overflow here - probably not, as there can only be 30k-ish tracks
             if (NodeID == 0 && NumElem == 0)
@@ -31,9 +32,11 @@ namespace nxgmci.Protocol.WADM
                 "<requestplayabledata>" +
                 "<nodeid>{0}</nodeid>" +
                 "<numelem>{1}</numelem>" +
+                "<fromindex>{2}</fromindex>" +
                 "</requestplayabledata>",
                 NodeID,
-                processedNumElem);
+                processedNumElem,
+                FromIndex);
         }
 
         /// <summary>
@@ -41,8 +44,9 @@ namespace nxgmci.Protocol.WADM
         /// </summary>
         /// <param name="NodeID">Parent node ID to fetch the child elements from.</param>
         /// <param name="NumElem">Maximum number of elements (0 returns all elements).</param>
+        /// <param name="FromIndex">Offset index to base the query on.</param>
         /// <returns>A request string that can be passed to the stereo.</returns>
-        public static string BuildNav(uint NodeID, uint NumElem = 0)
+        public static string BuildNav(uint NodeID, uint NumElem = 0, uint FromIndex = 0)
         {
             int processedNumElem = (int)NumElem; // Potentional overflow here - probably not, as there can only be 30k-ish tracks
             if (NodeID == 0 && NumElem == 0)
@@ -52,9 +56,11 @@ namespace nxgmci.Protocol.WADM
                 "<requestnavdata>" +
                 "<nodeid>{0}</nodeid>" +
                 "<numelem>{1}</numelem>" +
+                "<fromindex>{2}</fromindex>" +
                 "</requestnavdata>",
                 NodeID,
-                processedNumElem);
+                processedNumElem,
+                FromIndex);
         }
 
         /// <summary>
@@ -554,7 +560,7 @@ namespace nxgmci.Protocol.WADM
             public readonly uint TotNumElem;
             
             /// <summary>
-            /// Echo of the request start index parameter.
+            /// Echo of the requested offset index to base the query on.
             /// </summary>
             public readonly uint FromIndex;
             
@@ -588,7 +594,7 @@ namespace nxgmci.Protocol.WADM
             /// </summary>
             /// <param name="ContentData">List of returned elements.</param>
             /// <param name="TotNumElem">Total number of elements that could potentionally be queried.</param>
-            /// <param name="FromIndex">Echo of the request start index parameter.</param>
+            /// <param name="FromIndex">Echo of the requested offset index to base the query on.</param>
             /// <param name="NumElem">Number of elements returned in this query.</param>
             /// <param name="UpdateID">Modification update ID.</param>
             /// <param name="Alphanumeric">Possibly indicates that the result is alphanumerically sorted by name.</param>
