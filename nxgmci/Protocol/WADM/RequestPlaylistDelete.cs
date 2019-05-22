@@ -120,7 +120,7 @@ namespace nxgmci.Protocol.WADM
             public readonly WADMStatus Status;
 
             /// <summary>
-            /// The update ID passed as a token. Equal to the originally supplied update ID + 1.
+            /// The modification update ID passed as a token. Equal to the originally supplied update ID + 1.
             /// </summary>
             public readonly uint UpdateID;
 
@@ -129,9 +129,13 @@ namespace nxgmci.Protocol.WADM
             /// </summary>
             /// <param name="Index">The index of the playlist created. Contained inside the default playlist item namespace.</param>
             /// <param name="Status">The status code returned for the query.</param>
-            /// <param name="UpdateID">The update ID passed as a token. Equal to the originally supplied update ID + 1.</param>
+            /// <param name="UpdateID">The modification update ID passed as a token. Equal to the originally supplied update ID + 1.</param>
             internal ResponseParameters(uint Index, WADMStatus Status, uint UpdateID)
             {
+                // Sanity check the input
+                if (Status == null)
+                    throw new ArgumentNullException("Status");
+
                 this.Index = Index;
                 this.Status = Status;
                 this.UpdateID = UpdateID;

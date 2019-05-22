@@ -104,6 +104,10 @@ namespace nxgmci.Protocol.WADM
             /// <param name="Status">Stores the status code returned for the operation.</param>
             internal ResponseParameters(WADMStatus Status)
             {
+                // Sanity check the input
+                if (Status == null)
+                    throw new ArgumentNullException("Status");
+
                 this.Status = Status;
             }
         }

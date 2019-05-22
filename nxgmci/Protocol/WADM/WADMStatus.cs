@@ -91,13 +91,16 @@ namespace nxgmci.Protocol.WADM
             return string.Format(string.IsNullOrWhiteSpace(reasonText) ? "{0}" : "{0}: {1}", statusText, reasonText);
         }
 
-        // This should attempt to parse the status first (before all other code in the requests runs)
-        // By checking the status field first, it can be determined if a reason could be expected
-        // If a reason is found, it is added to this class
-        // This class should probably be renamed to a better name like WADMStatus
-        // Classes that use this should use this class first to parse the status
-        // Then they check if the parsing succeeded
-        // If not, exit. If it suceeded, check the status code and proceed from there.
+        /// <summary>
+        /// This should attempt to parse the status fields before all other code in the requests runs.
+        /// By checking the status field first, it can be determined if a reason could be expected.
+        /// If a reason is found, it is added to this class.
+        /// Classes that use this should use this class first to parse the status. Then they should check if the parsing succeeded.
+        /// If not, exit. If it suceeded, check the status code and proceed from there.
+        /// </summary>
+        /// <param name="NodeElements">The parser collection of node elements.</param>
+        /// <param name="FailOnUnknown">Indicates whether to fail on an unknown status code or reason code.</param>
+        /// <returns>A result object that contains a serialized version of the response data.</returns>
         public static Result<WADMStatus> Parse(Dictionary<string, string> NodeElements, bool FailOnUnknown = true)
         {
             // Allocate the result object
