@@ -84,9 +84,9 @@ namespace nxgmci.Protocol.Delivery
         /// <param name="RemotePath">Remote path to upload to.</param>
         /// <param name="MediaStream">Stream to read the media file to be uploaded from.</param>
         /// <returns></returns>
-        public static Result PutMedia(IPEndPoint EndPoint, string RemotePath, Stream MediaStream)
+        public static Result PutMediaWithoutArt(IPEndPoint EndPoint, string RemotePath, Stream MediaStream)
         {
-            return PutMediaArt(EndPoint, RemotePath, MediaStream, null, null);
+            return PutMediaWithArt(EndPoint, RemotePath, MediaStream, null, null);
         }
 
         /// <summary>
@@ -98,7 +98,7 @@ namespace nxgmci.Protocol.Delivery
         /// <param name="AlbumArt">Encrypted buffer of the cropped, primary, full size album art in JPEG format.</param>
         /// <param name="AlbumArtThumbnail">Encrypted buffer of the cropped, thumbnail album art in JPEG format.</param>
         /// <returns></returns>
-        public static Result PutMediaArt(IPEndPoint EndPoint, string RemotePath, Stream MediaStream, byte[] AlbumArt, byte[] AlbumArtThumbnail)
+        public static Result PutMediaWithArt(IPEndPoint EndPoint, string RemotePath, Stream MediaStream, byte[] AlbumArt, byte[] AlbumArtThumbnail)
         {
             // Allocate the result
             Result result = new Result();
