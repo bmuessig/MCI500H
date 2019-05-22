@@ -21,7 +21,7 @@ namespace nxgmci.Protocol.WADM
         public static string Build(IPAddress DeliveryIP, ushort DeliveryPort, uint Timeout)
         {
             // If no IP is provided, just return null and cancel
-            if (DeliveryIP == null)
+            if (DeliveryIP == null || DeliveryPort == 0 || Timeout == 0)
                 return null;
             
             // And build the request

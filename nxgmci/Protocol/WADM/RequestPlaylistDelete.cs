@@ -22,6 +22,10 @@ namespace nxgmci.Protocol.WADM
         /// <returns>A request string that can be passed to the stereo.</returns>
         public static string Build(uint UpdateID, uint Index, string OriginalName = null)
         {
+            // Sanity check the input
+            if (Index == 0)
+                return null;
+
             // Normalize the names
             if (OriginalName == null)
                 OriginalName = string.Empty;
