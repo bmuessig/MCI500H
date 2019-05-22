@@ -10,6 +10,8 @@ namespace nxgmci.Protocol.WADM
     /// </summary>
     public class WADMParser
     {
+        // TODO: Check, if this can deal with Unicode strings
+
         /// <summary>
         /// The maximum length of an XML field.
         /// </summary>

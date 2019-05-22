@@ -20,10 +20,9 @@ namespace nxgmci.Protocol.WADM
         /// <returns>A request string that can be passed to the stereo.</returns>
         public static string Build(IPAddress DeliveryIP, ushort DeliveryPort, uint Timeout)
         {
-            // If no IP is provided, give 0.0.0.0
-            // It might be better to just return null and cancel
+            // If no IP is provided, just return null and cancel
             if (DeliveryIP == null)
-                DeliveryIP = new IPAddress(new byte[] {0, 0, 0, 0});
+                return null;
             
             // And build the request
             return string.Format(

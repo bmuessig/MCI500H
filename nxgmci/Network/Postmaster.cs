@@ -9,6 +9,12 @@ using System.Text.RegularExpressions;
 
 namespace nxgmci.Network
 {
+    // TODO:
+    // Make sure this handles Unicode well
+    // Also for an enforced textual reply, make sure that all characters are valid
+    // And try to check the contenttype header for a charset
+    // If none is given, try to infer it
+
     /// <summary>
     /// Class for quickly sending WADM API compatible HTTP 1.0 POST requests to the device.
     /// This static class is fully thread-safe.

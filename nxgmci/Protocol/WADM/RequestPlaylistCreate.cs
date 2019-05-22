@@ -15,6 +15,7 @@ namespace nxgmci.Protocol.WADM
 
         /// <summary>
         /// Assembles a RequestPlaylistCreate request to be passed to the stereo.
+        /// If the playlist name is null or white-space it will be replaced with 'New Playlist'.
         /// </summary>
         /// <param name="UpdateID">The update ID.</param>
         /// <param name="Name">The name of the new playlist.</param>

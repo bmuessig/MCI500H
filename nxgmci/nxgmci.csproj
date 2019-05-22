@@ -54,21 +54,24 @@
     <Compile Include="MediaLibrary.cs" />
     <Compile Include="MediaElement.cs" />
     <Compile Include="MediaUploader.cs" />
-    <Compile Include="Metadata\PlaylistItem.cs" />
-    <Compile Include="Metadata\PlaylistParser.cs" />
-    <Compile Include="Metadata\TagInfo.cs" />
-    <Compile Include="Metadata\TagParser.cs" />
+    <Compile Include="Metadata\Playlist\PlaylistItem.cs" />
+    <Compile Include="Metadata\Playlist\PlaylistParser.cs" />
+    <Compile Include="Metadata\Tag\TagInfo.cs" />
+    <Compile Include="Metadata\Tag\TagParser.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Include="Protocol\Delivery\Delivery.cs" />
     <Compile Include="Protocol\Delivery\DeliveryClient.cs" />
     <Compile Include="Protocol\DLNA\DLNAClient.cs" />
     <Compile Include="Protocol\NVRAM\MCI500NVRAM.cs" />
     <Compile Include="Protocol\NVRAM\NVRAMClient.cs" />
     <Compile Include="Protocol\NVRAM\NVRAMParser.cs" />
     <Compile Include="Protocol\WADM\GetUpdateID.cs" />
+    <Compile Include="Protocol\WADM\RequestObjectCreate.cs" />
+    <Compile Include="Protocol\WADM\RequestObjectDestroy.cs" />
     <Compile Include="Protocol\WADM\RequestPlaylistDelete.cs" />
     <Compile Include="Protocol\WADM\QueryDatabase.cs" />
     <Compile Include="Protocol\WADM\RequestPlaylistCreate.cs" />

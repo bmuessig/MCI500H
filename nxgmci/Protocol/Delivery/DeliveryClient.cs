@@ -25,22 +25,20 @@ namespace nxgmci.Protocol.Delivery
             this.Endpoint = Endpoint;
         }
 
-
-
         internal static uint ConnectTimeoutMilliseconds = 5000;
 
-        /*public static Exception PutAlbum(Bitmap AlbumArt, Stream MediaStream)
-        {
+        // Make this structure more dynamic
+        // There has to be a remote path parameter as well as a 
 
-        }
+        
 
-        public static Exception PutAlbum(Bitmap AlbumArt, byte[] MediaBytes)
+        /*public static Result PutAlbum(byte[] AlbumArt, byte[] AlbumArtThumbnail, byte[] MediaBytes)
         {
             // Convert the bytes to a memory stream
             MemoryStream memStream = new MemoryStream(MediaBytes) { Position = 0 };
 
             // And call the other function
-            //return PutAlbum(AlbumArt
+            return PutAlbum(AlbumArt, memStream);
         }*/
 
         /*public static bool PutAlbum(IPEndPoint EndPoint, string TargetPath, Bitmap AlbumArt, Stream PayloadStream)

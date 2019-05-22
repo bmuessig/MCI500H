@@ -15,6 +15,7 @@ using nxgmci.Cover;
 using nxgmci.Metadata;
 using nxgmci.Protocol.WADM;
 using nxgmci.Device;
+using nxgmci.Metadata.Playlist;
 
 namespace ADM
 {
