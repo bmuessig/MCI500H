@@ -1314,7 +1314,7 @@ namespace nxgmci.Protocol.WADM
         }
 
         /// <summary>
-        /// Attempts to create a new media file.
+        /// Attempts to create a new media file with album art.
         /// After this initial creation step, the file (and optional encrypted cover art) has to be uploaded via DeliveryClient within the timeout period.
         /// Using this request will update the client's update ID.
         /// </summary>
@@ -1439,6 +1439,27 @@ namespace nxgmci.Protocol.WADM
 
             // If not possible, return simple failure
             return Result<RequestObjectCreate.ResponseParameters>.FailMessage(result, "The parsing failed due to an unknown reason!");
+        }
+
+        /// <summary>
+        /// Attempts to create a new media file without album art.
+        /// After this initial creation step, the file (and optional encrypted cover art) has to be uploaded via DeliveryClient within the timeout period.
+        /// Using this request will update the client's update ID.
+        /// </summary>
+        /// <param name="Artist">The artist of the track.</param>
+        /// <param name="Album">The album of the track.</param>
+        /// <param name="Genre">The genre of the track according to the genre list.</param>
+        /// <param name="Name">The title of the track.</param>
+        /// <param name="TrackNum">The number of the track.</param>
+        /// <param name="Year">The year that the track was from.</param>
+        /// <param name="MediaType">The three letter file extension of the media file.</param>
+        /// <param name="DMMCookie">The unknown DMMCookie (seems to be ignored).</param>
+        /// <param name="Timeout">The upload timeout in seconds.</param>
+        /// <returns>A result object that contains a serialized version of the response data.</returns>
+        public Result<RequestObjectCreate.ResponseParameters> RequestObjectCreate(
+            string Artist, string Album, string Genre, string Name, uint TrackNum, uint Year, string MediaType, uint DMMCookie, uint Timeout)
+        {
+            return RequestObjectCreate(Artist, Album, Genre, Name, TrackNum, Year, MediaType, DMMCookie, Timeout);
         }
 
         /// <summary>
