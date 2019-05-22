@@ -1459,7 +1459,7 @@ namespace nxgmci.Protocol.WADM
         public Result<RequestObjectCreate.ResponseParameters> RequestObjectCreate(
             string Artist, string Album, string Genre, string Name, uint TrackNum, uint Year, string MediaType, uint DMMCookie, uint Timeout)
         {
-            return RequestObjectCreate(Artist, Album, Genre, Name, TrackNum, Year, MediaType, DMMCookie, Timeout);
+            return RequestObjectCreate(Artist, Album, Genre, Name, TrackNum, Year, MediaType, DMMCookie, Timeout, null, 0, 0);
         }
 
         /// <summary>
