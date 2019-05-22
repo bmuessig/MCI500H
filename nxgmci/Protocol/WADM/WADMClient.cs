@@ -204,11 +204,18 @@ namespace nxgmci.Protocol.WADM
             // Create the event result object
             Result<Postmaster.QueryResponse> queryResult = new Result<Postmaster.QueryResponse>();
 
-            // Allocate the shadow response text
-            string shadowResponse = string.Empty;
+            // Allocate the outbound query and shadow response text
+            string outboundQuery = null, shadowResponse = string.Empty;
+
+            // Build the query
+            outboundQuery = WADM.GetUpdateID.Build();
+
+            // Verify the query
+            if (string.IsNullOrWhiteSpace(outboundQuery))
+                result.FailMessage("The query string could not be built since invalid parameters were supplied!");
 
             // Execute the request
-            queryResponse = Postmaster.PostXML(ipEndpoint, Path, WADM.GetUpdateID.Build(), true);
+            queryResponse = Postmaster.PostXML(ipEndpoint, Path, outboundQuery, true);
 
             // Check the result
             if (queryResponse == null)
@@ -303,11 +310,18 @@ namespace nxgmci.Protocol.WADM
             // Create the event result object
             Result<Postmaster.QueryResponse> queryResult = new Result<Postmaster.QueryResponse>();
 
-            // Allocate the shadow response text
-            string shadowResponse = string.Empty;
+            // Allocate the outbound query and shadow response text
+            string outboundQuery = null, shadowResponse = string.Empty;
+
+            // Build the query
+            outboundQuery = WADM.QueryDatabase.Build();
+
+            // Verify the query
+            if (string.IsNullOrWhiteSpace(outboundQuery))
+                result.FailMessage("The query string could not be built since invalid parameters were supplied!");
 
             // Execute the request
-            queryResponse = Postmaster.PostXML(ipEndpoint, Path, WADM.QueryDatabase.Build(), true);
+            queryResponse = Postmaster.PostXML(ipEndpoint, Path, outboundQuery, true);
 
             // Check the result
             if (queryResponse == null)
@@ -401,11 +415,18 @@ namespace nxgmci.Protocol.WADM
             // Create the event result object
             Result<Postmaster.QueryResponse> queryResult = new Result<Postmaster.QueryResponse>();
 
-            // Allocate the shadow response text
-            string shadowResponse = string.Empty;
+            // Allocate the outbound query and shadow response text
+            string outboundQuery = null, shadowResponse = string.Empty;
+
+            // Build the query
+            outboundQuery = WADM.QueryDiskSpace.Build();
+
+            // Verify the query
+            if (string.IsNullOrWhiteSpace(outboundQuery))
+                result.FailMessage("The query string could not be built since invalid parameters were supplied!");
 
             // Execute the request
-            queryResponse = Postmaster.PostXML(ipEndpoint, Path, WADM.QueryDiskSpace.Build(), true);
+            queryResponse = Postmaster.PostXML(ipEndpoint, Path, outboundQuery, true);
 
             // Check the result
             if (queryResponse == null)
@@ -472,11 +493,18 @@ namespace nxgmci.Protocol.WADM
             // Create the event result object
             Result<Postmaster.QueryResponse> queryResult = new Result<Postmaster.QueryResponse>();
 
-            // Allocate the shadow response text
-            string shadowResponse = string.Empty;
+            // Allocate the outbound query and shadow response text
+            string outboundQuery = null, shadowResponse = string.Empty;
+
+            // Build the query
+            outboundQuery = WADM.SvcDbDump.Build();
+
+            // Verify the query
+            if (string.IsNullOrWhiteSpace(outboundQuery))
+                result.FailMessage("The query string could not be built since invalid parameters were supplied!");
 
             // Execute the request
-            queryResponse = Postmaster.PostXML(ipEndpoint, Path, WADM.SvcDbDump.Build(), true);
+            queryResponse = Postmaster.PostXML(ipEndpoint, Path, outboundQuery, true);
 
             // Check the result
             if (queryResponse == null)
@@ -546,11 +574,18 @@ namespace nxgmci.Protocol.WADM
             // Create the event result object
             Result<Postmaster.QueryResponse> queryResult = new Result<Postmaster.QueryResponse>();
 
-            // Allocate the shadow response text
-            string shadowResponse = string.Empty;
+            // Allocate the outbound query and shadow response text
+            string outboundQuery = null, shadowResponse = string.Empty;
+
+            // Build the query
+            outboundQuery = WADM.RequestIndexTable.BuildAlbum();
+
+            // Verify the query
+            if (string.IsNullOrWhiteSpace(outboundQuery))
+                result.FailMessage("The query string could not be built since invalid parameters were supplied!");
 
             // Execute the request
-            queryResponse = Postmaster.PostXML(ipEndpoint, Path, WADM.RequestIndexTable.BuildAlbum(), true);
+            queryResponse = Postmaster.PostXML(ipEndpoint, Path, outboundQuery, true);
 
             // Check the result
             if (queryResponse == null)
@@ -646,11 +681,18 @@ namespace nxgmci.Protocol.WADM
             // Create the event result object
             Result<Postmaster.QueryResponse> queryResult = new Result<Postmaster.QueryResponse>();
 
-            // Allocate the shadow response text
-            string shadowResponse = string.Empty;
+            // Allocate the outbound query and shadow response text
+            string outboundQuery = null, shadowResponse = string.Empty;
+
+            // Build the query
+            outboundQuery = WADM.RequestIndexTable.BuildArtist();
+
+            // Verify the query
+            if (string.IsNullOrWhiteSpace(outboundQuery))
+                result.FailMessage("The query string could not be built since invalid parameters were supplied!");
 
             // Execute the request
-            queryResponse = Postmaster.PostXML(ipEndpoint, Path, WADM.RequestIndexTable.BuildArtist(), true);
+            queryResponse = Postmaster.PostXML(ipEndpoint, Path, outboundQuery, true);
 
             // Check the result
             if (queryResponse == null)
@@ -746,11 +788,18 @@ namespace nxgmci.Protocol.WADM
             // Create the event result object
             Result<Postmaster.QueryResponse> queryResult = new Result<Postmaster.QueryResponse>();
 
-            // Allocate the shadow response text
-            string shadowResponse = string.Empty;
+            // Allocate the outbound query and shadow response text
+            string outboundQuery = null, shadowResponse = string.Empty;
+
+            // Build the query
+            outboundQuery = WADM.RequestIndexTable.BuildGenre();
+
+            // Verify the query
+            if (string.IsNullOrWhiteSpace(outboundQuery))
+                result.FailMessage("The query string could not be built since invalid parameters were supplied!");
 
             // Execute the request
-            queryResponse = Postmaster.PostXML(ipEndpoint, Path, WADM.RequestIndexTable.BuildGenre(), true);
+            queryResponse = Postmaster.PostXML(ipEndpoint, Path, outboundQuery, true);
 
             // Check the result
             if (queryResponse == null)
@@ -848,11 +897,18 @@ namespace nxgmci.Protocol.WADM
             // Create the event result object
             Result<Postmaster.QueryResponse> queryResult = new Result<Postmaster.QueryResponse>();
 
-            // Allocate the shadow response text
-            string shadowResponse = string.Empty;
+            // Allocate the outbound query and shadow response text
+            string outboundQuery = null, shadowResponse = string.Empty;
+
+            // Build the query
+            outboundQuery = WADM.RequestUriMetaData.Build();
+
+            // Verify the query
+            if (string.IsNullOrWhiteSpace(outboundQuery))
+                result.FailMessage("The query string could not be built since invalid parameters were supplied!");
 
             // Execute the request
-            queryResponse = Postmaster.PostXML(ipEndpoint, Path, WADM.RequestUriMetaData.Build(), true);
+            queryResponse = Postmaster.PostXML(ipEndpoint, Path, outboundQuery, true);
 
             // Check the result
             if (queryResponse == null)
@@ -952,11 +1008,18 @@ namespace nxgmci.Protocol.WADM
             // Create the event result object
             Result<Postmaster.QueryResponse> queryResult = new Result<Postmaster.QueryResponse>();
 
-            // Allocate the shadow response text
-            string shadowResponse = string.Empty;
+            // Allocate the outbound query and shadow response text
+            string outboundQuery = null, shadowResponse = string.Empty;
+
+            // Build the query
+            outboundQuery = WADM.RequestPlaylistCreate.Build(this.UpdateID, Name);
+
+            // Verify the query
+            if (string.IsNullOrWhiteSpace(outboundQuery))
+                result.FailMessage("The query string could not be built since invalid parameters were supplied!");
 
             // Execute the request
-            queryResponse = Postmaster.PostXML(ipEndpoint, Path, WADM.RequestPlaylistCreate.Build(this.UpdateID, Name), true);
+            queryResponse = Postmaster.PostXML(ipEndpoint, Path, outboundQuery, true);
 
             // Check the result
             if (queryResponse == null)
@@ -1060,11 +1123,18 @@ namespace nxgmci.Protocol.WADM
             // Create the event result object
             Result<Postmaster.QueryResponse> queryResult = new Result<Postmaster.QueryResponse>();
 
-            // Allocate the shadow response text
-            string shadowResponse = string.Empty;
+            // Allocate the outbound query and shadow response text
+            string outboundQuery = null, shadowResponse = string.Empty;
+
+            // Build the query
+            outboundQuery = WADM.RequestPlaylistRename.Build(this.UpdateID, Index, Name, OriginalName);
+
+            // Verify the query
+            if (string.IsNullOrWhiteSpace(outboundQuery))
+                result.FailMessage("The query string could not be built since invalid parameters were supplied!");
 
             // Execute the request
-            queryResponse = Postmaster.PostXML(ipEndpoint, Path, WADM.RequestPlaylistRename.Build(this.UpdateID, Index, Name, OriginalName), true);
+            queryResponse = Postmaster.PostXML(ipEndpoint, Path, outboundQuery, true);
 
             // Check the result
             if (queryResponse == null)
@@ -1165,11 +1235,18 @@ namespace nxgmci.Protocol.WADM
             // Create the event result object
             Result<Postmaster.QueryResponse> queryResult = new Result<Postmaster.QueryResponse>();
 
-            // Allocate the shadow response text
-            string shadowResponse = string.Empty;
+            // Allocate the outbound query and shadow response text
+            string outboundQuery = null, shadowResponse = string.Empty;
+            
+            // Build the query
+            outboundQuery = WADM.RequestPlaylistDelete.Build(this.UpdateID, Index, OriginalName);
+            
+            // Verify the query
+            if (string.IsNullOrWhiteSpace(outboundQuery))
+                result.FailMessage("The query string could not be built since invalid parameters were supplied!");
 
             // Execute the request
-            queryResponse = Postmaster.PostXML(ipEndpoint, Path, WADM.RequestPlaylistDelete.Build(this.UpdateID, Index, OriginalName), true);
+            queryResponse = Postmaster.PostXML(ipEndpoint, Path, outboundQuery, true);
 
             // Check the result
             if (queryResponse == null)
@@ -1237,6 +1314,234 @@ namespace nxgmci.Protocol.WADM
         }
 
         /// <summary>
+        /// Attempts to create a new media file.
+        /// After this initial creation step, the file (and optional encrypted cover art) has to be uploaded via DeliveryClient within the timeout period.
+        /// Using this request will update the client's update ID.
+        /// </summary>
+        /// <param name="Artist">The artist of the track.</param>
+        /// <param name="Album">The album of the track.</param>
+        /// <param name="Genre">The genre of the track according to the genre list.</param>
+        /// <param name="Name">The title of the track.</param>
+        /// <param name="TrackNum">The number of the track.</param>
+        /// <param name="Year">The year that the track was from.</param>
+        /// <param name="MediaType">The three letter file extension of the media file.</param>
+        /// <param name="DMMCookie">The unknown DMMCookie (seems to be ignored).</param>
+        /// <param name="Timeout">The upload timeout in seconds.</param>
+        /// <param name="AlbumArtHash">The MD5 hash of the primariy album art.</param>
+        /// <param name="AlbumArtFileSize">The file size in bytes of the primary album art.</param>
+        /// <param name="AlbumArtTnFileSize">The file size in bytes of the thumbnail of the album art.</param>
+        /// <returns>A result object that contains a serialized version of the response data.</returns>
+        public Result<RequestObjectCreate.ResponseParameters> RequestObjectCreate(
+            string Artist, string Album, string Genre, string Name, uint TrackNum, uint Year,
+            string MediaType, uint DMMCookie, uint Timeout, string AlbumArtHash, uint AlbumArtFileSize, uint AlbumArtTnFileSize)
+        {
+            // Create the result object
+            Result<RequestObjectCreate.ResponseParameters> result = new Result<RequestObjectCreate.ResponseParameters>();
+
+            // Allocate the temporary settings variables
+            bool validateInput, looseSyntax, freezeUpdateID;
+
+            // Fetch the settings thread-safe and ahead of time
+            lock (settingsLock)
+            {
+                validateInput = this.validateInput;
+                looseSyntax = this.looseSyntax;
+                freezeUpdateID = this.freezeUpdateID;
+            }
+
+            // Allocate the response objects
+            Postmaster.QueryResponse queryResponse;
+            Result<RequestObjectCreate.ResponseParameters> parseResult;
+
+            // Create the event result object
+            Result<Postmaster.QueryResponse> queryResult = new Result<Postmaster.QueryResponse>();
+
+            // Allocate the shadow response text
+            string outboundQuery = null, shadowResponse = string.Empty;
+
+            // Execute the request
+            if (AlbumArtHash == null && AlbumArtFileSize == 0 && AlbumArtTnFileSize == 0)
+                outboundQuery = WADM.RequestObjectCreate.BuildWithoutAlbumArt(this.UpdateID,
+                    Artist, Album, Genre, Name, TrackNum, Year, MediaType, DMMCookie, Timeout, true);
+            else if (!string.IsNullOrWhiteSpace(AlbumArtHash) && AlbumArtFileSize > 0 && AlbumArtTnFileSize > 0)
+                outboundQuery = WADM.RequestObjectCreate.BuildWithAlbumArt(this.UpdateID,
+                    Artist, Album, Genre, Name, TrackNum, Year, MediaType, DMMCookie, Timeout, AlbumArtHash, AlbumArtFileSize, AlbumArtTnFileSize, true);
+            else
+                result.FailMessage("An invalid combination of arguments was supplied!");
+
+            // Verify the query
+            if (string.IsNullOrWhiteSpace(outboundQuery))
+                result.FailMessage("The query string could not be built since invalid parameters were supplied!");
+
+            // Execute the query
+            queryResponse = Postmaster.PostXML(ipEndpoint, Path, outboundQuery);
+
+            // Check the result
+            if (queryResponse == null)
+                result.FailMessage("The query response was null!");
+            else if (!queryResponse.Success)
+                result.FailErrorMessage(new Exception(queryResponse.Message), "The query failed!");
+            else if (!queryResponse.IsTextualReponse || string.IsNullOrWhiteSpace(queryResponse.TextualResponse))
+                result.FailMessage("The query response was invalid!");
+            else // Store a shadow copy of the response, as the query response is passed to the callee via an event and might later be compromised
+                shadowResponse = string.Copy(queryResponse.TextualResponse.Trim());
+
+            // Raise the event
+            OnResponseReceived(new ResultEventArgs<Postmaster.QueryResponse>(
+                Result<Postmaster.QueryResponse>.SucceedProduct(queryResult, queryResponse, "RequestObjectCreate")));
+
+            // Check, if the process failed
+            if (result.Finalized)
+                return result;
+
+            // Parse the response
+            parseResult = WADM.RequestObjectCreate.Parse(shadowResponse, validateInput, looseSyntax);
+
+            // Sanity check the result
+            if (parseResult == null)
+                return Result<RequestObjectCreate.ResponseParameters>.FailMessage(result, "The parsed result was null!");
+            if (parseResult.Success && (!parseResult.HasProduct || parseResult.Product == null))
+                return Result<RequestObjectCreate.ResponseParameters>.FailMessage(result, "The parsed product was invalid!");
+
+            // Check, if the result is a success
+            if (parseResult.Success)
+            {
+                // Store the current and previous update ID, as well as allocate an flag that stores whether the field was updated
+                uint newUpdateID = parseResult.Product.UpdateID, oldUpdateID = 0;
+                bool wasUpdated = false;
+
+                // Check, if the update ID may be updated automatically
+                if (!freezeUpdateID && newUpdateID != 0)
+                {
+                    // Lock the updating for thread-safety
+                    lock (updateIDLock)
+                    {
+                        // Store the previous update ID
+                        oldUpdateID = this.updateID;
+
+                        // If the two update IDs differ, update the old one
+                        if ((wasUpdated = (oldUpdateID != newUpdateID)))
+                            this.updateID = newUpdateID;
+                    }
+                }
+
+                // Check, if anything was updated and raise the update event if true
+                if (wasUpdated)
+                    OnUpdateIDChanged(new UpdateIDEventArgs(newUpdateID, true, oldUpdateID));
+
+                // Return the result
+                return Result<RequestObjectCreate.ResponseParameters>.SucceedProduct(result, parseResult.Product, parseResult.Message);
+            }
+
+            // Try to return a detailed error
+            if (parseResult.Error != null)
+                return Result<RequestObjectCreate.ResponseParameters>.FailErrorMessage(result, parseResult.Error, "The parsing failed!");
+
+            // If not possible, return simple failure
+            return Result<RequestObjectCreate.ResponseParameters>.FailMessage(result, "The parsing failed due to an unknown reason!");
+        }
+
+        /// <summary>
+        /// Attempts to delete a media file.
+        /// Using this request will update the client's update ID.
+        /// </summary>
+        /// <param name="Index">The universal index of the media file to be deleted.</param>
+        /// <returns>A result object that contains a serialized version of the response data.</returns>
+        public Result<RequestObjectDestroy.ResponseParameters> RequestObjectDestroy(uint Index)
+        {
+            // Create the result object
+            Result<RequestObjectDestroy.ResponseParameters> result = new Result<RequestObjectDestroy.ResponseParameters>();
+
+            // Allocate the temporary settings variables
+            bool validateInput, looseSyntax, freezeUpdateID;
+
+            // Fetch the settings thread-safe and ahead of time
+            lock (settingsLock)
+            {
+                validateInput = this.validateInput;
+                looseSyntax = this.looseSyntax;
+                freezeUpdateID = this.freezeUpdateID;
+            }
+
+            // Allocate the response objects
+            Postmaster.QueryResponse queryResponse;
+            Result<RequestObjectDestroy.ResponseParameters> parseResult;
+
+            // Create the event result object
+            Result<Postmaster.QueryResponse> queryResult = new Result<Postmaster.QueryResponse>();
+
+            // Allocate the shadow response text
+            string shadowResponse = string.Empty;
+
+            // Execute the request
+            queryResponse = Postmaster.PostXML(ipEndpoint, Path, WADM.RequestObjectDestroy.Build(this.UpdateID, Index), true);
+
+            // Check the result
+            if (queryResponse == null)
+                result.FailMessage("The query response was null!");
+            else if (!queryResponse.Success)
+                result.FailErrorMessage(new Exception(queryResponse.Message), "The query failed!");
+            else if (!queryResponse.IsTextualReponse || string.IsNullOrWhiteSpace(queryResponse.TextualResponse))
+                result.FailMessage("The query response was invalid!");
+            else // Store a shadow copy of the response, as the query response is passed to the callee via an event and might later be compromised
+                shadowResponse = string.Copy(queryResponse.TextualResponse.Trim());
+
+            // Raise the event
+            OnResponseReceived(new ResultEventArgs<Postmaster.QueryResponse>(
+                Result<Postmaster.QueryResponse>.SucceedProduct(queryResult, queryResponse, "RequestObjectDestroy")));
+
+            // Check, if the process failed
+            if (result.Finalized)
+                return result;
+
+            // Parse the response
+            parseResult = WADM.RequestObjectDestroy.Parse(shadowResponse, validateInput, looseSyntax);
+
+            // Sanity check the result
+            if (parseResult == null)
+                return Result<RequestObjectDestroy.ResponseParameters>.FailMessage(result, "The parsed result was null!");
+            if (parseResult.Success && (!parseResult.HasProduct || parseResult.Product == null))
+                return Result<RequestObjectDestroy.ResponseParameters>.FailMessage(result, "The parsed product was invalid!");
+
+            // Check, if the result is a success
+            if (parseResult.Success)
+            {
+                // Store the current and previous update ID, as well as allocate an flag that stores whether the field was updated
+                uint newUpdateID = parseResult.Product.UpdateID, oldUpdateID = 0;
+                bool wasUpdated = false;
+
+                // Check, if the update ID may be updated automatically
+                if (!freezeUpdateID && newUpdateID != 0)
+                {
+                    // Lock the updating for thread-safety
+                    lock (updateIDLock)
+                    {
+                        // Store the previous update ID
+                        oldUpdateID = this.updateID;
+
+                        // If the two update IDs differ, update the old one
+                        if ((wasUpdated = (oldUpdateID != newUpdateID)))
+                            this.updateID = newUpdateID;
+                    }
+                }
+
+                // Check, if anything was updated and raise the update event if true
+                if (wasUpdated)
+                    OnUpdateIDChanged(new UpdateIDEventArgs(newUpdateID, true, oldUpdateID));
+
+                // Return the result
+                return Result<RequestObjectDestroy.ResponseParameters>.SucceedProduct(result, parseResult.Product, parseResult.Message);
+            }
+
+            // Try to return a detailed error
+            if (parseResult.Error != null)
+                return Result<RequestObjectDestroy.ResponseParameters>.FailErrorMessage(result, parseResult.Error, "The parsing failed!");
+
+            // If not possible, return simple failure
+            return Result<RequestObjectDestroy.ResponseParameters>.FailMessage(result, "The parsing failed due to an unknown reason!");
+        }
+
+        /// <summary>
         /// This request is used to fetch title data in chunks or as a whole.
         /// It accepts both a start index (skip) and a max. items parameter (count).
         /// Using the parameters 0,0 will fetch all titles. This is not recommended for large databases.
@@ -1272,11 +1577,18 @@ namespace nxgmci.Protocol.WADM
             // Create the event result object
             Result<Postmaster.QueryResponse> queryResult = new Result<Postmaster.QueryResponse>();
 
-            // Allocate the shadow response text
-            string shadowResponse = string.Empty;
+            // Allocate the outbound query and shadow response text
+            string outboundQuery = null, shadowResponse = string.Empty;
+
+            // Build the query
+            outboundQuery = WADM.RequestRawData.Build(FromIndex, NumElem);
+
+            // Verify the query
+            if (string.IsNullOrWhiteSpace(outboundQuery))
+                result.FailMessage("The query string could not be built since invalid parameters were supplied!");
 
             // Execute the request
-            queryResponse = Postmaster.PostXML(ipEndpoint, Path, WADM.RequestRawData.Build(FromIndex, NumElem), true);
+            queryResponse = Postmaster.PostXML(ipEndpoint, Path, outboundQuery, true);
 
             // Check the result
             if (queryResponse == null)
@@ -1374,14 +1686,21 @@ namespace nxgmci.Protocol.WADM
             // Create the event result object
             Result<Postmaster.QueryResponse> queryResult = new Result<Postmaster.QueryResponse>();
 
-            // Allocate the shadow response text
-            string shadowResponse = string.Empty;
+            // Allocate the outbound query and shadow response text
+            string outboundQuery = null, shadowResponse = string.Empty;
+
+            // Build the query
+            if (RequestPlayable)
+                outboundQuery = WADM.RequestPlayableNavData.BuildPlayable(NodeID, NumElem, FromIndex);
+            else
+                outboundQuery = WADM.RequestPlayableNavData.BuildNav(NodeID, NumElem, FromIndex);
+
+            // Verify the query
+            if (string.IsNullOrWhiteSpace(outboundQuery))
+                result.FailMessage("The query string could not be built since invalid parameters were supplied!");
 
             // Execute the request
-            if (RequestPlayable)
-                queryResponse = Postmaster.PostXML(ipEndpoint, Path, WADM.RequestPlayableNavData.BuildPlayable(NodeID, NumElem, FromIndex), true);
-            else
-                queryResponse = Postmaster.PostXML(ipEndpoint, Path, WADM.RequestPlayableNavData.BuildNav(NodeID, NumElem, FromIndex), true);
+            queryResponse = Postmaster.PostXML(ipEndpoint, Path, outboundQuery, true);
 
             // Check the result
             if (queryResponse == null)
