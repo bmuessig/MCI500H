@@ -189,7 +189,6 @@ namespace nxgmci.Protocol.WADM
 
             // Then, try to parse the parameters
             uint updateID, index;
-            string importResource;
 
             if (!uint.TryParse(parserResult.Product.Elements["updateid"], out updateID))
                 return Result<ResponseParameters>.FailMessage(result, "Could not parse parameter '{0}' as uint!", "updateid");
@@ -199,8 +198,15 @@ namespace nxgmci.Protocol.WADM
             // And parse the virtual import resource path
             Result<RemotePath> remotePathResult = RemotePath.Parse(parserResult.Product.Elements["importresource"], ValidateInput);
 
+            // Check if it failed
+            if (!remotePathResult.Success)
+                if (remotePathResult.Error != null)
+                    return Result<ResponseParameters>.FailErrorMessage(result, remotePathResult.Error, "The remote path parsing failed!");
+                else
+                    return Result<ResponseParameters>.FailMessage(result, "The remote path parsing failed for unknown reasons!");
+
             // Finally, return the response
-            return null; // Result<ResponseParameters>.SucceedProduct(result, new ResponseParameters(statusResult.Product));
+            return Result<ResponseParameters>.SucceedProduct(result, new ResponseParameters(updateID, index, remotePathResult.Product, statusResult.Product));
         }
 
         /// <summary>
@@ -250,6 +256,9 @@ namespace nxgmci.Protocol.WADM
             }
         }
 
+        /// <summary>
+        /// Provides a parsed representation of the virtual import resource URL used for DeliveryClient uploading.
+        /// </summary>
         public class RemotePath
         {
             /// <summary>
@@ -257,29 +266,44 @@ namespace nxgmci.Protocol.WADM
             /// </summary>
             public readonly string URL;
 
-            // TODO: Decide whether to use endpoint or IP address
+            /// <summary>
+            /// The remote upload path to be passed to the DeliveryClient.
+            /// </summary>
+            public readonly string Path;
 
-            public readonly EndPoint ep;
-
-            public readonly IPAddress IPAddress;
-
-            public readonly ushort Port;
+            /// <summary>
+            /// The remote network endpoint.
+            /// </summary>
+            public readonly EndPoint EndPoint;
 
             // Regex for dissecting the URL
             // First group: IPv4 string - for verification with the existing info only
-            // Second group: Optional port number - has precedence over the default one, if present and non-zero
+            // Second group: Port number - has precedence over the default one, if present and non-zero
             // Third group: Remote upload path with leading slash to be passed to the DeliveryClient
-            private const string QUERY_REGEX = @"^\s*http:\/\/((?:\d+\.){3}\d+)(?::(\d+))?([\w-\/\.]+\.\w{3})\s*$";
+            private const string URL_REGEX = @"^\s*http:\/\/((?:\d+\.){3}\d+):(\d+)([\w-\/\.]+\.\w{3})\s*$";
 
-            private static Regex queryRegex = new Regex(QUERY_REGEX, RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.Singleline);
+            // The parser Regex
+            private static Regex urlRegex = new Regex(URL_REGEX, RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.Singleline);
 
             /// <summary>
             /// Private constructor. Parse is used to create this object.
             /// </summary>
-            /// <param name="URL"></param>
-            private RemotePath(string URL)
+            /// <param name="URL">The "fake" remote URL to push the new media via DeliveryClient to.</param>
+            /// <param name="Path">The remote upload path to be passed to the DeliveryClient.</param>
+            /// <param name="EndPoint">The remote network endpoint.</param>
+            private RemotePath(string URL, string Path, EndPoint EndPoint)
             {
+                // Sanity check the input
+                if (string.IsNullOrWhiteSpace(URL))
+                    throw new ArgumentNullException("URL");
+                if (string.IsNullOrWhiteSpace(Path))
+                    throw new ArgumentNullException("Path");
+                if (EndPoint == null)
+                    throw new ArgumentNullException("EndPoint");
 
+                this.URL = URL;
+                this.Path = Path;
+                this.EndPoint = EndPoint;
             }
 
             /// <summary>
@@ -290,7 +314,51 @@ namespace nxgmci.Protocol.WADM
             /// <returns>A result object that contains a parsed version of the response data.</returns>
             public static Result<RemotePath> Parse(string ImportResourceURL, bool ValidateInput)
             {
-                throw new NotImplementedException();
+                // Allocate the result object
+                Result<RemotePath> result = new Result<RemotePath>();
+                
+                // Sanity check the input
+                if (string.IsNullOrWhiteSpace(ImportResourceURL))
+                    return Result<RemotePath>.FailError(result, new ArgumentNullException("ImportResourceURL"));
+
+                // Parse the resource URL
+                Match match = urlRegex.Match(ImportResourceURL);
+
+                // Check if it failed
+                if (!match.Success)
+                    return Result<RemotePath>.FailMessage(result, "The import resource URL did not match the expected format!");
+                if (match.Groups.Count != 4)
+                    return Result<RemotePath>.FailMessage(result, "The import resource URL did not have the expected number of groups (was {0}, should be 4)!");
+                
+                // Try to parse the IP first
+                IPAddress ipAddress;
+                if (!IPAddress.TryParse(match.Groups[1].Value.Trim(), out ipAddress))
+                    return Result<RemotePath>.FailMessage(result, "Could not parse the resource URL's IP address!");
+
+                // Next, try to parse the port
+                ushort port;
+                if (!ushort.TryParse(match.Groups[2].Value.Trim(), out port))
+                    return Result<RemotePath>.FailMessage(result, "Could not parse the resource URL's port as ushort!");
+
+                // Then, assemble the endpoint
+                IPEndPoint endpoint = new IPEndPoint(ipAddress, (int)port);
+
+                // Last, get the path
+                string path = match.Groups[3].Value.Trim();
+
+                // Check, if the input needs to be validated
+                if (ValidateInput)
+                {
+                    if (port == 0)
+                        return Result<RemotePath>.FailMessage(result, "port == 0");
+                    if (match.Groups[1].Value.Trim() == "0.0.0.0")
+                        return Result<RemotePath>.FailMessage(result, "ip == 0.0.0.0");
+                    if (string.IsNullOrWhiteSpace(path))
+                        return Result<RemotePath>.FailMessage(result, "path is null or white-space!");
+                }
+
+                // Return the result
+                return Result<RemotePath>.SucceedProduct(result, new RemotePath(ImportResourceURL.Trim(), path, endpoint));
             }
         }
     }
