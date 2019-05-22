@@ -192,12 +192,24 @@ namespace nxgmci.Protocol.WADM
                 return Result<ResponseParameters>.FailMessage(result, "Could not locate parameter '{0}'!", "importresource");
 
             // Then, try to parse the parameters
-            uint updateID, index;
+            uint updateID, index, albumArtResource = 0;
+            bool hasAlbumArt = false;
 
             if (!uint.TryParse(parserResult.Product.Elements["updateid"], out updateID))
                 return Result<ResponseParameters>.FailMessage(result, "Could not parse parameter '{0}' as uint!", "updateid");
             if (!uint.TryParse(parserResult.Product.Elements["index"], out index))
                 return Result<ResponseParameters>.FailMessage(result, "Could not parse parameter '{0}' as uint!", "index");
+
+            // Check for album art
+            if (parserResult.Product.Elements.ContainsKey("albumartresource"))
+            {
+                // Set the flag
+                hasAlbumArt = true;
+
+                // And try to get the value
+                if (!uint.TryParse(parserResult.Product.Elements["albumartresource"], out albumArtResource))
+                    return Result<ResponseParameters>.FailMessage(result, "Could not parse parameter '{0}' as uint!", "albumartresource");
+            }
             
             // And parse the virtual import resource path
             Result<RemotePath> remotePathResult = RemotePath.Parse(parserResult.Product.Elements["importresource"], ValidateInput);
@@ -210,7 +222,8 @@ namespace nxgmci.Protocol.WADM
                     return Result<ResponseParameters>.FailMessage(result, "The remote path parsing failed for unknown reasons!");
 
             // Finally, return the response
-            return Result<ResponseParameters>.SucceedProduct(result, new ResponseParameters(updateID, index, remotePathResult.Product, statusResult.Product));
+            return Result<ResponseParameters>.SucceedProduct(result, new ResponseParameters(updateID, index, remotePathResult.Product, statusResult.Product,
+                hasAlbumArt, albumArtResource));
         }
 
         /// <summary>
@@ -239,13 +252,25 @@ namespace nxgmci.Protocol.WADM
             public readonly WADMStatus Status;
 
             /// <summary>
+            /// Indicates whether the created object will feature album art.
+            /// </summary>
+            public readonly bool HasAlbumArt;
+
+            /// <summary>
+            /// The ID of the to be uploaded album art resource (if present).
+            /// </summary>
+            public readonly uint AlbumArtResource;
+
+            /// <summary>
             /// Default internal constructor.
             /// </summary>
             /// <param name="UpdateID">The modification update ID passed as a token. Equal to the originally supplied update ID + 1.</param>
             /// <param name="Index">The universal database index of the new object to be created.</param>
             /// <param name="ImportResource">The virtual path that the media needs to be uploaded to.</param>
             /// <param name="Status">Stores the status code returned for the operation.</param>
-            internal ResponseParameters(uint UpdateID, uint Index, RemotePath ImportResource, WADMStatus Status)
+            /// <param name="HasAlbumArt">Indicates whether the created object will feature album art.</param>
+            /// <param name="AlbumArtResource">The ID of the to be uploaded album art resource (if present).</param>
+            internal ResponseParameters(uint UpdateID, uint Index, RemotePath ImportResource, WADMStatus Status, bool HasAlbumArt = false, uint AlbumArtResource = 0)
             {
                 // Sanity check the input
                 if (Status == null)
@@ -257,6 +282,8 @@ namespace nxgmci.Protocol.WADM
                 this.Index = Index;
                 this.ImportResource = ImportResource;
                 this.Status = Status;
+                this.HasAlbumArt = HasAlbumArt;
+                this.AlbumArtResource = AlbumArtResource;
             }
         }
 
