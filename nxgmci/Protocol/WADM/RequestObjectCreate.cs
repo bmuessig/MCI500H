@@ -3,35 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Net;
+using System.Text.RegularExpressions;
 
 namespace nxgmci.Protocol.WADM
 {
     public class RequestObjectCreate
     {
-
-        /*
-        <requestobjectcreate>
-            <requestparameters>
-                <updateid>534</updateid>
-                <artist>AAA</artist>
-                <album>BBB</album>
-                <genre>Rock</genre>
-                <name>CCC</name>
-                <tracknum></tracknum>
-                <year></year>
-                <mediatype>mp3</mediatype>
-                <dmmcookie>1438240788</dmmcookie>
-                <timeout>10</timeout>
-                <sortdatabase>1</sortdatabase>
-            </requestparameters>
-        </requestobjectcreate>
-         * ...
-         * <timeout/>
-         * <albumarthash>c8350b47212248bc3c6b1e559bd822d1</albumarthash>
-        <albumartfilesize>11293</albumartfilesize>
-        <albumarttnfilesize>1252</albumarttnfilesize>
-         * <sortdatabase/>
-         */
+        // RequestObjectCreate Parser
+        private readonly static WADMParser parser = new WADMParser("requestobjectcreate", "responseparameters", false);
 
         /// <summary>
         /// Assembles a RequestObjectCreate request without album art to be passed to the stereo.
@@ -152,12 +131,133 @@ namespace nxgmci.Protocol.WADM
                 SortDatabase ? 1 : 0);
         }
 
+        /// <summary>
+        /// Parses RequestObjectCreate's ResponseParameters and returns the result.
+        /// </summary>
+        /// <param name="Response">The response received from the stereo.</param>
+        /// <param name="ValidateInput">Indicates whether to validate the data values received.</param>
+        /// <param name="LazySyntax">Indicates whether to ignore minor syntax errors.</param>
+        /// <returns>A result object that contains a serialized version of the response data.</returns>
+        public static Result<ResponseParameters> Parse(string Response, bool ValidateInput = true, bool LazySyntax = false)
+        {
+            // Allocate the result object
+            Result<ResponseParameters> result = new Result<ResponseParameters>();
+
+            // Make sure the response is not null
+            if (string.IsNullOrWhiteSpace(Response))
+                return Result<ResponseParameters>.FailMessage(result, "The response may not be null!");
+
+            // Then, parse the response
+            Result<WADMProduct> parserResult = parser.Parse(Response, LazySyntax);
+
+            // Check if it failed
+            if (!parserResult.Success)
+                if (parserResult.Error != null)
+                    return Result<ResponseParameters>.FailErrorMessage(result, parserResult.Error, "The parsing failed!");
+                else
+                    return Result<ResponseParameters>.FailMessage(result, "The parsing failed for unknown reasons!");
+
+            // Make sure the product is there
+            if (parserResult.Product == null)
+                return Result<ResponseParameters>.FailMessage(result, "The parsing product was null!");
+
+            // And also make sure that the state is correct
+            if (parserResult.Product.Elements == null)
+                return Result<ResponseParameters>.FailMessage(result, "The list of parsed elements is null!");
+
+            // Try to parse the status
+            Result<WADMStatus> statusResult = WADMStatus.Parse(parserResult.Product.Elements, ValidateInput);
+
+            // Check if it failed
+            if (!statusResult.Success)
+                if (statusResult.Error != null)
+                    return Result<ResponseParameters>.FailErrorMessage(result, statusResult.Error, "The status code parsing failed!");
+                else
+                    return Result<ResponseParameters>.FailMessage(result, "The status code parsing failed for unknown reasons!");
+
+            // Make sure the product is there
+            if (statusResult.Product == null)
+                return Result<ResponseParameters>.FailMessage(result, "The status code parsing product was null!");
+
+            // Now, make sure our mandatory arguments exist
+            if (!parserResult.Product.Elements.ContainsKey("updateid"))
+                return Result<ResponseParameters>.FailMessage(result, "Could not locate parameter '{0}'!", "updateid");
+            if (!parserResult.Product.Elements.ContainsKey("index"))
+                return Result<ResponseParameters>.FailMessage(result, "Could not locate parameter '{0}'!", "index");
+            if (!parserResult.Product.Elements.ContainsKey("importresource"))
+                return Result<ResponseParameters>.FailMessage(result, "Could not locate parameter '{0}'!", "importresource");
+
+            // Then, try to parse the parameters
+            uint updateID, index;
+            string importResource;
+
+            if (!uint.TryParse(parserResult.Product.Elements["updateid"], out updateID))
+                return Result<ResponseParameters>.FailMessage(result, "Could not parse parameter '{0}' as uint!", "updateid");
+            if (!uint.TryParse(parserResult.Product.Elements["index"], out index))
+                return Result<ResponseParameters>.FailMessage(result, "Could not parse parameter '{0}' as uint!", "index");
+            
+            // And parse the virtual import resource path
+            Result<RemotePath> remotePathResult = RemotePath.Parse(parserResult.Product.Elements["importresource"], ValidateInput);
+
+            // Finally, return the response
+            return null; // Result<ResponseParameters>.SucceedProduct(result, new ResponseParameters(statusResult.Product));
+        }
+
+        /// <summary>
+        /// RequestObjectCreate's ResponseParameters reply.
+        /// </summary>
+        public class ResponseParameters
+        {
+            /// <summary>
+            /// The modification update ID passed as a token. Equal to the originally supplied update ID + 1.
+            /// </summary>
+            public readonly uint UpdateID;
+
+            /// <summary>
+            /// The universal database index of the new object to be created.
+            /// </summary>
+            public readonly uint Index;
+
+            /// <summary>
+            /// The virtual path that the media needs to be uploaded to.
+            /// </summary>
+            public readonly RemotePath ImportResource;
+
+            /// <summary>
+            /// Stores the status code returned for the operation.
+            /// </summary>
+            public readonly WADMStatus Status;
+
+            /// <summary>
+            /// Default internal constructor.
+            /// </summary>
+            /// <param name="UpdateID">The modification update ID passed as a token. Equal to the originally supplied update ID + 1.</param>
+            /// <param name="Index">The universal database index of the new object to be created.</param>
+            /// <param name="ImportResource">The virtual path that the media needs to be uploaded to.</param>
+            /// <param name="Status">Stores the status code returned for the operation.</param>
+            internal ResponseParameters(uint UpdateID, uint Index, RemotePath ImportResource, WADMStatus Status)
+            {
+                // Sanity check the input
+                if (Status == null)
+                    throw new ArgumentNullException("Status");
+                if (ImportResource == null)
+                    throw new ArgumentNullException("ImportResource");
+
+                this.UpdateID = UpdateID;
+                this.Index = Index;
+                this.ImportResource = ImportResource;
+                this.Status = Status;
+            }
+        }
+
         public class RemotePath
         {
             /// <summary>
             /// The "fake" remote URL to push the new media via DeliveryClient to.
             /// </summary>
             public readonly string URL;
+
+            // TODO: Decide whether to use endpoint or IP address
 
             public readonly EndPoint ep;
 
@@ -171,9 +271,26 @@ namespace nxgmci.Protocol.WADM
             // Third group: Remote upload path with leading slash to be passed to the DeliveryClient
             private const string QUERY_REGEX = @"^\s*http:\/\/((?:\d+\.){3}\d+)(?::(\d+))?([\w-\/\.]+\.\w{3})\s*$";
 
-            public RemotePath(string URL)
+            private static Regex queryRegex = new Regex(QUERY_REGEX, RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.Singleline);
+
+            /// <summary>
+            /// Private constructor. Parse is used to create this object.
+            /// </summary>
+            /// <param name="URL"></param>
+            private RemotePath(string URL)
             {
 
+            }
+
+            /// <summary>
+            /// This will attempt to parse and partially validate the virtual remote URL used for uploading media.
+            /// </summary>
+            /// <param name="ImportResourceURL">The raw ImportResource URL from the request.</param>
+            /// <param name="ValidateInput">Indicates whether to formally check the individual fields.</param>
+            /// <returns>A result object that contains a parsed version of the response data.</returns>
+            public static Result<RemotePath> Parse(string ImportResourceURL, bool ValidateInput)
+            {
+                throw new NotImplementedException();
             }
         }
     }
