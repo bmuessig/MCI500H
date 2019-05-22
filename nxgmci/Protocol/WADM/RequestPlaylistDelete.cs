@@ -16,7 +16,7 @@ namespace nxgmci.Protocol.WADM
         /// <summary>
         /// Assembles a RequestPlaylistDelete request to be passed to the stereo.
         /// </summary>
-        /// <param name="UpdateID">The update ID.</param>
+        /// <param name="UpdateID">The modification update ID passed as a token.</param>
         /// <param name="Index">The index of the playlist.</param>
         /// <param name="OriginalName">The original name of the playlist.</param>
         /// <returns>A request string that can be passed to the stereo.</returns>
