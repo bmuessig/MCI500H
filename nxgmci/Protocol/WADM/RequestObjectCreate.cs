@@ -7,6 +7,10 @@ using System.Text.RegularExpressions;
 
 namespace nxgmci.Protocol.WADM
 {
+    /// <summary>
+    /// This API call allows creating new media files on the stereo.
+    /// After this initial creation step, the file (and optional encrypted cover art) has to be uploaded via DeliveryClient within the timeout period.
+    /// </summary>
     public class RequestObjectCreate
     {
         // RequestObjectCreate Parser
