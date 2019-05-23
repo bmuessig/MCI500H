@@ -302,7 +302,10 @@ namespace nxgmci.Protocol.WADM
                     // DMMCookie
                     if (hasDMMCookie)
                         if (!uint.TryParse(listItem["dmmcookie"], out dmmCookie))
-                            return Result<ContentDataSet>.FailMessage(result, "Could not parse parameter '{0}' in item #{1} as uint!", "dmmcookie", elementNo);
+                            if (string.IsNullOrWhiteSpace(listItem["dmmcookie"]))
+                                hasDMMCookie = false;
+                            else
+                                return Result<ContentDataSet>.FailMessage(result, "Could not parse parameter '{0}' in item #{1} as uint!", "dmmcookie", elementNo);
 
                     // If necessairy, validate the common fields
                     if (ValidateInput && !url.Trim().StartsWith("http://"))

@@ -132,13 +132,13 @@ namespace nxgmci.Protocol.WADM
                     return Result<ContentDataSet>.FailMessage(result, "Could not locate parameter '{0}' in item #{1}!", "year", elementNo);
                 if (!listItem.ContainsKey("mediatype"))
                     return Result<ContentDataSet>.FailMessage(result, "Could not locate parameter '{0}' in item #{1}!", "mediatype", elementNo);
-                if (!listItem.ContainsKey("dmmcookie"))
-                    return Result<ContentDataSet>.FailMessage(result, "Could not locate parameter '{0}' in item #{1}!", "dmmcookie", elementNo);
+
+                // Check, if the DMMCookie exists
+                bool hasDMMCookie = listItem.ContainsKey("dmmcookie");
 
                 // Then, try to parse the parameters
                 string name;
                 uint nodeID, album, trackNo, artist, genre, year, mediaType, dmmCookie = 0;
-                bool hasDMMCookie = true;
                 if (string.IsNullOrEmpty((name = listItem["name"])))
                     return Result<ContentDataSet>.FailMessage(result, "Could not parse parameter '{0}' in item #{1} as string!", "name", elementNo);
                 if (!uint.TryParse(listItem["nodeid"], out nodeID))
@@ -155,11 +155,12 @@ namespace nxgmci.Protocol.WADM
                     return Result<ContentDataSet>.FailMessage(result, "Could not parse parameter '{0}' in item #{1} as uint!", "year", elementNo);
                 if (!uint.TryParse(listItem["mediatype"], out mediaType))
                     return Result<ContentDataSet>.FailMessage(result, "Could not parse parameter '{0}' in item #{1} as uint!", "mediatype", elementNo);
-                if (!uint.TryParse(listItem["dmmcookie"], out dmmCookie))
-                    if (string.IsNullOrWhiteSpace(listItem["dmmcookie"]))
-                        hasDMMCookie = false;
-                    else
-                        return Result<ContentDataSet>.FailMessage(result, "Could not parse parameter '{0}' in item #{1} as uint!", "dmmcookie", elementNo);
+                if (hasDMMCookie)
+                    if (!uint.TryParse(listItem["dmmcookie"], out dmmCookie))
+                        if (string.IsNullOrWhiteSpace(listItem["dmmcookie"]))
+                            hasDMMCookie = false;
+                        else
+                            return Result<ContentDataSet>.FailMessage(result, "Could not parse parameter '{0}' in item #{1} as uint!", "dmmcookie", elementNo);
 
                 // If we need to, perform sanity checks on the input data
                 if (ValidateInput)
