@@ -35,9 +35,18 @@ namespace nxgmci.Protocol.WADM
             string Artist, string Album, string Genre, string Name, uint TrackNum, uint Year,
             string MediaType, uint DMMCookie, uint Timeout, bool SortDatabase = true)
         {
+            // Check, if any fields are invalid and need to be replaced
+            // Note, that these strings should better be localized
+            // TODO: Check, how the old program did it and if it sent empty strings or the placeholder text
+            if (string.IsNullOrWhiteSpace(Artist))
+                Artist = "No Artist";
+            if (string.IsNullOrWhiteSpace(Album))
+                Artist = "No Album";
+            if (string.IsNullOrWhiteSpace(Genre))
+                Artist = "No Genre";
+
             // Check for input errors
-            if (string.IsNullOrWhiteSpace(Artist) || string.IsNullOrWhiteSpace(Album) || string.IsNullOrWhiteSpace(Genre) || string.IsNullOrWhiteSpace(Name)
-                || string.IsNullOrWhiteSpace(MediaType) || Timeout == 0)
+            if (string.IsNullOrWhiteSpace(Name) || string.IsNullOrWhiteSpace(MediaType) || Timeout == 0)
                 return null;
 
             // And build the request
@@ -92,9 +101,19 @@ namespace nxgmci.Protocol.WADM
             string AlbumArtHash, uint AlbumArtFileSize, uint AlbumArtTnFileSize,
             bool SortDatabase = true)
         {
+            // Check, if any fields are invalid and need to be replaced
+            // Note, that these strings should better be localized
+            // TODO: Check, how the old program did it and if it sent empty strings or the placeholder text
+            if (string.IsNullOrWhiteSpace(Artist))
+                Artist = "No Artist";
+            if (string.IsNullOrWhiteSpace(Album))
+                Artist = "No Album";
+            if (string.IsNullOrWhiteSpace(Genre))
+                Artist = "No Genre";
+
             // Check for input errors
-            if (string.IsNullOrWhiteSpace(Artist) || string.IsNullOrWhiteSpace(Album) || string.IsNullOrWhiteSpace(Genre) || string.IsNullOrWhiteSpace(Name)
-                || string.IsNullOrWhiteSpace(MediaType) || string.IsNullOrWhiteSpace(AlbumArtHash) || AlbumArtFileSize == 0 || AlbumArtTnFileSize == 0 || Timeout == 0)
+            if (string.IsNullOrWhiteSpace(Name) || string.IsNullOrWhiteSpace(MediaType) || string.IsNullOrWhiteSpace(AlbumArtHash)
+                || AlbumArtFileSize == 0 || AlbumArtTnFileSize == 0 || Timeout == 0)
                 return null;
 
             // Check, if the hash length is invalid
