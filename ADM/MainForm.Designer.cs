@@ -51,6 +51,7 @@
             this.browserTabPage = new System.Windows.Forms.TabPage();
             this.treeInfoTextBox = new System.Windows.Forms.TextBox();
             this.panel1 = new System.Windows.Forms.Panel();
+            this.treeGoButton = new System.Windows.Forms.Button();
             this.treeItemsListBox = new System.Windows.Forms.ListBox();
             this.treeStackListBox = new System.Windows.Forms.ListBox();
             this.treePlayButton = new System.Windows.Forms.Button();
@@ -76,7 +77,21 @@
             this.coverPictureBox = new System.Windows.Forms.PictureBox();
             this.playUriTextBox = new System.Windows.Forms.TextBox();
             this.playUriButton = new System.Windows.Forms.Button();
-            this.treeGoButton = new System.Windows.Forms.Button();
+            this.uploadTabPage = new System.Windows.Forms.TabPage();
+            this.textBox1 = new System.Windows.Forms.TextBox();
+            this.textBox2 = new System.Windows.Forms.TextBox();
+            this.textBox3 = new System.Windows.Forms.TextBox();
+            this.textBox4 = new System.Windows.Forms.TextBox();
+            this.textBox5 = new System.Windows.Forms.TextBox();
+            this.label1 = new System.Windows.Forms.Label();
+            this.label6 = new System.Windows.Forms.Label();
+            this.label7 = new System.Windows.Forms.Label();
+            this.label8 = new System.Windows.Forms.Label();
+            this.label9 = new System.Windows.Forms.Label();
+            this.label10 = new System.Windows.Forms.Label();
+            this.comboBox1 = new System.Windows.Forms.ComboBox();
+            this.pictureBox1 = new System.Windows.Forms.PictureBox();
+            this.pictureBox2 = new System.Windows.Forms.PictureBox();
             this.tabControl1.SuspendLayout();
             this.mediaTabPage.SuspendLayout();
             this.browserTabPage.SuspendLayout();
@@ -89,6 +104,9 @@
             this.trackInfoTabPage.SuspendLayout();
             this.metaLayoutTable.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.coverPictureBox)).BeginInit();
+            this.uploadTabPage.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).BeginInit();
             this.SuspendLayout();
             // 
             // speedTestButton
@@ -189,6 +207,7 @@
             this.tabControl1.Controls.Add(this.browserTabPage);
             this.tabControl1.Controls.Add(this.extrasTabPage);
             this.tabControl1.Controls.Add(this.trackInfoTabPage);
+            this.tabControl1.Controls.Add(this.uploadTabPage);
             this.tabControl1.Location = new System.Drawing.Point(0, 0);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
@@ -347,6 +366,17 @@
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(293, 316);
             this.panel1.TabIndex = 9;
+            // 
+            // treeGoButton
+            // 
+            this.treeGoButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.treeGoButton.Location = new System.Drawing.Point(218, 293);
+            this.treeGoButton.Name = "treeGoButton";
+            this.treeGoButton.Size = new System.Drawing.Size(69, 23);
+            this.treeGoButton.TabIndex = 8;
+            this.treeGoButton.Text = "Go";
+            this.treeGoButton.UseVisualStyleBackColor = true;
+            this.treeGoButton.Click += new System.EventHandler(this.treeGoButton_Click);
             // 
             // treeItemsListBox
             // 
@@ -656,16 +686,145 @@
             this.playUriButton.UseVisualStyleBackColor = true;
             this.playUriButton.Click += new System.EventHandler(this.playUriButton_Click);
             // 
-            // treeGoButton
+            // uploadTabPage
             // 
-            this.treeGoButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.treeGoButton.Location = new System.Drawing.Point(218, 293);
-            this.treeGoButton.Name = "treeGoButton";
-            this.treeGoButton.Size = new System.Drawing.Size(69, 23);
-            this.treeGoButton.TabIndex = 8;
-            this.treeGoButton.Text = "Go";
-            this.treeGoButton.UseVisualStyleBackColor = true;
-            this.treeGoButton.Click += new System.EventHandler(this.treeGoButton_Click);
+            this.uploadTabPage.Controls.Add(this.pictureBox2);
+            this.uploadTabPage.Controls.Add(this.pictureBox1);
+            this.uploadTabPage.Controls.Add(this.comboBox1);
+            this.uploadTabPage.Controls.Add(this.label10);
+            this.uploadTabPage.Controls.Add(this.label9);
+            this.uploadTabPage.Controls.Add(this.label8);
+            this.uploadTabPage.Controls.Add(this.label7);
+            this.uploadTabPage.Controls.Add(this.label6);
+            this.uploadTabPage.Controls.Add(this.label1);
+            this.uploadTabPage.Controls.Add(this.textBox5);
+            this.uploadTabPage.Controls.Add(this.textBox4);
+            this.uploadTabPage.Controls.Add(this.textBox3);
+            this.uploadTabPage.Controls.Add(this.textBox2);
+            this.uploadTabPage.Controls.Add(this.textBox1);
+            this.uploadTabPage.Location = new System.Drawing.Point(4, 22);
+            this.uploadTabPage.Name = "uploadTabPage";
+            this.uploadTabPage.Padding = new System.Windows.Forms.Padding(3);
+            this.uploadTabPage.Size = new System.Drawing.Size(526, 322);
+            this.uploadTabPage.TabIndex = 4;
+            this.uploadTabPage.Text = "Upload";
+            this.uploadTabPage.UseVisualStyleBackColor = true;
+            // 
+            // textBox1
+            // 
+            this.textBox1.Location = new System.Drawing.Point(78, 43);
+            this.textBox1.Name = "textBox1";
+            this.textBox1.Size = new System.Drawing.Size(228, 20);
+            this.textBox1.TabIndex = 0;
+            // 
+            // textBox2
+            // 
+            this.textBox2.Location = new System.Drawing.Point(78, 69);
+            this.textBox2.Name = "textBox2";
+            this.textBox2.Size = new System.Drawing.Size(228, 20);
+            this.textBox2.TabIndex = 1;
+            // 
+            // textBox3
+            // 
+            this.textBox3.Location = new System.Drawing.Point(78, 95);
+            this.textBox3.Name = "textBox3";
+            this.textBox3.Size = new System.Drawing.Size(228, 20);
+            this.textBox3.TabIndex = 2;
+            // 
+            // textBox4
+            // 
+            this.textBox4.Location = new System.Drawing.Point(78, 148);
+            this.textBox4.Name = "textBox4";
+            this.textBox4.Size = new System.Drawing.Size(228, 20);
+            this.textBox4.TabIndex = 3;
+            // 
+            // textBox5
+            // 
+            this.textBox5.Location = new System.Drawing.Point(78, 174);
+            this.textBox5.Name = "textBox5";
+            this.textBox5.Size = new System.Drawing.Size(228, 20);
+            this.textBox5.TabIndex = 4;
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(46, 46);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(27, 13);
+            this.label1.TabIndex = 6;
+            this.label1.Text = "Title";
+            // 
+            // label6
+            // 
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(43, 72);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(30, 13);
+            this.label6.TabIndex = 7;
+            this.label6.Text = "Artist";
+            // 
+            // label7
+            // 
+            this.label7.AutoSize = true;
+            this.label7.Location = new System.Drawing.Point(37, 98);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(36, 13);
+            this.label7.TabIndex = 8;
+            this.label7.Text = "Album";
+            // 
+            // label8
+            // 
+            this.label8.AutoSize = true;
+            this.label8.Location = new System.Drawing.Point(37, 124);
+            this.label8.Name = "label8";
+            this.label8.Size = new System.Drawing.Size(36, 13);
+            this.label8.TabIndex = 9;
+            this.label8.Text = "Genre";
+            // 
+            // label9
+            // 
+            this.label9.AutoSize = true;
+            this.label9.Location = new System.Drawing.Point(18, 151);
+            this.label9.Name = "label9";
+            this.label9.Size = new System.Drawing.Size(55, 13);
+            this.label9.TabIndex = 10;
+            this.label9.Text = "Track No.";
+            // 
+            // label10
+            // 
+            this.label10.AutoSize = true;
+            this.label10.Location = new System.Drawing.Point(44, 177);
+            this.label10.Name = "label10";
+            this.label10.Size = new System.Drawing.Size(29, 13);
+            this.label10.TabIndex = 11;
+            this.label10.Text = "Year";
+            // 
+            // comboBox1
+            // 
+            this.comboBox1.FormattingEnabled = true;
+            this.comboBox1.Items.AddRange(new object[] {
+            "Rock",
+            "Pop"});
+            this.comboBox1.Location = new System.Drawing.Point(78, 121);
+            this.comboBox1.Name = "comboBox1";
+            this.comboBox1.Size = new System.Drawing.Size(228, 21);
+            this.comboBox1.TabIndex = 13;
+            // 
+            // pictureBox1
+            // 
+            this.pictureBox1.Location = new System.Drawing.Point(377, 110);
+            this.pictureBox1.Name = "pictureBox1";
+            this.pictureBox1.Size = new System.Drawing.Size(100, 50);
+            this.pictureBox1.TabIndex = 14;
+            this.pictureBox1.TabStop = false;
+            // 
+            // pictureBox2
+            // 
+            this.pictureBox2.Location = new System.Drawing.Point(368, 226);
+            this.pictureBox2.Name = "pictureBox2";
+            this.pictureBox2.Size = new System.Drawing.Size(100, 50);
+            this.pictureBox2.TabIndex = 15;
+            this.pictureBox2.TabStop = false;
             // 
             // MainForm
             // 
@@ -693,6 +852,10 @@
             this.trackInfoTabPage.ResumeLayout(false);
             this.metaLayoutTable.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.coverPictureBox)).EndInit();
+            this.uploadTabPage.ResumeLayout(false);
+            this.uploadTabPage.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -749,6 +912,21 @@
         private System.Windows.Forms.Panel panel1;
         private System.Windows.Forms.Button viewIDButton;
         private System.Windows.Forms.Button treeGoButton;
+        private System.Windows.Forms.TabPage uploadTabPage;
+        private System.Windows.Forms.ComboBox comboBox1;
+        private System.Windows.Forms.Label label10;
+        private System.Windows.Forms.Label label9;
+        private System.Windows.Forms.Label label8;
+        private System.Windows.Forms.Label label7;
+        private System.Windows.Forms.Label label6;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.TextBox textBox5;
+        private System.Windows.Forms.TextBox textBox4;
+        private System.Windows.Forms.TextBox textBox3;
+        private System.Windows.Forms.TextBox textBox2;
+        private System.Windows.Forms.TextBox textBox1;
+        private System.Windows.Forms.PictureBox pictureBox2;
+        private System.Windows.Forms.PictureBox pictureBox1;
     }
 }
 
