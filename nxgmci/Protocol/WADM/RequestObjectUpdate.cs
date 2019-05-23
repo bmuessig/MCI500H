@@ -36,7 +36,7 @@ namespace nxgmci.Protocol.WADM
             if (Index == 0 || string.IsNullOrWhiteSpace(rawField))
                 return null;
 
-            // Check, if any fields are invalid and need to be replaced
+            // Check, if the new value is invalid and need to be replaced
             // Note, that these strings should better be localized
             // TODO: Check, how the old program did it and if it sent empty strings or the placeholder text
             if (string.IsNullOrWhiteSpace(NewData))
