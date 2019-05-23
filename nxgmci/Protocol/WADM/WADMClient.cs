@@ -977,6 +977,7 @@ namespace nxgmci.Protocol.WADM
 
         /// <summary>
         /// Attempts to create a new playlist with the given name.
+        /// If the playlist name is null or white-space it will be replaced with 'New Playlist'.
         /// Using this request will update the client's update ID.
         /// </summary>
         /// <param name="Name">The name of the new playlist.</param>
@@ -1088,6 +1089,7 @@ namespace nxgmci.Protocol.WADM
 
         /// <summary>
         /// Attempts to rename a playlist. The original name appears to be optional.
+        /// If the new playlist name is null or white-space it will be replaced with 'New Playlist'.
         /// Using this request will update the client's update ID.
         /// </summary>
         /// <param name="Index">The index of the playlist.</param>

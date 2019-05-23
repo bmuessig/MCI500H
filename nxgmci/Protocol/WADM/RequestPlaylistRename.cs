@@ -15,6 +15,7 @@ namespace nxgmci.Protocol.WADM
 
         /// <summary>
         /// Assembles a RequestPlaylistRename request to be passed to the stereo.
+        /// If the new playlist name is null or white-space it will be replaced with 'New Playlist'.
         /// </summary>
         /// <param name="UpdateID">The update ID.</param>
         /// <param name="Index">The index of the playlist.</param>
@@ -23,9 +24,9 @@ namespace nxgmci.Protocol.WADM
         /// <returns>A request string that can be passed to the stereo.</returns>
         public static string Build(uint UpdateID, uint Index, string Name, string OriginalName = null)
         {
-            // Normalize the names
+            // Normalize and sanity check the names
             if (OriginalName == null)
-                OriginalName = string.Empty;
+                return null;
             if (string.IsNullOrWhiteSpace(Name))
                 Name = "New Playlist";
             else
