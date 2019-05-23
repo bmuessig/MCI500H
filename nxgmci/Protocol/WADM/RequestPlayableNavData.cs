@@ -5,7 +5,7 @@ namespace nxgmci.Protocol.WADM
 {
     /// <summary>
     /// This API call provides a DLNA-like folder and media browser with the ability to display cover art.
-    /// Additionally, this is one of the single most important API calls to fetch data from the stero.
+    /// Additionally, this is one of the single most important API calls to fetch data from the stereo.
     /// Though this, cover art, direct URLs, titles, artists, genres, etc. can be fetched directly, which is particularily useful for display and playback.
     /// </summary>
     public static class RequestPlayableNavData
