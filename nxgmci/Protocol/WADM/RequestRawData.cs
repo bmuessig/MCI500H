@@ -137,7 +137,8 @@ namespace nxgmci.Protocol.WADM
 
                 // Then, try to parse the parameters
                 string name;
-                uint nodeID, album, trackNo, artist, genre, year, mediaType, dmmCookie;
+                uint nodeID, album, trackNo, artist, genre, year, mediaType, dmmCookie = 0;
+                bool hasDMMCookie = true;
                 if (string.IsNullOrEmpty((name = listItem["name"])))
                     return Result<ContentDataSet>.FailMessage(result, "Could not parse parameter '{0}' in item #{1} as string!", "name", elementNo);
                 if (!uint.TryParse(listItem["nodeid"], out nodeID))
@@ -155,7 +156,10 @@ namespace nxgmci.Protocol.WADM
                 if (!uint.TryParse(listItem["mediatype"], out mediaType))
                     return Result<ContentDataSet>.FailMessage(result, "Could not parse parameter '{0}' in item #{1} as uint!", "mediatype", elementNo);
                 if (!uint.TryParse(listItem["dmmcookie"], out dmmCookie))
-                    return Result<ContentDataSet>.FailMessage(result, "Could not parse parameter '{0}' in item #{1} as uint!", "dmmcookie", elementNo);
+                    if (string.IsNullOrWhiteSpace(listItem["dmmcookie"]))
+                        hasDMMCookie = false;
+                    else
+                        return Result<ContentDataSet>.FailMessage(result, "Could not parse parameter '{0}' in item #{1} as uint!", "dmmcookie", elementNo);
 
                 // If we need to, perform sanity checks on the input data
                 if (ValidateInput)
@@ -169,7 +173,7 @@ namespace nxgmci.Protocol.WADM
                 }
 
                 // Finally, assemble and add the object
-                items.Add(new ContentData(name, nodeID, album, trackNo, artist, genre, year, mediaType, dmmCookie));
+                items.Add(new ContentData(name, nodeID, album, trackNo, artist, genre, year, mediaType, hasDMMCookie, dmmCookie));
             }
 
             // Finally, return the response
@@ -270,6 +274,11 @@ namespace nxgmci.Protocol.WADM
             public readonly uint MediaType;
 
             /// <summary>
+            /// Indicates whether a DMMCookie is present.
+            /// </summary>
+            public readonly bool HasDMMCookie;
+
+            /// <summary>
             /// Unknown DMMCookie. e.g. 1644662629.
             /// </summary>
             public readonly uint DMMCookie;
@@ -285,8 +294,9 @@ namespace nxgmci.Protocol.WADM
             /// <param name="Genre">Universal genre node ID number that has to be bitwise AND'ed with idmask.</param>
             /// <param name="Year">Year that the track was published / recorded in.</param>
             /// <param name="MediaType">File format of the media item (index into the urimetadata table of media types).</param>
+            /// <param name="HasDMMCookie">Indicates whether a DMMCookie is present.</param>
             /// <param name="DMMCookie">Unknown DMMCookie. e.g. 1644662629.</param>
-            internal ContentData(string Name, uint NodeID, uint Album, uint TrackNo, uint Artist, uint Genre, uint Year, uint MediaType, uint DMMCookie)
+            internal ContentData(string Name, uint NodeID, uint Album, uint TrackNo, uint Artist, uint Genre, uint Year, uint MediaType, bool HasDMMCookie, uint DMMCookie)
             {
                 this.Name = Name;
                 this.NodeID = NodeID;
@@ -296,6 +306,7 @@ namespace nxgmci.Protocol.WADM
                 this.Genre = Genre;
                 this.Year = Year;
                 this.MediaType = MediaType;
+                this.HasDMMCookie = HasDMMCookie;
                 this.DMMCookie = DMMCookie;
             }
 

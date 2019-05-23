@@ -264,12 +264,14 @@ namespace nxgmci.Protocol.WADM
                         return Result<ContentDataSet>.FailMessage(result, "Could not locate parameter '{0}'!", "artist");
                     if (!listItem.ContainsKey("genre"))
                         return Result<ContentDataSet>.FailMessage(result, "Could not locate parameter '{0}'!", "genre");
-                    if (!listItem.ContainsKey("dmmcookie"))
-                        return Result<ContentDataSet>.FailMessage(result, "Could not locate parameter '{0}'!", "dmmcookie");
+
+                    // Also check, if the optional DMMCookie is present
+                    // For instance Radio recordings omit this parameter
+                    bool hasDMMCookie = listItem.ContainsKey("dmmcookie");
 
                     // Parse all common fields
                     string title, url, album, artist, genre;
-                    uint trackNo, year, dmmCookie;
+                    uint trackNo, year, dmmCookie = 0;
                     bool likeMusic;
 
                     // Title
@@ -298,8 +300,9 @@ namespace nxgmci.Protocol.WADM
                     if (string.IsNullOrEmpty((genre = listItem["genre"])))
                         return Result<ContentDataSet>.FailMessage(result, "Could not parse parameter '{0}' in item #{1} as string!", "genre", elementNo);
                     // DMMCookie
-                    if (!uint.TryParse(listItem["dmmcookie"], out dmmCookie))
-                        return Result<ContentDataSet>.FailMessage(result, "Could not parse parameter '{0}' in item #{1} as uint!", "dmmcookie", elementNo);
+                    if (hasDMMCookie)
+                        if (!uint.TryParse(listItem["dmmcookie"], out dmmCookie))
+                            return Result<ContentDataSet>.FailMessage(result, "Could not parse parameter '{0}' in item #{1} as uint!", "dmmcookie", elementNo);
 
                     // If necessairy, validate the common fields
                     if (ValidateInput && !url.Trim().StartsWith("http://"))
@@ -329,11 +332,11 @@ namespace nxgmci.Protocol.WADM
                         
                         // Create and add the enhanced result object
                         items.Add(new ContentDataPlayableArt(name, nodeID, parentID, nodeType,
-                            title, url, album, trackNo, likeMusic, artist, genre, dmmCookie, albumArtUrl, albumArtTnUrl));
+                            title, url, album, trackNo, likeMusic, artist, genre, hasDMMCookie, dmmCookie, albumArtUrl, albumArtTnUrl));
                     }
                     else // Create and add the basic result object
                         items.Add(new ContentDataPlayable(name, nodeID, parentID, nodeType,
-                            title, url, album, trackNo, likeMusic, artist, genre, dmmCookie));
+                            title, url, album, trackNo, likeMusic, artist, genre, hasDMMCookie, dmmCookie));
                 }
                 else if (listItem.ContainsKey("branch"))
                 {
@@ -960,6 +963,11 @@ namespace nxgmci.Protocol.WADM
             public readonly string Genre;
 
             /// <summary>
+            /// Indicates whether a DMMCookie is present.
+            /// </summary>
+            public readonly bool HasDMMCookie;
+
+            /// <summary>
             /// The DMMCookie. A so far unknown variable.
             /// </summary>
             public readonly uint DMMCookie;
@@ -978,10 +986,11 @@ namespace nxgmci.Protocol.WADM
             /// <param name="LikeMusic">Stores whether the track has the LikeMusic flag set.</param>
             /// <param name="Artist">The name of the artist(s) involved in the track.</param>
             /// <param name="Genre">The genre of the track.</param>
+            /// <param name="HasDMMCookie">Indicates whether a DMMCookie is present.</param>
             /// <param name="DMMCookie">The DMMCookie.</param>
             internal ContentDataPlayable(
                 string Name, uint NodeID, uint ParentID, NodeType NodeType,
-                string Title, string URL, string Album, uint TrackNo, bool LikeMusic, string Artist, string Genre, uint DMMCookie)
+                string Title, string URL, string Album, uint TrackNo, bool LikeMusic, string Artist, string Genre, bool HasDMMCookie, uint DMMCookie)
                 : base(Name, NodeID, ParentID, NodeType)
             {
                 this.Title = Title;
@@ -991,6 +1000,7 @@ namespace nxgmci.Protocol.WADM
                 this.LikeMusic = LikeMusic;
                 this.Artist = Artist;
                 this.Genre = Genre;
+                this.HasDMMCookie = HasDMMCookie;
                 this.DMMCookie = DMMCookie;
             }
         }
@@ -1024,14 +1034,15 @@ namespace nxgmci.Protocol.WADM
             /// <param name="LikeMusic">Stores whether the track has the LikeMusic flag set.</param>
             /// <param name="Artist">The name of the artist(s) involved in the track.</param>
             /// <param name="Genre">The genre of the track.</param>
+            /// <param name="HasDMMCookie">Indicates whether a DMMCookie is present.</param>
             /// <param name="DMMCookie">The DMMCookie.</param>
             /// <param name="AlbumArtURL">The public URI of the track's album art.</param>
             /// <param name="AlbumArtTnURL">The public URI of the track's album art thumbnail.</param>
             internal ContentDataPlayableArt(
                 string Name, uint NodeID, uint ParentID, NodeType NodeType,
-                string Title, string URL, string Album, uint TrackNo, bool LikeMusic, string Artist, string Genre, uint DMMCookie,
+                string Title, string URL, string Album, uint TrackNo, bool LikeMusic, string Artist, string Genre, bool HasDMMCookie, uint DMMCookie,
                 string AlbumArtURL, string AlbumArtTnURL)
-                : base(Name, NodeID, ParentID, NodeType, Title, URL, Album, TrackNo, LikeMusic, Artist, Genre, DMMCookie)
+                : base(Name, NodeID, ParentID, NodeType, Title, URL, Album, TrackNo, LikeMusic, Artist, Genre, HasDMMCookie, DMMCookie)
             {
                 this.AlbumArtURL = AlbumArtURL;
                 this.AlbumArtTnURL = AlbumArtTnURL;
