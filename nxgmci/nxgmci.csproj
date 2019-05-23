@@ -72,10 +72,12 @@
     <Compile Include="Protocol\WADM\GetUpdateID.cs" />
     <Compile Include="Protocol\WADM\RequestObjectCreate.cs" />
     <Compile Include="Protocol\WADM\RequestObjectDestroy.cs" />
+    <Compile Include="Protocol\WADM\RequestObjectUpdate.cs" />
     <Compile Include="Protocol\WADM\RequestPlaylistDelete.cs" />
     <Compile Include="Protocol\WADM\QueryDatabase.cs" />
     <Compile Include="Protocol\WADM\RequestPlaylistCreate.cs" />
     <Compile Include="Protocol\WADM\RequestPlaylistRename.cs" />
+    <Compile Include="Protocol\WADM\RequestPlaylistTrackInsert.cs" />
     <Compile Include="Protocol\WADM\WADMStatus.cs" />
     <Compile Include="Protocol\WADM\RequestSubscribe.cs" />
     <Compile Include="Protocol\WADM\SvcDbDump.cs" />
