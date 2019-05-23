@@ -1204,11 +1204,13 @@ namespace nxgmci.Protocol.WADM
         }
 
         /// <summary>
-        /// Attempts to delete a playlist. The original name appears to be optional.
+        /// Attempts to delete a track from a playlist or an entire playlist at once.
+        /// Depending on what node ID is passed as the index parameter, the function will behave accordingly.
+        /// Note, that when deleting a track from a playlist, the node ID with the correct namespace has to be passed.
         /// Using this request will update the client's update ID.
         /// </summary>
-        /// <param name="Index">The index of the playlist to be deleted.</param>
-        /// <param name="OriginalName">The original name of the playlist to be deleted.</param>
+        /// <param name="Index">The index of the playlist or track to be deleted.</param>
+        /// <param name="OriginalName">The original name of the playlist or track to be deleted.</param>
         /// <returns>A result object that contains a serialized version of the response data.</returns>
         public Result<RequestPlaylistDelete.ResponseParameters> RequestPlaylistDelete(uint Index, string OriginalName = null)
         {

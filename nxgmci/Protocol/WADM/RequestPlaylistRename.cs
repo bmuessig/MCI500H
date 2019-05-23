@@ -158,7 +158,7 @@ namespace nxgmci.Protocol.WADM
             /// Default internal constructor.
             /// </summary>
             /// <param name="Status">The status code returned for the query.</param>
-            /// <param name="Index">The index of the playlist created. Contained inside the default playlist item namespace.</param>
+            /// <param name="Index">The index of the playlist renamed. Contained inside the default playlist item namespace.</param>
             /// <param name="Name">The name of the playlist created.</param>
             /// <param name="Offset">Unknown offset. May be negative.</param>
             /// <param name="UpdateID">The update ID passed as a token. Equal to the originally supplied update ID + 1.</param>

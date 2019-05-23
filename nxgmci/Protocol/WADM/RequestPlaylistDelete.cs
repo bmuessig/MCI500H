@@ -6,7 +6,9 @@ using System.Text;
 namespace nxgmci.Protocol.WADM
 {
     /// <summary>
-    /// Attempts to delete a playlist.
+    /// Attempts to delete a track from a playlist or an entire playlist at once.
+    /// Depending on what node ID is passed as the index parameter, the function will behave accordingly.
+    /// Note, that when deleting a track from a playlist, the node ID with the correct namespace has to be passed.
     /// </summary>
     public static class RequestPlaylistDelete
     {
@@ -17,8 +19,8 @@ namespace nxgmci.Protocol.WADM
         /// Assembles a RequestPlaylistDelete request to be passed to the stereo.
         /// </summary>
         /// <param name="UpdateID">The modification update ID passed as a token.</param>
-        /// <param name="Index">The index of the playlist.</param>
-        /// <param name="OriginalName">The original name of the playlist.</param>
+        /// <param name="Index">The index of the playlist or track.</param>
+        /// <param name="OriginalName">The original name of the playlist or track.</param>
         /// <returns>A request string that can be passed to the stereo.</returns>
         public static string Build(uint UpdateID, uint Index, string OriginalName = null)
         {
@@ -114,7 +116,7 @@ namespace nxgmci.Protocol.WADM
         public class ResponseParameters
         {
             /// <summary>
-            /// The index of the playlist deleted. Contained inside the default playlist item namespace.
+            /// The index of the playlist or track deleted.
             /// </summary>
             public readonly uint Index;
 
@@ -131,7 +133,7 @@ namespace nxgmci.Protocol.WADM
             /// <summary>
             /// Default internal constructor.
             /// </summary>
-            /// <param name="Index">The index of the playlist created. Contained inside the default playlist item namespace.</param>
+            /// <param name="Index">The index of the playlist or track deleted.</param>
             /// <param name="Status">The status code returned for the query.</param>
             /// <param name="UpdateID">The modification update ID passed as a token. Equal to the originally supplied update ID + 1.</param>
             internal ResponseParameters(uint Index, WADMStatus Status, uint UpdateID)
