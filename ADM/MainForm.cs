@@ -1169,7 +1169,7 @@ namespace ADM
 
             if (Result.Product.Status.Status != WADMStatus.StatusCode.Success)
             {
-                MessageBox.Show(string.Format("The process failed:\n\n{0}", Result.ToString()), "Error!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBox.Show("The stereo reported failure!", "Error!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                 return false;
             }
 
