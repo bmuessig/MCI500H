@@ -27,6 +27,20 @@ namespace nxgmci.Protocol.WADM
         /// <param name="OriginalData">The original value of the field to be changed.</param>
         /// <param name="NewData">The new value of the field to be changed.</param>
         /// <returns>A request string that can be passed to the stereo.</returns>
+        public static string Build(uint UpdateID, FieldType Field, uint Index, uint NewData, uint OriginalData = 0)
+        {
+            return Build(UpdateID, Field, Index, NewData.ToString(), OriginalData.ToString());
+        }
+
+        /// <summary>
+        /// Assembles a RequestObjectUpdate request to be passed to the stereo.
+        /// </summary>
+        /// <param name="UpdateID">The modification update ID passed as a token.</param>
+        /// <param name="Field">Indicates what field of the track should be changed.</param>
+        /// <param name="Index">The index of the track to be changed.</param>
+        /// <param name="OriginalData">The original value of the field to be changed.</param>
+        /// <param name="NewData">The new value of the field to be changed.</param>
+        /// <returns>A request string that can be passed to the stereo.</returns>
         public static string Build(uint UpdateID, FieldType Field, uint Index, string NewData, string OriginalData = null)
         {
             // Convert the field to it's internal string representation

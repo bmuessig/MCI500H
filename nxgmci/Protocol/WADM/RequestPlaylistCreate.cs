@@ -87,8 +87,6 @@ namespace nxgmci.Protocol.WADM
                 return Result<ResponseParameters>.FailMessage(result, "The status code parsing product was null!");
 
             // Now, make sure our mandatory arguments exist
-            if (!parserResult.Product.Elements.ContainsKey("index"))
-                return Result<ResponseParameters>.FailMessage(result, "Could not locate parameter '{0}'!", "index");
             if (!parserResult.Product.Elements.ContainsKey("name"))
                 return Result<ResponseParameters>.FailMessage(result, "Could not locate parameter '{0}'!", "name");
             if (!parserResult.Product.Elements.ContainsKey("offset"))
@@ -96,13 +94,26 @@ namespace nxgmci.Protocol.WADM
             if (!parserResult.Product.Elements.ContainsKey("updateid"))
                 return Result<ResponseParameters>.FailMessage(result, "Could not locate parameter '{0}'!", "updateid");
 
+            // And check, if the index exists
+            bool hasIndex = true;
+            if (!parserResult.Product.Elements.ContainsKey("index"))
+            {
+                // Reset the flag
+                hasIndex = false;
+
+                // If the process succeeded, index is no longer optional
+                if (statusResult.Product.Status == WADMStatus.StatusCode.Success)
+                    return Result<ResponseParameters>.FailMessage(result, "Could not locate parameter '{0}'!", "index");
+            }
+
             // Then, try to parse the parameters
             string name;
-            uint index, updateID;
+            uint updateID, index = 0;
             int offset;
 
-            if (!uint.TryParse(parserResult.Product.Elements["index"], out index))
-                return Result<ResponseParameters>.FailMessage(result, "Could not parse parameter '{0}' as uint!", "index");
+            if (hasIndex)
+                if (!uint.TryParse(parserResult.Product.Elements["index"], out index))
+                    return Result<ResponseParameters>.FailMessage(result, "Could not parse parameter '{0}' as uint!", "index");
             if (parserResult.Product.Elements["name"] != null)
                 name = parserResult.Product.Elements["name"]; // NOTE: Trim is omitted here because whitespace might be part of the name
             else
@@ -137,7 +148,7 @@ namespace nxgmci.Protocol.WADM
             public readonly string Name;
 
             /// <summary>
-            /// Unknown offset. May be negative.
+            /// Appears to be the number of playlists created before - 1
             /// </summary>
             public readonly int Offset;
 
@@ -152,7 +163,7 @@ namespace nxgmci.Protocol.WADM
             /// <param name="Status">The status code returned for the query.</param>
             /// <param name="Index">The index of the playlist created. Contained inside the default playlist item namespace.</param>
             /// <param name="Name">The name of the playlist created.</param>
-            /// <param name="Offset">Unknown offset. May be negative.</param>
+            /// <param name="Offset">Appears to be the number of playlists created before - 1</param>
             /// <param name="UpdateID">The modification update ID passed as a token. Equal to the originally supplied update ID + 1.</param>
             internal ResponseParameters(WADMStatus Status, uint Index, string Name, int Offset, uint UpdateID)
             {

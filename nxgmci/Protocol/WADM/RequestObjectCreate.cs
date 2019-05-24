@@ -205,19 +205,30 @@ namespace nxgmci.Protocol.WADM
             // Now, make sure our mandatory arguments exist
             if (!parserResult.Product.Elements.ContainsKey("updateid"))
                 return Result<ResponseParameters>.FailMessage(result, "Could not locate parameter '{0}'!", "updateid");
-            if (!parserResult.Product.Elements.ContainsKey("index"))
-                return Result<ResponseParameters>.FailMessage(result, "Could not locate parameter '{0}'!", "index");
             if (!parserResult.Product.Elements.ContainsKey("importresource"))
                 return Result<ResponseParameters>.FailMessage(result, "Could not locate parameter '{0}'!", "importresource");
 
+            // And check, if the index exists
+            bool hasIndex = true;
+            if (!parserResult.Product.Elements.ContainsKey("index"))
+            {
+                // Reset the flag
+                hasIndex = false;
+
+                // If the process succeeded, index is no longer optional
+                if (statusResult.Product.Status == WADMStatus.StatusCode.Success)
+                    return Result<ResponseParameters>.FailMessage(result, "Could not locate parameter '{0}'!", "index");
+            }
+
             // Then, try to parse the parameters
-            uint updateID, index, albumArtResource = 0;
+            uint updateID, index = 0, albumArtResource = 0;
             bool hasAlbumArt = false;
 
             if (!uint.TryParse(parserResult.Product.Elements["updateid"], out updateID))
                 return Result<ResponseParameters>.FailMessage(result, "Could not parse parameter '{0}' as uint!", "updateid");
-            if (!uint.TryParse(parserResult.Product.Elements["index"], out index))
-                return Result<ResponseParameters>.FailMessage(result, "Could not parse parameter '{0}' as uint!", "index");
+            if (hasIndex)
+                if (!uint.TryParse(parserResult.Product.Elements["index"], out index))
+                    return Result<ResponseParameters>.FailMessage(result, "Could not parse parameter '{0}' as uint!", "index");
 
             // Check for album art
             if (parserResult.Product.Elements.ContainsKey("albumartresource"))
@@ -324,7 +335,7 @@ namespace nxgmci.Protocol.WADM
             /// <summary>
             /// The remote network endpoint.
             /// </summary>
-            public readonly EndPoint EndPoint;
+            public readonly IPEndPoint EndPoint;
 
             // Regex for dissecting the URL
             // First group: IPv4 string - for verification with the existing info only
@@ -341,7 +352,7 @@ namespace nxgmci.Protocol.WADM
             /// <param name="URL">The "fake" remote URL to push the new media via DeliveryClient to.</param>
             /// <param name="Path">The remote upload path to be passed to the DeliveryClient.</param>
             /// <param name="EndPoint">The remote network endpoint.</param>
-            private RemotePath(string URL, string Path, EndPoint EndPoint)
+            private RemotePath(string URL, string Path, IPEndPoint EndPoint)
             {
                 // Sanity check the input
                 if (string.IsNullOrWhiteSpace(URL))

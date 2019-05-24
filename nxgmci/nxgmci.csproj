@@ -78,6 +78,7 @@
     <Compile Include="Protocol\WADM\RequestPlaylistCreate.cs" />
     <Compile Include="Protocol\WADM\RequestPlaylistRename.cs" />
     <Compile Include="Protocol\WADM\RequestPlaylistTrackInsert.cs" />
+    <Compile Include="Protocol\WADM\RequestTransferComplete.cs" />
     <Compile Include="Protocol\WADM\WADMStatus.cs" />
     <Compile Include="Protocol\WADM\RequestSubscribe.cs" />
     <Compile Include="Protocol\WADM\SvcDbDump.cs" />

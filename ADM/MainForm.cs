@@ -16,6 +16,8 @@ using nxgmci.Metadata;
 using nxgmci.Protocol.WADM;
 using nxgmci.Device;
 using nxgmci.Metadata.Playlist;
+using nxgmci.Protocol.Delivery;
+using System.Threading;
 
 namespace ADM
 {
@@ -75,7 +77,7 @@ namespace ADM
             MessageBox.Show(string.Format("Own Implementation Reply:\n\n{0}", externalResponse));
         }
 
-        private void mediaPlayButton_Click(object sender, EventArgs e)
+        private void mediaPanelPlayButton_Click(object sender, EventArgs e)
         {
             if (mediaView.SelectedIndices.Count == 1)
                 if (lastid != mediaView.SelectedIndices[0])
@@ -84,6 +86,12 @@ namespace ADM
                     selectLast();
                 }
 
+            if (!stereo.Play())
+                MessageBox.Show("Fail!");
+        }
+
+        private void mediaPlayButton_Click(object sender, EventArgs e)
+        {
             if (!stereo.Play())
                 MessageBox.Show("Fail!");
         }
@@ -384,6 +392,7 @@ namespace ADM
         private void treeUpButton_Click(object sender, EventArgs e)
         {
             treeUpButton.Enabled = false;
+            Application.DoEvents();
             GoUp();
             treeUpButton.Enabled = true;
         }
@@ -391,6 +400,7 @@ namespace ADM
         private void treeResetButton_Click(object sender, EventArgs e)
         {
             treeResetButton.Enabled = false;
+            Application.DoEvents();
             currentNodeID = 0;
             currentNodeName = "Root";
             nodeStack.Clear();
@@ -398,7 +408,19 @@ namespace ADM
             treeItemsListBox.Items.Clear();
             treeInfoTextBox.Clear();
             UpdateBrowser();
+            treeAddPlaylistNameTextBox.Clear();
+            highlightedNode = null;
+            ClearMark();
+            SetCurrentNodeInfo(null);
+            SetSelectedNodeInfo(null, true);
             treeResetButton.Enabled = true;
+
+            if (treeResetButton.Text == "Start")
+            {
+                treeUpButton.Enabled = true;
+                treeGoButton.Enabled = true;
+                treeResetButton.Text = "Reset";
+            }
         }
 
         private void GoUp()
@@ -447,6 +469,7 @@ namespace ADM
 
             currentDataSet = result.Product;
             UpdateBrowserList();
+            SetSelectedNodeInfo(null, true);
         }
 
         private void UpdateBrowserList()
@@ -496,37 +519,661 @@ namespace ADM
             }
         }
 
+        string currentNodeText = "", selectedNodeText = "";
+
+        private void SetCurrentNodeInfo(RequestPlayableNavData.ContentDataBranch Node, bool GeneratePanel = false)
+        {
+            if (Node == null)
+                currentNodeText = "";
+            else
+                currentNodeText = string.Format(
+                    "Current Node: {0}\r\nID: ${1}\r\nType: {2}",
+                    Node.Name,
+                    Node.NodeID.ToString("X4"),
+                    Node.IconType.ToString());
+
+            if (GeneratePanel)
+                GenerateTreeInfoPanel();
+        }
+
+        private void SetSelectedNodeInfo(RequestPlayableNavData.ContentDataBranch Node, bool GeneratePanel = false)
+        {
+            if (Node == null)
+                selectedNodeText = "";
+            else
+                selectedNodeText = string.Format(
+                    "Selected Node: {0}\r\nID: ${1}\r\nType: {2}",
+                    Node.Name,
+                    Node.NodeID.ToString("X4"),
+                    Node.IconType.ToString());
+
+            if (GeneratePanel)
+                GenerateTreeInfoPanel();
+        }
+
+        private void GenerateTreeInfoPanel()
+        {
+            if (string.IsNullOrWhiteSpace(selectedNodeText) && !string.IsNullOrWhiteSpace(currentNodeText))
+                treeInfoTextBox.Text = currentNodeText;
+            else if (!string.IsNullOrWhiteSpace(selectedNodeText) && string.IsNullOrWhiteSpace(currentNodeText))
+                treeInfoTextBox.Text = selectedNodeText;
+            else if (!string.IsNullOrWhiteSpace(selectedNodeText) && !string.IsNullOrWhiteSpace(currentNodeText))
+                treeInfoTextBox.Text = string.Format("{0}\r\n\r\n{1}", currentNodeText, selectedNodeText);
+            else
+                treeInfoTextBox.Text = "";
+            treeInfoTextBox.Select(0, 0);
+        }
+
         private void treeGoButton_Click(object sender, EventArgs e)
         {
             if (treeItemsListBox.SelectedItems.Count != 1)
                 return;
             treeGoButton.Enabled = false;
+            Application.DoEvents();
             RequestPlayableNavData.ContentData data = currentDataSet.ContentData[treeItemsListBox.SelectedIndex];
-            if (data.NodeType != RequestPlayableNavData.NodeType.Branch)
+
+            if (data.NodeType == RequestPlayableNavData.NodeType.Branch)
             {
-                treeGoButton.Enabled = true;
-                MessageBox.Show("The process failed, as the node is not a branch!", "Error!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
-                return;
+                SetCurrentNodeInfo((RequestPlayableNavData.ContentDataBranch)currentDataSet.ContentData[treeItemsListBox.SelectedIndex]);
+                SetSelectedNodeInfo(null, true);
+                GoNodeID(data.NodeID, data.Name);
             }
-            GoNodeID(data.NodeID, data.Name);
+            else if (data.NodeType == RequestPlayableNavData.NodeType.Playable)
+                if (data is RequestPlayableNavData.ContentDataPlayable)
+                    PlayNode((RequestPlayableNavData.ContentDataPlayable)data);
+
             treeGoButton.Enabled = true;
         }
 
-        private void treePlayButton_Click(object sender, EventArgs e)
+        RequestPlayableNavData.ContentDataPlayable highlightedNode;
+
+        private void treeItemsListBox_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (treeItemsListBox.SelectedItems.Count != 1)
-                return;
-            treePlayButton.Enabled = false;
-            RequestPlayableNavData.ContentData data = currentDataSet.ContentData[treeItemsListBox.SelectedIndex];
-            if (data.NodeType != RequestPlayableNavData.NodeType.Playable)
             {
-                treePlayButton.Enabled = true;
-                MessageBox.Show("The process failed, as the node is not playable!", "Error!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                highlightedNode = null;
+                SetSelectedNodeInfo(null, true);
                 return;
             }
-            if (data is RequestPlayableNavData.ContentDataPlayable)
-                PlayNode((RequestPlayableNavData.ContentDataPlayable)data);
-            treePlayButton.Enabled = true;
+
+            if (currentDataSet.ContentData[treeItemsListBox.SelectedIndex].NodeType == RequestPlayableNavData.NodeType.Playable)
+            {
+                highlightedNode = (RequestPlayableNavData.ContentDataPlayable)currentDataSet.ContentData[treeItemsListBox.SelectedIndex];
+                SetSelectedNodeInfo(null, true);
+                playUriTextBox.Text = highlightedNode.URL;
+                return;
+            }
+            else
+            {
+                SetSelectedNodeInfo((RequestPlayableNavData.ContentDataBranch)currentDataSet.ContentData[treeItemsListBox.SelectedIndex], true);
+                highlightedNode = null;
+            }
+        }
+
+        private void uploadGoButton_Click(object sender, EventArgs e)
+        {
+            uploadGoButton.Enabled = false;
+            uploadProgressBar.Value = 0;
+            Application.DoEvents();
+
+            if (string.IsNullOrWhiteSpace(uploadTitleTextBox.Text))
+            {
+                MessageBox.Show("The title is empty!", "Error!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                uploadGoButton.Enabled = true;
+                uploadProgressBar.Value = 0;
+                return;
+            }
+
+            bool askForReview = false;
+            if (string.IsNullOrWhiteSpace(uploadArtistTextBox.Text))
+            {
+                uploadArtistTextBox.Text = "No Artist";
+                askForReview = true;
+            }
+            if (string.IsNullOrWhiteSpace(uploadAlbumTextBox.Text))
+            {
+                uploadAlbumTextBox.Text = "No Album";
+                askForReview = true;
+            }
+            if (string.IsNullOrWhiteSpace(uploadGenreTextBox.Text))
+            {
+                uploadGenreTextBox.Text = "No Genre";
+                askForReview = true;
+            }
+
+            uint trackno = 0;
+            if (string.IsNullOrWhiteSpace(uploadTracknoTextBox.Text))
+            {
+                uploadTracknoTextBox.Text = "0";
+                askForReview = true;
+            }
+            else if (!uint.TryParse(uploadTracknoTextBox.Text, out trackno))
+            {
+                MessageBox.Show("Invalid trackno!", "Error!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                uploadGoButton.Enabled = true;
+                uploadProgressBar.Value = 0;
+                return;
+            }
+
+            uint year = 0;
+            if (string.IsNullOrWhiteSpace(uploadYearTextBox.Text))
+            {
+                uploadYearTextBox.Text = "0";
+                askForReview = true;
+            }
+            else if (!uint.TryParse(uploadYearTextBox.Text, out year))
+            {
+                MessageBox.Show("Invalid year!", "Error!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                uploadGoButton.Enabled = true;
+                uploadProgressBar.Value = 0;
+                return;
+            }
+
+            if (askForReview)
+            {
+                MessageBox.Show("You have left some fields blank. These have been automatically changed. Please review the changes!", "Notice!",
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+                uploadGoButton.Enabled = true;
+                uploadProgressBar.Value = 0;
+                return;
+            }
+
+            if (openUploadFileDialog.ShowDialog() != System.Windows.Forms.DialogResult.OK)
+            {
+                uploadGoButton.Enabled = true;
+                uploadProgressBar.Value = 0;
+                return;
+            }
+
+            if (!File.Exists(openUploadFileDialog.FileName))
+            {
+                MessageBox.Show("The specified file does not exist!", "Error!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                uploadGoButton.Enabled = true;
+                uploadProgressBar.Value = 0;
+                return;
+            }
+
+            string type = Path.GetExtension(openUploadFileDialog.FileName).Replace(".", "").ToLower();
+
+            if (type != "mp3" && type != "wma" && type != "aac" && type != "wav")
+            {
+                MessageBox.Show("The specified file type is not supported!", "Error!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                uploadGoButton.Enabled = true;
+                uploadProgressBar.Value = 0;
+                return;
+            }
+
+            byte[] mediaBytes;
+            try
+            {
+                mediaBytes = File.ReadAllBytes(openUploadFileDialog.FileName);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(string.Format("Error reading the media file:\n{0}", ex.Message), "Error!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                uploadGoButton.Enabled = true;
+                uploadProgressBar.Value = 0;
+                return;
+            }
+
+            if (!client.GetUpdateID().Success)
+            {
+                MessageBox.Show("Could not fetch the current update ID!", "Error!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                uploadGoButton.Enabled = true;
+                uploadProgressBar.Value = 0;
+                return;
+            }
+
+            uploadProgressBar.Value = 25;
+            Application.DoEvents();
+
+            Result<RequestObjectCreate.ResponseParameters> result = client.RequestObjectCreate(
+                uploadArtistTextBox.Text.Trim(), uploadAlbumTextBox.Text.Trim(), uploadGenreTextBox.Text.Trim(), uploadTitleTextBox.Text.Trim(),
+                trackno, year, type, 0, 10);
+
+            if (!result.Success)
+            {
+                MessageBox.Show(string.Format("The meta upload process failed:\n\n{0}", result.ToString()), "Error!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                uploadGoButton.Enabled = true;
+                uploadProgressBar.Value = 0;
+                return;
+            }
+
+            if (result.Product.Status.Status != WADMStatus.StatusCode.Success)
+            {
+                MessageBox.Show(string.Format("The meta upload process failed:\n\n{0}", result.ToString()), "Error!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                uploadGoButton.Enabled = true;
+                uploadProgressBar.Value = 0;
+                return;
+            }
+
+            uploadProgressBar.Value = 50;
+            Application.DoEvents();
+
+            Result putResult = Delivery.PutMediaWithoutArt(result.Product.ImportResource.EndPoint, result.Product.ImportResource.Path, mediaBytes);
+
+            if (!putResult.Success)
+            {
+                MessageBox.Show(string.Format("The upload process failed:\n\n{0}", putResult.ToString()), "Error!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                uploadGoButton.Enabled = true;
+                uploadProgressBar.Value = 0;
+                return;
+            }
+
+            DateTime start = DateTime.Now;
+            while ((DateTime.Now - start).TotalSeconds < 25)
+            {
+                Application.DoEvents();
+                Thread.Sleep(1000);
+                Application.DoEvents();
+
+                Result<RequestTransferComplete.ResponseParameters> finalizeResult = client.RequestTransferComplete(result.Product.Index, uploadTitleTextBox.Text.Trim());
+
+                if (finalizeResult.Success)
+                {
+                    if (finalizeResult.Product.Status.Status == WADMStatus.StatusCode.Busy)
+                        continue;
+                    else if (finalizeResult.Product.Status.Status == WADMStatus.StatusCode.Success)
+                        break;
+
+                    MessageBox.Show("The stereo replied that the upload failed!", "Error!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                    uploadGoButton.Enabled = true;
+                    uploadProgressBar.Value = 0;
+                    return;
+                }
+            }
+
+            uploadProgressBar.Value = 75;
+            Application.DoEvents();
+
+            if (!client.SvcDbDump().Success)
+            {
+                MessageBox.Show("Could not synchronize the database!", "Error!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                uploadGoButton.Enabled = true;
+                uploadProgressBar.Value = 0;
+                return;
+            }
+
+            uploadProgressBar.Value = 100;
+            Application.DoEvents();
+
+            MessageBox.Show("The file was successfully uploaded!", "Success!", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            if (treeResetButton.Text != "Start")
+                UpdateBrowser();
+            uploadGoButton.Enabled = true;
+            uploadProgressBar.Value = 0;
+        }
+
+        private void treePlaylistAddButton_Click(object sender, EventArgs e)
+        {
+            treePlaylistAddButton.Enabled = false;
+            Application.DoEvents();
+
+            if (string.IsNullOrWhiteSpace(treeAddPlaylistNameTextBox.Text))
+            {
+                MessageBox.Show("The playlist name is empty!", "Error!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                treePlaylistAddButton.Enabled = true;
+                return;
+            }
+
+            if (!client.GetUpdateID().Success)
+            {
+                MessageBox.Show("Could not fetch the current update ID!", "Error!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                treePlaylistAddButton.Enabled = true;
+                return;
+            }
+
+            Result<RequestPlaylistCreate.ResponseParameters> result = client.RequestPlaylistCreate(treeAddPlaylistNameTextBox.Text.Trim());
+            if (!result.Success)
+            {
+                MessageBox.Show(string.Format("The process failed:\n\n{0}", result.ToString()), "Error!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                treePlaylistAddButton.Enabled = true;
+                return;
+            }
+
+            if (result.Product.Status.Status != WADMStatus.StatusCode.Success)
+            {
+                MessageBox.Show(string.Format("The process failed:\n\n{0}", result.ToString()), "Error!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                treePlaylistAddButton.Enabled = true;
+                return;
+            }
+
+            MessageBox.Show("The process succeeded!", "Success!", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            treeAddPlaylistNameTextBox.Clear();
+            if (treeResetButton.Text != "Start")
+                if (((currentNodeID >> 24) & 0xFF) == 0x1b) // 0x1b = 0b11011 = Playlist root node
+                    UpdateBrowser();
+
+            treePlaylistAddButton.Enabled = true;
+        }
+
+        private void treePlaylistOrTrackDeleteButton_Click(object sender, EventArgs e)
+        {
+            treePlaylistOrTrackDeleteButton.Enabled = false;
+            Application.DoEvents();
+
+            if (treeItemsListBox.SelectedItems.Count != 1)
+            {
+                MessageBox.Show("No playlist or child track selected!", "Error!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                treePlaylistOrTrackDeleteButton.Enabled = true;
+                return;
+            }
+
+            RequestPlayableNavData.ContentData data = currentDataSet.ContentData[treeItemsListBox.SelectedIndex];
+            if (data.NodeType == RequestPlayableNavData.NodeType.Playable)
+            {
+                if (((data.ParentID >> 24) & 0xFF) != 0x1c) // 0x1c = 0b00011100 = Playlist sub item
+                {
+                    MessageBox.Show("The selected track is not selected from a playlist!", "Error!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                    treePlaylistOrTrackDeleteButton.Enabled = true;
+                    return;
+                }
+            }
+            else if (data.NodeType == RequestPlayableNavData.NodeType.Branch)
+            {
+                if (((data.NodeID >> 24) & 0xFF) != 0x1c) // 0x1c = 0b00011100 = Playlist sub item
+                {
+                    MessageBox.Show("The selected item is not a playlist!", "Error!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                    treePlaylistOrTrackDeleteButton.Enabled = true;
+                    return;
+                }
+            }
+            else
+            {
+                treePlaylistOrTrackDeleteButton.Enabled = true;
+                return;
+            }
+
+            if (!client.GetUpdateID().Success)
+            {
+                MessageBox.Show("Could not fetch the current update ID!", "Error!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                treePlaylistOrTrackDeleteButton.Enabled = true;
+                return;
+            }
+
+            Result<RequestPlaylistDelete.ResponseParameters> result = client.RequestPlaylistDelete(data.NodeID, data.Name);
+
+            if (!result.Success)
+            {
+                MessageBox.Show(string.Format("The process failed:\n\n{0}", result.ToString()), "Error!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                treePlaylistOrTrackDeleteButton.Enabled = true;
+                return;
+            }
+
+            if (result.Product.Status.Status != WADMStatus.StatusCode.Success)
+            {
+                MessageBox.Show(string.Format("The process failed:\n\n{0}", result.ToString()), "Error!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                treePlaylistOrTrackDeleteButton.Enabled = true;
+                return;
+            }
+
+            MessageBox.Show("The process succeeded!", "Success!", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            UpdateBrowser();
+            treePlaylistOrTrackDeleteButton.Enabled = true;
+        }
+
+        RequestPlayableNavData.ContentDataPlayable markedNode = null;
+        private void treeMarkButton_Click(object sender, EventArgs e)
+        {
+            if (treeItemsListBox.SelectedItems.Count != 1)
+            {
+                MessageBox.Show("Nothing selected!", "Error!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                return;
+            }
+
+            if (currentDataSet.ContentData[treeItemsListBox.SelectedIndex].NodeType != RequestPlayableNavData.NodeType.Playable)
+            {
+                MessageBox.Show("The selection is no playable node!", "Error!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                return;
+            }
+
+            MarkNode((RequestPlayableNavData.ContentDataPlayable)currentDataSet.ContentData[treeItemsListBox.SelectedIndex]);
+
+            uploadTitleTextBox.Text = markedNode.Name;
+            uploadArtistTextBox.Text = markedNode.Artist;
+            uploadAlbumTextBox.Text = markedNode.Album;
+            uploadGenreTextBox.Text = markedNode.Genre;
+            uploadTracknoTextBox.Text = markedNode.TrackNo.ToString();
+            uploadYearTextBox.Text = markedNode.Year.ToString();
+        }
+
+        private void MarkNode(RequestPlayableNavData.ContentDataPlayable NewNode)
+        {
+            markedNode = NewNode;
+            UpdateMark();
+        }
+
+        private void ClearMark()
+        {
+            markedNode = null;
+            UpdateMark();
+        }
+
+        private void UpdateMark()
+        {
+            if (markedNode == null)
+            {
+                treeMarkLabel.Text = "None";
+                return;
+            }
+
+            treeMarkLabel.Text = markedNode.Name;
+        }
+
+        private void treeDeleteButton_Click(object sender, EventArgs e)
+        {
+            treeDeleteButton.Enabled = false;
+            Application.DoEvents();
+
+            if (markedNode == null)
+            {
+                MessageBox.Show("Nothing marked!", "Error!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                treeDeleteButton.Enabled = true;
+                return;
+            }
+
+            if (MessageBox.Show(string.Format("Do you really want to delete the following track:\n{0} - {1}", markedNode.Artist, markedNode.Title), "Error!",
+                MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
+            {
+                treeDeleteButton.Enabled = true;
+                return;
+            }
+
+            if (!client.GetUpdateID().Success)
+            {
+                MessageBox.Show("Could not fetch the current update ID!", "Error!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                treeDeleteButton.Enabled = true;
+                return;
+            }
+
+            Result<RequestObjectDestroy.ResponseParameters> result = client.RequestObjectDestroy(markedNode.NodeID);
+
+            if (!result.Success)
+            {
+                MessageBox.Show(string.Format("The process failed:\n\n{0}", result.ToString()), "Error!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                treeDeleteButton.Enabled = true;
+                return;
+            }
+
+            if (result.Product.Status.Status != WADMStatus.StatusCode.Success)
+            {
+                MessageBox.Show(string.Format("The process failed:\n\n{0}", result.ToString()), "Error!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                treeDeleteButton.Enabled = true;
+                return;
+            }
+
+            ClearMark();
+            treeResetButton.PerformClick();
+            treeDeleteButton.Enabled = true;
+        }
+
+        private void treeDownloadButton_Click(object sender, EventArgs e)
+        {
+            treeDownloadButton.Enabled = false;
+            Application.DoEvents();
+
+            if (markedNode == null)
+            {
+                MessageBox.Show("Nothing marked!", "Error!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                treeDownloadButton.Enabled = true;
+                return;
+            }
+
+            try
+            {
+                string fileExt = markedNode.URL.Contains('.') ? markedNode.URL.Substring(markedNode.URL.LastIndexOf('.')) : ".mp3";
+                string downloadPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), markedNode.Title + fileExt);
+
+                saveDownloadFileDialog.FileName = downloadPath;
+                if (saveDownloadFileDialog.ShowDialog() != System.Windows.Forms.DialogResult.OK)
+                {
+                    treeDownloadButton.Enabled = true;
+                    return;
+                }
+
+                web.DownloadFile(markedNode.URL, saveDownloadFileDialog.FileName);
+                MessageBox.Show(string.Format("Successfully downloaded {0} - {1} to:\n{2}",
+                    markedNode.Artist, markedNode.Title, downloadPath), "Success!", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(string.Format("Error downloading the media file:\n{0}", ex.Message), "Error!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                treeDownloadButton.Enabled = true;
+                return;
+            }
+
+            treeDownloadButton.Enabled = true;
+        }
+
+        private void treePlaylistPasteButton_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void uploadUpdateMarkedButton_Click(object sender, EventArgs e)
+        {
+            uploadUpdateMarkedButton.Enabled = false;
+            Application.DoEvents();
+
+            if (markedNode == null)
+            {
+                MessageBox.Show("Nothing marked!", "Error!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                uploadUpdateMarkedButton.Enabled = true;
+                return;
+            }
+
+            if (!client.GetUpdateID().Success)
+            {
+                MessageBox.Show("Could not fetch the current update ID!", "Error!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                uploadUpdateMarkedButton.Enabled = true;
+                return;
+            }
+
+            Result<RequestObjectUpdate.ResponseParameters> result;
+            uint fieldcount = 0;
+            if (uploadTitleTextBox.Text != markedNode.Name)
+            {
+                result = client.RequestObjectUpdate(RequestObjectUpdate.FieldType.Name, markedNode.NodeID, uploadTitleTextBox.Text, markedNode.Name);
+                if (!HandleUpdateObjectError(result))
+                {
+                    uploadUpdateMarkedButton.Enabled = true;
+                    return;
+                }
+
+                fieldcount++;
+            }
+
+            if (uploadArtistTextBox.Text != markedNode.Artist)
+            {
+                result = client.RequestObjectUpdate(RequestObjectUpdate.FieldType.Artist, markedNode.NodeID, uploadArtistTextBox.Text, markedNode.Artist);
+                if (!HandleUpdateObjectError(result))
+                {
+                    uploadUpdateMarkedButton.Enabled = true;
+                    return;
+                }
+
+                fieldcount++;
+            }
+
+            if (uploadAlbumTextBox.Text != markedNode.Album)
+            {
+                result = client.RequestObjectUpdate(RequestObjectUpdate.FieldType.Album, markedNode.NodeID, uploadAlbumTextBox.Text, markedNode.Album);
+                if (!HandleUpdateObjectError(result))
+                {
+                    uploadUpdateMarkedButton.Enabled = true;
+                    return;
+                }
+
+                fieldcount++;
+            }
+
+            if (uploadGenreTextBox.Text != markedNode.Genre)
+            {
+                result = client.RequestObjectUpdate(RequestObjectUpdate.FieldType.Genre, markedNode.NodeID, uploadGenreTextBox.Text, markedNode.Genre);
+                if (!HandleUpdateObjectError(result))
+                {
+                    uploadUpdateMarkedButton.Enabled = true;
+                    return;
+                }
+
+                fieldcount++;
+            }
+
+            if (uploadTracknoTextBox.Text != markedNode.TrackNo.ToString())
+            {
+                uint newTrackno;
+                if (!uint.TryParse(uploadTracknoTextBox.Text, out newTrackno))
+                    MessageBox.Show("Invalid trackno! Skipping.", "Error!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                else
+                {
+                    result = client.RequestObjectUpdate(RequestObjectUpdate.FieldType.TrackNum, markedNode.NodeID, newTrackno.ToString(), markedNode.TrackNo.ToString());
+                    if (!HandleUpdateObjectError(result))
+                    {
+                        uploadUpdateMarkedButton.Enabled = true;
+                        return;
+                    }
+                }
+
+                fieldcount++;
+            }
+
+            if (uploadYearTextBox.Text != markedNode.Year.ToString())
+            {
+                uint newYear;
+                if (!uint.TryParse(uploadYearTextBox.Text, out newYear))
+                    MessageBox.Show("Invalid year! Skipping.", "Error!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                else
+                {
+                    result = client.RequestObjectUpdate(RequestObjectUpdate.FieldType.Year, markedNode.NodeID, newYear.ToString(), markedNode.Year.ToString());
+                    if (!HandleUpdateObjectError(result))
+                    {
+                        uploadUpdateMarkedButton.Enabled = true;
+                        return;
+                    }
+                }
+
+                fieldcount++;
+            }
+
+            MessageBox.Show(string.Format("Successfully updated {0} field(s)!", fieldcount), "Success!", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            uploadUpdateMarkedButton.Enabled = true;
+        }
+
+        private bool HandleUpdateObjectError(Result<RequestObjectUpdate.ResponseParameters> Result)
+        {
+            if (!Result.Success)
+            {
+                MessageBox.Show(string.Format("The process failed:\n\n{0}", Result.ToString()), "Error!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                return false;
+            }
+
+            if (Result.Product.Status.Status != WADMStatus.StatusCode.Success)
+            {
+                MessageBox.Show(string.Format("The process failed:\n\n{0}", Result.ToString()), "Error!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                return false;
+            }
+
+            return true;
         }
     }
 }
