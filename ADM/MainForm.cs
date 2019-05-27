@@ -1,23 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
+using System.IO;
 using System.Linq;
-using System.Text;
+using System.Net;
+using System.Threading;
 using System.Windows.Forms;
 using nxgmci;
-using System.Net;
-using System.IO;
-using nxgmci.Network;
-using nxgmci.Protocol;
 using nxgmci.Cover;
-using nxgmci.Metadata;
-using nxgmci.Protocol.WADM;
 using nxgmci.Device;
 using nxgmci.Metadata.Playlist;
+using nxgmci.Network;
 using nxgmci.Protocol.Delivery;
-using System.Threading;
+using nxgmci.Protocol.WADM;
 
 namespace ADM
 {
@@ -25,6 +20,7 @@ namespace ADM
     {
         private static IPAddress ip = new IPAddress(new byte[] { 10, 0, 0, 10 });
         //private static IPAddress ip = new IPAddress(new byte[] { 192, 168, 10, 3 });
+        //private static IPAddress ip = new IPAddress(new byte[] { 172, 16, 1, 19 });
 
         private MCI500H stereo = new MCI500H(ip);
         int lastid = -1;
@@ -277,10 +273,10 @@ namespace ADM
 
         private void playUriButton_Click(object sender, EventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(playUriTextBox.Text))
+            if (string.IsNullOrWhiteSpace(playUriComboBox.Text))
                 return;
             
-            string url = playUriTextBox.Text.Trim();
+            string url = playUriComboBox.Text.Trim();
 
             if (url.ToLower().EndsWith(".m3u"))
             {
@@ -527,7 +523,7 @@ namespace ADM
                 currentNodeText = "";
             else
                 currentNodeText = string.Format(
-                    "Current Node: {0}\r\nID: ${1}\r\nType: {2}",
+                    "Current Node:\r\nName: {0} \tID: ${1}\tType: {2}",
                     Node.Name,
                     Node.NodeID.ToString("X4"),
                     Node.IconType.ToString());
@@ -542,10 +538,29 @@ namespace ADM
                 selectedNodeText = "";
             else
                 selectedNodeText = string.Format(
-                    "Selected Node: {0}\r\nID: ${1}\r\nType: {2}",
+                    "Selected Node:\r\nName: {0} \tID: ${1}\tType: {2}",
                     Node.Name,
                     Node.NodeID.ToString("X4"),
                     Node.IconType.ToString());
+
+            if (GeneratePanel)
+                GenerateTreeInfoPanel();
+        }
+
+        private void SetSelectedPlayableInfo(RequestPlayableNavData.ContentDataPlayable Node, bool GeneratePanel = false)
+        {
+            if (Node == null)
+                selectedNodeText = "";
+            else
+                selectedNodeText = string.Format(
+                    "Selected Track:\r\nName: {0} \tID: ${1}\r\nArtist: {2} \tAlbum: {3}\r\nGenre: {4} \tTrack#: {5} \tYear: {6}",
+                    Node.Name,
+                    Node.NodeID.ToString("X4"),
+                    Node.Artist,
+                    Node.Album,
+                    Node.Genre,
+                    Node.TrackNo,
+                    Node.Year);
 
             if (GeneratePanel)
                 GenerateTreeInfoPanel();
@@ -599,8 +614,8 @@ namespace ADM
             if (currentDataSet.ContentData[treeItemsListBox.SelectedIndex].NodeType == RequestPlayableNavData.NodeType.Playable)
             {
                 highlightedNode = (RequestPlayableNavData.ContentDataPlayable)currentDataSet.ContentData[treeItemsListBox.SelectedIndex];
-                SetSelectedNodeInfo(null, true);
-                playUriTextBox.Text = highlightedNode.URL;
+                SetSelectedPlayableInfo((RequestPlayableNavData.ContentDataPlayable)currentDataSet.ContentData[treeItemsListBox.SelectedIndex], true);
+                playUriComboBox.Text = highlightedNode.URL;
                 return;
             }
             else
@@ -877,6 +892,12 @@ namespace ADM
                     treePlaylistOrTrackDeleteButton.Enabled = true;
                     return;
                 }
+                if (MessageBox.Show(string.Format("Do you really want to delete the following playlist:\n{0}", data.Name), "Attention!",
+                MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
+                {
+                    treePlaylistOrTrackDeleteButton.Enabled = true;
+                    return;
+                }
             }
             else
             {
@@ -972,7 +993,7 @@ namespace ADM
                 return;
             }
 
-            if (MessageBox.Show(string.Format("Do you really want to delete the following track:\n{0} - {1}", markedNode.Artist, markedNode.Title), "Error!",
+            if (MessageBox.Show(string.Format("Do you really want to delete the following track:\n{0} - {1}", markedNode.Artist, markedNode.Title), "Attention!",
                 MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
             {
                 treeDeleteButton.Enabled = true;
@@ -1047,7 +1068,48 @@ namespace ADM
 
         private void treePlaylistPasteButton_Click(object sender, EventArgs e)
         {
+            treePlaylistPasteButton.Enabled = false;
+            Application.DoEvents();
 
+            if (markedNode == null)
+            {
+                MessageBox.Show("Nothing marked!", "Error!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                treePlaylistPasteButton.Enabled = true;
+                return;
+            }
+
+            if (((currentNodeID >> 24) & 0xFF) != 0x1c) // 0x1c = 0b00011100 = Playlist sub item
+            {
+                MessageBox.Show("The currently active node is no playlist!", "Error!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                treePlaylistPasteButton.Enabled = true;
+                return;
+            }
+
+            if (!client.GetUpdateID().Success)
+            {
+                MessageBox.Show("Could not fetch the current update ID!", "Error!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                treePlaylistPasteButton.Enabled = true;
+                return;
+            }
+
+            Result<RequestPlaylistTrackInsert.ResponseParameters> result = client.RequestPlaylistTrackAdd(currentNodeID, markedNode.NodeID);
+            if (!result.Success)
+            {
+                MessageBox.Show(string.Format("The process failed:\n\n{0}", result.ToString()), "Error!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                treePlaylistPasteButton.Enabled = true;
+                return;
+            }
+
+            if (result.Product.Status.Status != WADMStatus.StatusCode.Success)
+            {
+                MessageBox.Show(string.Format("The process failed:\n\n{0}", result.ToString()), "Error!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                treePlaylistPasteButton.Enabled = true;
+                return;
+            }
+
+            MessageBox.Show("The process succeeded!", "Success!", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            UpdateBrowser();
+            treePlaylistPasteButton.Enabled = true;
         }
 
         private void uploadUpdateMarkedButton_Click(object sender, EventArgs e)
@@ -1174,6 +1236,11 @@ namespace ADM
             }
 
             return true;
+        }
+
+        private void treeMarkLabel_Click(object sender, EventArgs e)
+        {
+            ClearMark();
         }
     }
 }

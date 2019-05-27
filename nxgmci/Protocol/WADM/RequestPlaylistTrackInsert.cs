@@ -28,13 +28,13 @@ namespace nxgmci.Protocol.WADM
 
             // And build the request
             return string.Format(
-                "<requestplaylistdelete><requestparameters>" +
+                "<requestplaylisttrackinsert><requestparameters>" +
                 "<updateid>{0}</updateid>" +
                 "<targetindex>{1}</targetindex>" + // The target ID uses Playlist child nodes of Playlist - as expected
                 "<sourceindex>{2}</sourceindex>" + // The source ID uses the All-track -> Track namespace. TODO: Check, if others may be used.
                 "<offset>-1</offset>" + // Perhaps, offset will allow you to define an order rightaway - it's usually always set to -1 though.
                 "<movetrack>0</movetrack>" +
-                "</requestparameters></requestplaylistdelete>",
+                "</requestparameters></requestplaylisttrackinsert>",
                 UpdateID,
                 TargetIndex,
                 SourceIndex);
@@ -56,13 +56,13 @@ namespace nxgmci.Protocol.WADM
 
             // And build the request
             return string.Format(
-                "<requestplaylistdelete><requestparameters>" +
+                "<requestplaylisttrackinsert><requestparameters>" +
                 "<updateid>{0}</updateid>" +
                 "<targetindex>{1}</targetindex>" + // The target ID uses Playlist child nodes of Playlist. The parent of the item to be moved.
                 "<sourceindex>{2}</sourceindex>" + // The source ID uses Track child-nodes of Playlist node - TODO: Check, if others may be used.
                 "<offset>{3}</offset>" + // TOOD: Figure out how this works
                 "<movetrack>1</movetrack>" +
-                "</requestparameters></requestplaylistdelete>",
+                "</requestparameters></requestplaylisttrackinsert>",
                 UpdateID,
                 TargetIndex,
                 SourceIndex,

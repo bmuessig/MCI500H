@@ -1204,6 +1204,223 @@ namespace nxgmci.Protocol.WADM
         }
 
         /// <summary>
+        /// Attempts to add a track to a playlist.
+        /// Using this request will update the client's update ID.
+        /// </summary>
+        /// <param name="TargetIndex">The index of the playlist to insert the track into.</param>
+        /// <param name="SourceIndex">The index of the track to insert into the playlist.</param>
+        /// <returns>A result object that contains a serialized version of the response data.</returns>
+        public Result<RequestPlaylistTrackInsert.ResponseParameters> RequestPlaylistTrackAdd(uint TargetIndex, uint SourceIndex)
+        {
+            // Create the result object
+            Result<RequestPlaylistTrackInsert.ResponseParameters> result = new Result<RequestPlaylistTrackInsert.ResponseParameters>();
+
+            // Allocate the temporary settings variables
+            bool validateInput, looseSyntax, freezeUpdateID;
+
+            // Fetch the settings thread-safe and ahead of time
+            lock (settingsLock)
+            {
+                validateInput = this.validateInput;
+                looseSyntax = this.looseSyntax;
+                freezeUpdateID = this.freezeUpdateID;
+            }
+
+            // Allocate the response objects
+            Postmaster.QueryResponse queryResponse;
+            Result<RequestPlaylistTrackInsert.ResponseParameters> parseResult;
+
+            // Create the event result object
+            Result<Postmaster.QueryResponse> queryResult = new Result<Postmaster.QueryResponse>();
+
+            // Allocate the outbound query and shadow response text
+            string outboundQuery = null, shadowResponse = string.Empty;
+
+            // Build the query
+            outboundQuery = WADM.RequestPlaylistTrackInsert.BuildAdd(this.UpdateID, TargetIndex, SourceIndex);
+
+            // Verify the query
+            if (string.IsNullOrWhiteSpace(outboundQuery))
+                result.FailMessage("The query string could not be built since invalid parameters were supplied!");
+
+            // Execute the request
+            queryResponse = Postmaster.PostXML(ipEndpoint, Path, outboundQuery, true);
+
+            // Check the result
+            if (queryResponse == null)
+                result.FailMessage("The query response was null!");
+            else if (!queryResponse.Success)
+                result.FailErrorMessage(new Exception(queryResponse.Message), "The query failed!");
+            else if (!queryResponse.IsTextualReponse || string.IsNullOrWhiteSpace(queryResponse.TextualResponse))
+                result.FailMessage("The query response was invalid!");
+            else // Store a shadow copy of the response, as the query response is passed to the callee via an event and might later be compromised
+                shadowResponse = string.Copy(queryResponse.TextualResponse.Trim());
+
+            // Raise the event
+            OnResponseReceived(new ResultEventArgs<Postmaster.QueryResponse>(
+                Result<Postmaster.QueryResponse>.SucceedProduct(queryResult, queryResponse, "RequestPlaylistTrackAdd")));
+
+            // Check, if the process failed
+            if (result.Finalized)
+                return result;
+
+            // Parse the response
+            parseResult = WADM.RequestPlaylistTrackInsert.Parse(shadowResponse, validateInput, looseSyntax);
+
+            // Sanity check the result
+            if (parseResult == null)
+                return Result<RequestPlaylistTrackInsert.ResponseParameters>.FailMessage(result, "The parsed result was null!");
+            if (parseResult.Success && (!parseResult.HasProduct || parseResult.Product == null))
+                return Result<RequestPlaylistTrackInsert.ResponseParameters>.FailMessage(result, "The parsed product was invalid!");
+
+            // Check, if the result is a success
+            if (parseResult.Success)
+            {
+                // Store the current and previous update ID, as well as allocate an flag that stores whether the field was updated
+                uint newUpdateID = parseResult.Product.UpdateID, oldUpdateID = 0;
+                bool wasUpdated = false;
+
+                // Check, if the update ID may be updated automatically
+                if (!freezeUpdateID && newUpdateID != 0)
+                {
+                    // Lock the updating for thread-safety
+                    lock (updateIDLock)
+                    {
+                        // Store the previous update ID
+                        oldUpdateID = this.updateID;
+
+                        // If the two update IDs differ, update the old one
+                        if ((wasUpdated = (oldUpdateID != newUpdateID)))
+                            this.updateID = newUpdateID;
+                    }
+                }
+
+                // Check, if anything was updated and raise the update event if true
+                if (wasUpdated)
+                    OnUpdateIDChanged(new UpdateIDEventArgs(newUpdateID, true, oldUpdateID));
+
+                // Return the result
+                return Result<RequestPlaylistTrackInsert.ResponseParameters>.SucceedProduct(result, parseResult.Product, parseResult.Message);
+            }
+
+            // Try to return a detailed error
+            if (parseResult.Error != null)
+                return Result<RequestPlaylistTrackInsert.ResponseParameters>.FailErrorMessage(result, parseResult.Error, "The parsing failed!");
+
+            // If not possible, return simple failure
+            return Result<RequestPlaylistTrackInsert.ResponseParameters>.FailMessage(result, "The parsing failed due to an unknown reason!");
+        }
+
+        /// <summary>
+        /// Attempts to change the position of a track within a playlist.
+        /// Using this request will update the client's update ID.
+        /// </summary>
+        /// <param name="TargetIndex">The the parent playlist ID of the item to be moved.</param>
+        /// <param name="SourceIndex">The ID of the item to be moved inside the parent's namespace.</param>
+        /// <param name="Offset">Unknown offset. Might be offset from the top.</param>
+        /// <returns>A result object that contains a serialized version of the response data.</returns>
+        public Result<RequestPlaylistTrackInsert.ResponseParameters> RequestPlaylistTrackMove(uint TargetIndex, uint SourceIndex, uint Offset)
+        {
+            // Create the result object
+            Result<RequestPlaylistTrackInsert.ResponseParameters> result = new Result<RequestPlaylistTrackInsert.ResponseParameters>();
+
+            // Allocate the temporary settings variables
+            bool validateInput, looseSyntax, freezeUpdateID;
+
+            // Fetch the settings thread-safe and ahead of time
+            lock (settingsLock)
+            {
+                validateInput = this.validateInput;
+                looseSyntax = this.looseSyntax;
+                freezeUpdateID = this.freezeUpdateID;
+            }
+
+            // Allocate the response objects
+            Postmaster.QueryResponse queryResponse;
+            Result<RequestPlaylistTrackInsert.ResponseParameters> parseResult;
+
+            // Create the event result object
+            Result<Postmaster.QueryResponse> queryResult = new Result<Postmaster.QueryResponse>();
+
+            // Allocate the outbound query and shadow response text
+            string outboundQuery = null, shadowResponse = string.Empty;
+
+            // Build the query
+            outboundQuery = WADM.RequestPlaylistTrackInsert.BuildMove(this.UpdateID, TargetIndex, SourceIndex, Offset);
+
+            // Verify the query
+            if (string.IsNullOrWhiteSpace(outboundQuery))
+                result.FailMessage("The query string could not be built since invalid parameters were supplied!");
+
+            // Execute the request
+            queryResponse = Postmaster.PostXML(ipEndpoint, Path, outboundQuery, true);
+
+            // Check the result
+            if (queryResponse == null)
+                result.FailMessage("The query response was null!");
+            else if (!queryResponse.Success)
+                result.FailErrorMessage(new Exception(queryResponse.Message), "The query failed!");
+            else if (!queryResponse.IsTextualReponse || string.IsNullOrWhiteSpace(queryResponse.TextualResponse))
+                result.FailMessage("The query response was invalid!");
+            else // Store a shadow copy of the response, as the query response is passed to the callee via an event and might later be compromised
+                shadowResponse = string.Copy(queryResponse.TextualResponse.Trim());
+
+            // Raise the event
+            OnResponseReceived(new ResultEventArgs<Postmaster.QueryResponse>(
+                Result<Postmaster.QueryResponse>.SucceedProduct(queryResult, queryResponse, "RequestPlaylistTrackMove")));
+
+            // Check, if the process failed
+            if (result.Finalized)
+                return result;
+
+            // Parse the response
+            parseResult = WADM.RequestPlaylistTrackInsert.Parse(shadowResponse, validateInput, looseSyntax);
+
+            // Sanity check the result
+            if (parseResult == null)
+                return Result<RequestPlaylistTrackInsert.ResponseParameters>.FailMessage(result, "The parsed result was null!");
+            if (parseResult.Success && (!parseResult.HasProduct || parseResult.Product == null))
+                return Result<RequestPlaylistTrackInsert.ResponseParameters>.FailMessage(result, "The parsed product was invalid!");
+
+            // Check, if the result is a success
+            if (parseResult.Success)
+            {
+                // Store the current and previous update ID, as well as allocate an flag that stores whether the field was updated
+                uint newUpdateID = parseResult.Product.UpdateID, oldUpdateID = 0;
+                bool wasUpdated = false;
+
+                // Check, if the update ID may be updated automatically
+                if (!freezeUpdateID && newUpdateID != 0)
+                {
+                    // Lock the updating for thread-safety
+                    lock (updateIDLock)
+                    {
+                        // Store the previous update ID
+                        oldUpdateID = this.updateID;
+
+                        // If the two update IDs differ, update the old one
+                        if ((wasUpdated = (oldUpdateID != newUpdateID)))
+                            this.updateID = newUpdateID;
+                    }
+                }
+
+                // Check, if anything was updated and raise the update event if true
+                if (wasUpdated)
+                    OnUpdateIDChanged(new UpdateIDEventArgs(newUpdateID, true, oldUpdateID));
+
+                // Return the result
+                return Result<RequestPlaylistTrackInsert.ResponseParameters>.SucceedProduct(result, parseResult.Product, parseResult.Message);
+            }
+
+            // Try to return a detailed error
+            if (parseResult.Error != null)
+                return Result<RequestPlaylistTrackInsert.ResponseParameters>.FailErrorMessage(result, parseResult.Error, "The parsing failed!");
+
+            // If not possible, return simple failure
+            return Result<RequestPlaylistTrackInsert.ResponseParameters>.FailMessage(result, "The parsing failed due to an unknown reason!");
+        }
+
+        /// <summary>
         /// Attempts to delete a track from a playlist or an entire playlist at once.
         /// Depending on what node ID is passed as the index parameter, the function will behave accordingly.
         /// Note, that when deleting a track from a playlist, the node ID with the correct namespace has to be passed.

@@ -68,6 +68,7 @@
             this.treeStackListBox = new System.Windows.Forms.ListBox();
             this.uploadTabPage = new System.Windows.Forms.TabPage();
             this.uploadTableLayoutPanel = new System.Windows.Forms.TableLayoutPanel();
+            this.panel3 = new System.Windows.Forms.Panel();
             this.panel2 = new System.Windows.Forms.Panel();
             this.uploadUpdateMarkedButton = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
@@ -88,25 +89,29 @@
             this.label9 = new System.Windows.Forms.Label();
             this.label8 = new System.Windows.Forms.Label();
             this.extrasTabPage = new System.Windows.Forms.TabPage();
+            this.viewIDButton = new System.Windows.Forms.Button();
             this.transmitTryParseButton = new System.Windows.Forms.Button();
             this.extraSplitContainer = new System.Windows.Forms.SplitContainer();
+            this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
+            this.comboBox1 = new System.Windows.Forms.ComboBox();
+            this.checkBox1 = new System.Windows.Forms.CheckBox();
+            this.comboBox2 = new System.Windows.Forms.ComboBox();
+            this.comboBox3 = new System.Windows.Forms.ComboBox();
             this.receiveTextBox = new System.Windows.Forms.TextBox();
             this.mediaTabPage = new System.Windows.Forms.TabPage();
-            this.viewIDButton = new System.Windows.Forms.Button();
             this.mediaSkipAheadButton = new System.Windows.Forms.Button();
             this.mediaSkipBackButton = new System.Windows.Forms.Button();
             this.mediaView = new System.Windows.Forms.ListView();
             this.columnHeader1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader2 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader3 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.playUriTextBox = new System.Windows.Forms.TextBox();
             this.playUriButton = new System.Windows.Forms.Button();
             this.mediaStopButton = new System.Windows.Forms.Button();
             this.mediaPauseButton = new System.Windows.Forms.Button();
             this.mediaPlayButton = new System.Windows.Forms.Button();
             this.openUploadFileDialog = new System.Windows.Forms.OpenFileDialog();
             this.saveDownloadFileDialog = new System.Windows.Forms.SaveFileDialog();
-            this.panel3 = new System.Windows.Forms.Panel();
+            this.playUriComboBox = new System.Windows.Forms.ComboBox();
             this.mainTabControl.SuspendLayout();
             this.browserTabPage.SuspendLayout();
             this.uploadTrackFunctionsGroupBox.SuspendLayout();
@@ -116,6 +121,7 @@
             this.panel1.SuspendLayout();
             this.uploadTabPage.SuspendLayout();
             this.uploadTableLayoutPanel.SuspendLayout();
+            this.panel3.SuspendLayout();
             this.panel2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.uploadAlbumPictureBox)).BeginInit();
             this.extrasTabPage.SuspendLayout();
@@ -123,8 +129,8 @@
             this.extraSplitContainer.Panel1.SuspendLayout();
             this.extraSplitContainer.Panel2.SuspendLayout();
             this.extraSplitContainer.SuspendLayout();
+            this.tableLayoutPanel1.SuspendLayout();
             this.mediaTabPage.SuspendLayout();
-            this.panel3.SuspendLayout();
             this.SuspendLayout();
             // 
             // speedTestButton
@@ -152,10 +158,10 @@
             // transmitTextBox
             // 
             this.transmitTextBox.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.transmitTextBox.Location = new System.Drawing.Point(0, 0);
+            this.transmitTextBox.Location = new System.Drawing.Point(0, 27);
             this.transmitTextBox.Multiline = true;
             this.transmitTextBox.Name = "transmitTextBox";
-            this.transmitTextBox.Size = new System.Drawing.Size(400, 314);
+            this.transmitTextBox.Size = new System.Drawing.Size(400, 287);
             this.transmitTextBox.TabIndex = 3;
             this.transmitTextBox.Text = "<requestplayabledata><nodeid>0</nodeid><numelem>-1</numelem></requestplayabledata" +
                 ">";
@@ -280,6 +286,7 @@
             this.treeMarkLabel.TabIndex = 15;
             this.treeMarkLabel.Text = "None";
             this.treeMarkLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.treeMarkLabel.Click += new System.EventHandler(this.treeMarkLabel_Click);
             // 
             // treeDownloadButton
             // 
@@ -328,7 +335,6 @@
             // treePlaylistPasteButton
             // 
             this.treePlaylistPasteButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.treePlaylistPasteButton.Enabled = false;
             this.treePlaylistPasteButton.Location = new System.Drawing.Point(6, 68);
             this.treePlaylistPasteButton.Name = "treePlaylistPasteButton";
             this.treePlaylistPasteButton.Size = new System.Drawing.Size(95, 29);
@@ -605,6 +611,16 @@
             this.uploadTableLayoutPanel.Size = new System.Drawing.Size(750, 346);
             this.uploadTableLayoutPanel.TabIndex = 19;
             // 
+            // panel3
+            // 
+            this.panel3.Controls.Add(this.panel2);
+            this.panel3.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.panel3.Location = new System.Drawing.Point(105, 20);
+            this.panel3.MinimumSize = new System.Drawing.Size(540, 305);
+            this.panel3.Name = "panel3";
+            this.panel3.Size = new System.Drawing.Size(540, 305);
+            this.panel3.TabIndex = 19;
+            // 
             // panel2
             // 
             this.panel2.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
@@ -739,8 +755,151 @@
             // 
             this.uploadGenreTextBox.FormattingEnabled = true;
             this.uploadGenreTextBox.Items.AddRange(new object[] {
+            "Pop",
             "Rock",
-            "Pop"});
+            "Hard Rock",
+            "Classical",
+            "Blues",
+            "Classic Rock",
+            "Country",
+            "Dance",
+            "Disco",
+            "Grunge",
+            "Hip-Hop",
+            "Jazz",
+            "Metal",
+            "New Age",
+            "Oldies",
+            "Other",
+            "R&B",
+            "Rap",
+            "Reggae",
+            "Techno",
+            "Industrial",
+            "Alternative",
+            "Ska",
+            "Death Metal",
+            "Pranks",
+            "Soundtrack",
+            "Euro-Techno",
+            "Ambient",
+            "Trip-Hop",
+            "Vocal",
+            "Jazz+Funk",
+            "Fusion",
+            "Trance",
+            "Instrumental",
+            "Acid",
+            "House",
+            "Game",
+            "Sound Clip",
+            "Gospel",
+            "Noise",
+            "AlternRock",
+            "Bass",
+            "Soul",
+            "Punk",
+            "Meditative",
+            "Instrumental Pop",
+            "Instrumental Rock",
+            "Ethnic",
+            "Gothic",
+            "Darkwave",
+            "Techno-Industrial",
+            "Electronic",
+            "Pop-Folk",
+            "Eurodance",
+            "Dream",
+            "Southern Rock",
+            "Comedy",
+            "Cult",
+            "Gangsta",
+            "Top 40",
+            "Christian Rap",
+            "Pop/Funk",
+            "Jungle",
+            "Native American",
+            "Cabaret",
+            "New Wave",
+            "Psychadelic",
+            "Rave",
+            "Showtunes",
+            "Trailer",
+            "Lo-Fi",
+            "Tribal",
+            "Acid Punk",
+            "Acid Jazz",
+            "Polka",
+            "Retro",
+            "Musical",
+            "Rock & Roll",
+            "Folk/Rock",
+            "National Folk",
+            "Swing",
+            "Fast-Fusion",
+            "Bebob",
+            "Latin",
+            "Revival",
+            "Celtic",
+            "Bluegrass",
+            "Avantgarde",
+            "Gothic Rock",
+            "Progressive Rock",
+            "Psychedelic Rock",
+            "Symphonic Rock",
+            "Slow Rock",
+            "Big Band",
+            "Chorus",
+            "Easy Listening",
+            "Acoustic",
+            "Humour",
+            "Speech",
+            "Chanson",
+            "Opera",
+            "Chamber Music",
+            "Sonata",
+            "Symphony",
+            "Booty Bass",
+            "Primus",
+            "Porn Groove",
+            "Satire",
+            "Slow Jam",
+            "Club",
+            "Tango",
+            "Samba",
+            "Folklore",
+            "Ballad",
+            "Power Ballad",
+            "Rhythmic Soul",
+            "Freestyle",
+            "Duet",
+            "Punk Rock",
+            "Drum Solo",
+            "A capella",
+            "Euro-House",
+            "Dance Hall",
+            "Goa",
+            "Drum & Bass",
+            "Club House",
+            "Hardcore",
+            "Terror",
+            "Indie",
+            "BritPop",
+            "NegerPunk",
+            "Polsk Punk",
+            "Beat",
+            "Christian Gangsta",
+            "Heavy Metal",
+            "Black Metal",
+            "Crossover",
+            "Contemporary C",
+            "Christian Rock",
+            "Merengue",
+            "Salsa",
+            "Thrash Metal",
+            "Anime",
+            "JPop",
+            "SynthPop"});
             this.uploadGenreTextBox.Location = new System.Drawing.Point(91, 112);
             this.uploadGenreTextBox.Name = "uploadGenreTextBox";
             this.uploadGenreTextBox.Size = new System.Drawing.Size(228, 21);
@@ -793,6 +952,7 @@
             // 
             // extrasTabPage
             // 
+            this.extrasTabPage.Controls.Add(this.viewIDButton);
             this.extrasTabPage.Controls.Add(this.transmitTryParseButton);
             this.extrasTabPage.Controls.Add(this.transmitButton);
             this.extrasTabPage.Controls.Add(this.transmitClearButton);
@@ -807,6 +967,17 @@
             this.extrasTabPage.TabIndex = 0;
             this.extrasTabPage.Text = "Communicate";
             this.extrasTabPage.UseVisualStyleBackColor = true;
+            // 
+            // viewIDButton
+            // 
+            this.viewIDButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.viewIDButton.Location = new System.Drawing.Point(248, 323);
+            this.viewIDButton.Name = "viewIDButton";
+            this.viewIDButton.Size = new System.Drawing.Size(34, 23);
+            this.viewIDButton.TabIndex = 14;
+            this.viewIDButton.Text = "ID?";
+            this.viewIDButton.UseVisualStyleBackColor = true;
+            this.viewIDButton.Click += new System.EventHandler(this.viewIDButton_Click);
             // 
             // transmitTryParseButton
             // 
@@ -830,6 +1001,7 @@
             // extraSplitContainer.Panel1
             // 
             this.extraSplitContainer.Panel1.Controls.Add(this.transmitTextBox);
+            this.extraSplitContainer.Panel1.Controls.Add(this.tableLayoutPanel1);
             // 
             // extraSplitContainer.Panel2
             // 
@@ -837,6 +1009,65 @@
             this.extraSplitContainer.Size = new System.Drawing.Size(747, 314);
             this.extraSplitContainer.SplitterDistance = 400;
             this.extraSplitContainer.TabIndex = 10;
+            // 
+            // tableLayoutPanel1
+            // 
+            this.tableLayoutPanel1.ColumnCount = 4;
+            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 33.33333F));
+            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 33.33333F));
+            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 33.33333F));
+            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
+            this.tableLayoutPanel1.Controls.Add(this.comboBox1, 0, 0);
+            this.tableLayoutPanel1.Controls.Add(this.checkBox1, 3, 0);
+            this.tableLayoutPanel1.Controls.Add(this.comboBox2, 1, 0);
+            this.tableLayoutPanel1.Controls.Add(this.comboBox3, 2, 0);
+            this.tableLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Top;
+            this.tableLayoutPanel1.Location = new System.Drawing.Point(0, 0);
+            this.tableLayoutPanel1.Name = "tableLayoutPanel1";
+            this.tableLayoutPanel1.RowCount = 1;
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.tableLayoutPanel1.Size = new System.Drawing.Size(400, 27);
+            this.tableLayoutPanel1.TabIndex = 5;
+            this.tableLayoutPanel1.Visible = false;
+            // 
+            // comboBox1
+            // 
+            this.comboBox1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.comboBox1.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.comboBox1.FormattingEnabled = true;
+            this.comboBox1.Location = new System.Drawing.Point(3, 3);
+            this.comboBox1.Name = "comboBox1";
+            this.comboBox1.Size = new System.Drawing.Size(107, 21);
+            this.comboBox1.TabIndex = 4;
+            // 
+            // checkBox1
+            // 
+            this.checkBox1.AutoSize = true;
+            this.checkBox1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.checkBox1.Location = new System.Drawing.Point(342, 3);
+            this.checkBox1.Name = "checkBox1";
+            this.checkBox1.Size = new System.Drawing.Size(55, 21);
+            this.checkBox1.TabIndex = 5;
+            this.checkBox1.Text = "Is List";
+            this.checkBox1.UseVisualStyleBackColor = true;
+            // 
+            // comboBox2
+            // 
+            this.comboBox2.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.comboBox2.FormattingEnabled = true;
+            this.comboBox2.Location = new System.Drawing.Point(116, 3);
+            this.comboBox2.Name = "comboBox2";
+            this.comboBox2.Size = new System.Drawing.Size(107, 21);
+            this.comboBox2.TabIndex = 6;
+            // 
+            // comboBox3
+            // 
+            this.comboBox3.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.comboBox3.FormattingEnabled = true;
+            this.comboBox3.Location = new System.Drawing.Point(229, 3);
+            this.comboBox3.Name = "comboBox3";
+            this.comboBox3.Size = new System.Drawing.Size(107, 21);
+            this.comboBox3.TabIndex = 7;
             // 
             // receiveTextBox
             // 
@@ -852,7 +1083,6 @@
             // 
             // mediaTabPage
             // 
-            this.mediaTabPage.Controls.Add(this.viewIDButton);
             this.mediaTabPage.Controls.Add(this.mediaSkipAheadButton);
             this.mediaTabPage.Controls.Add(this.mediaSkipBackButton);
             this.mediaTabPage.Controls.Add(this.mediaView);
@@ -865,17 +1095,6 @@
             this.mediaTabPage.TabIndex = 1;
             this.mediaTabPage.Text = "Database List";
             this.mediaTabPage.UseVisualStyleBackColor = true;
-            // 
-            // viewIDButton
-            // 
-            this.viewIDButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.viewIDButton.Location = new System.Drawing.Point(234, 323);
-            this.viewIDButton.Name = "viewIDButton";
-            this.viewIDButton.Size = new System.Drawing.Size(34, 23);
-            this.viewIDButton.TabIndex = 13;
-            this.viewIDButton.Text = "ID?";
-            this.viewIDButton.UseVisualStyleBackColor = true;
-            this.viewIDButton.Click += new System.EventHandler(this.viewIDButton_Click);
             // 
             // mediaSkipAheadButton
             // 
@@ -930,20 +1149,10 @@
             this.columnHeader3.Text = "Album";
             this.columnHeader3.Width = 187;
             // 
-            // playUriTextBox
-            // 
-            this.playUriTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
-            this.playUriTextBox.Location = new System.Drawing.Point(4, 384);
-            this.playUriTextBox.Name = "playUriTextBox";
-            this.playUriTextBox.Size = new System.Drawing.Size(511, 20);
-            this.playUriTextBox.TabIndex = 10;
-            this.playUriTextBox.Text = "http://mp3-live.swr3.de/swr3raka03_m.m3u";
-            // 
             // playUriButton
             // 
             this.playUriButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.playUriButton.Location = new System.Drawing.Point(521, 382);
+            this.playUriButton.Location = new System.Drawing.Point(525, 382);
             this.playUriButton.Name = "playUriButton";
             this.playUriButton.Size = new System.Drawing.Size(59, 23);
             this.playUriButton.TabIndex = 11;
@@ -994,26 +1203,28 @@
             this.saveDownloadFileDialog.Filter = "MP3 files|*.mp3|WMA files|*.wma|AAC files|*.aac|All files|*.*";
             this.saveDownloadFileDialog.Title = "Download file";
             // 
-            // panel3
+            // playUriComboBox
             // 
-            this.panel3.Controls.Add(this.panel2);
-            this.panel3.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.panel3.Location = new System.Drawing.Point(105, 20);
-            this.panel3.MinimumSize = new System.Drawing.Size(540, 305);
-            this.panel3.Name = "panel3";
-            this.panel3.Size = new System.Drawing.Size(540, 305);
-            this.panel3.TabIndex = 19;
+            this.playUriComboBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)
+                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.playUriComboBox.FormattingEnabled = true;
+            this.playUriComboBox.Items.AddRange(new object[] {
+            "http://mp3-live.swr3.de/swr3raka03_m.m3u"});
+            this.playUriComboBox.Location = new System.Drawing.Point(4, 383);
+            this.playUriComboBox.Name = "playUriComboBox";
+            this.playUriComboBox.Size = new System.Drawing.Size(515, 21);
+            this.playUriComboBox.TabIndex = 15;
             // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(764, 411);
+            this.Controls.Add(this.playUriComboBox);
             this.Controls.Add(this.mediaPlayButton);
             this.Controls.Add(this.mediaStopButton);
             this.Controls.Add(this.mediaPauseButton);
             this.Controls.Add(this.playUriButton);
-            this.Controls.Add(this.playUriTextBox);
             this.Controls.Add(this.mainTabControl);
             this.MinimumSize = new System.Drawing.Size(780, 450);
             this.Name = "MainForm";
@@ -1029,6 +1240,7 @@
             this.panel1.ResumeLayout(false);
             this.uploadTabPage.ResumeLayout(false);
             this.uploadTableLayoutPanel.ResumeLayout(false);
+            this.panel3.ResumeLayout(false);
             this.panel2.ResumeLayout(false);
             this.panel2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.uploadAlbumPictureBox)).EndInit();
@@ -1040,10 +1252,10 @@
             this.extraSplitContainer.Panel2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.extraSplitContainer)).EndInit();
             this.extraSplitContainer.ResumeLayout(false);
+            this.tableLayoutPanel1.ResumeLayout(false);
+            this.tableLayoutPanel1.PerformLayout();
             this.mediaTabPage.ResumeLayout(false);
-            this.panel3.ResumeLayout(false);
             this.ResumeLayout(false);
-            this.PerformLayout();
 
         }
 
@@ -1066,7 +1278,6 @@
         private System.Windows.Forms.ColumnHeader columnHeader3;
         private System.Windows.Forms.Button mediaSkipAheadButton;
         private System.Windows.Forms.Button mediaSkipBackButton;
-        private System.Windows.Forms.TextBox playUriTextBox;
         private System.Windows.Forms.Button playUriButton;
         private System.Windows.Forms.Button transmitTryParseButton;
         private System.Windows.Forms.SplitContainer extraSplitContainer;
@@ -1077,7 +1288,6 @@
         private System.Windows.Forms.Button treeResetButton;
         private System.Windows.Forms.ListBox treeItemsListBox;
         private System.Windows.Forms.Panel panel1;
-        private System.Windows.Forms.Button viewIDButton;
         private System.Windows.Forms.Button treeGoButton;
         private System.Windows.Forms.TabPage uploadTabPage;
         private System.Windows.Forms.ComboBox uploadGenreTextBox;
@@ -1128,6 +1338,13 @@
         private System.Windows.Forms.OpenFileDialog openUploadFileDialog;
         private System.Windows.Forms.SaveFileDialog saveDownloadFileDialog;
         private System.Windows.Forms.Panel panel3;
+        private System.Windows.Forms.Button viewIDButton;
+        private System.Windows.Forms.ComboBox comboBox1;
+        private System.Windows.Forms.TableLayoutPanel tableLayoutPanel1;
+        private System.Windows.Forms.CheckBox checkBox1;
+        private System.Windows.Forms.ComboBox comboBox2;
+        private System.Windows.Forms.ComboBox comboBox3;
+        private System.Windows.Forms.ComboBox playUriComboBox;
     }
 }
 
